@@ -1,0 +1,3 @@
+[console_scripts]
+aspis-tools = aspismanifesttools:execCmd
+

@@ -1,0 +1,5 @@
+{
+  "batch_id":"{{ batch }}"
+  "ASPIS_0_1_0_Stage1_Step1.Manifest": "{{ manifest }}",
+  "ASPIS_0_1_0_Stage1_Step1.BCLFolder": "{{ bcls }}"
+}
