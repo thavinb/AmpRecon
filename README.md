@@ -7,11 +7,10 @@
 
 ## Current To Do [0.1]
 
+- [ ] Write basic nextflow framework
+- [ ] add roadmap figure to readme 
+- [ ] get actual analyses pipeline
 - [x] ~add legacy code Jon codes and modules (mostly for easy access) (DT3)~
-- [ ] add legacy code our own documentation (DT3)
-- [ ] Rewrite legacy code steps using nextflow (DT3)
-- [ ] Get Step 2 command lines (DT5 decisions)
-- [ ] Implement step 2 on nextflow
 
 ## Installation
 [add install instructions]
