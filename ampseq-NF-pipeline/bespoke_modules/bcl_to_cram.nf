@@ -1,17 +1,17 @@
-process fetch_from_irods {
+process bcl_to_cram {
     /*
     *                                           
     */
 
     input:
-        path(irods_path)
+        path(bcl_file)
 
     output:   
         path("*.cram")
 
     script:
-        cram_file = "${irods_path.simpleName}.cram"
+        cram_file = "${bcl_file.simpleName}.cram"
         """
-        mv ${irods_path} ${cram_file}
+        mv ${bcl_file} ${cram_file}
         """
 }
