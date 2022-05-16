@@ -4,10 +4,10 @@ process genotype_amino_alleles {
     */
 
     input:
-        tuple path(vcf_file)
+        path(vcf_file)
 
     output:   
-        tuple path("*.genotypes")
+        path("*.genotypes")
 
     script:
         genotypes_file = "${vcf_file.simpleName}.genotypes"

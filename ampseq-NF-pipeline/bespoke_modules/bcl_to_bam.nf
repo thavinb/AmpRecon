@@ -4,10 +4,10 @@ process bcl_to_bam {
     */
 
     input:
-        tuple path(bcl_file)
+        path(bcl_file)
 
     output:   
-        tuple path("*.bam")
+        path("*.bam")
 
     script:
         bam_file = "${bcl_file.simpleName}.bam"

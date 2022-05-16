@@ -4,10 +4,10 @@ process fetch_from_irods {
     */
 
     input:
-        tuple path(irods_path)
+        path(irods_path)
 
     output:   
-        tuple path("*.bam")
+        path("*.bam")
 
     script:
         bam_file = "${irods_path.simpleName}.bam"

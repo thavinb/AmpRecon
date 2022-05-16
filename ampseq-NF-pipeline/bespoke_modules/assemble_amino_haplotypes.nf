@@ -4,10 +4,10 @@ process assemble_amino_haplotypes {
     */
 
     input:
-        tuple path(genotypes_file)
+        path(genotypes_file)
 
     output:   
-        tuple path("*.haplotypes")
+        path("*.haplotypes")
 
     script:
         haplotypes_file = "${genotypes_file.simpleName}.haplotypes"

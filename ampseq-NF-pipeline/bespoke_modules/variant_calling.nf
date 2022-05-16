@@ -4,10 +4,10 @@ process variant_calling {
     */
 
     input:
-        tuple path(bam_file)
+        path(bam_file)
 
     output:   
-        tuple path("*.vcf")
+        path("*.vcf")
 
     script:
         vcf_file = "${bam_file.simpleName}.vcf"

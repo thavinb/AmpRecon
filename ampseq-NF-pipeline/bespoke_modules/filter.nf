@@ -4,10 +4,10 @@ process filter {
     */
 
     input:
-        tuple path(fastq_file)
+        path(fastq_file)
 
     output:   
-        tuple path("*.filtered.fastq")
+        path("*.filtered.fastq")
 
     script:
         filtered_fastq_file = "${fastq_file.simpleName}.filtered.fastq"
