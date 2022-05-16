@@ -16,7 +16,7 @@ workflow reads_retrieval_workflow {
         bcl_to_bam_ch = bcl_to_bam.out
         fetch_from_irods (irods_paths)
         irods_ch = fetch_from_irods.out
-        bcl_to_bam_ch.join(irods_ch).set{bam_ch}
+        bcl_to_bam_ch.concat(irods_ch).set{bam_ch}
     emit:
         bam_ch
 }
