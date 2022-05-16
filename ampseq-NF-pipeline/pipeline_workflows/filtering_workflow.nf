@@ -1,7 +1,7 @@
 #!/usr/bin/env nextflow
 
 // enable dsl2
-nextflow.preview.dsl = 2
+nextflow.enable.dsl = 2
 
 // import modules
 include { unmap } from '../bespoke_modules/unmap.nf'
@@ -15,6 +15,7 @@ workflow filtering_workflow {
         unmap (bam_ch)
         filter (unmap.out)
         remap (filter.out)
+        remap.out.set { filtered_bam_ch }
     emit:
-        remap.out
+        filtered_bam_ch
 }

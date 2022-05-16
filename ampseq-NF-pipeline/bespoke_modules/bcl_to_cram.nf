@@ -1,12 +1,12 @@
 process bcl_to_cram {
     /*
-    *                                           
+    *
     */
 
     input:
         path(bcl_file)
 
-    output:   
+    output:
         path("*.cram")
 
     script:
