@@ -17,7 +17,7 @@ To start the discussions, a mock pipeline was developed and the current implemen
 
 ## Current To Do [0.1]
 
-- [x] Write basic nextflow framework
+- [x] ~Write basic nextflow framework~
 - [ ] add roadmap figure to readme
 - [ ] get actual analyses pipeline for the prototype phase
 - [x] ~add legacy code Jon codes and modules (mostly for easy access) (DT3)~
