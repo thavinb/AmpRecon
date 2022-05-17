@@ -35,7 +35,7 @@ module load nextflow/21.04.1-5556
 
 **2. Running the pipeline**
 
-The pipeline takes as input a directory containing .bcl files. The full path to this directory should be specified in the config file.
+The pipeline takes as input a directory containing files with the .bcl extension. The full path to this directory should be specified in the config file.
 
 Run the pipeline
 ```
