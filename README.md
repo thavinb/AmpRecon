@@ -5,7 +5,7 @@ The AmpSeq pipeline is a new pipeline developed from scratch to be used by the A
 ## Current Dev Stage: pre_prototype_v0.0
 
 Currently, our main objective is set the piepline structure in a way that is easy to read, understand, maintain, use and alter.
-To start the discussions, a mock pipeline was developed and the current implementation just assume the user have text files with named as _<something>.bcl_ and just rename it to a different format.
+To start the discussions, a mock pipeline was developed and the current implementation just assume the user have text files named as _[something].bcl_ and just rename it to a different format.
 
 ## Roadmap
 
