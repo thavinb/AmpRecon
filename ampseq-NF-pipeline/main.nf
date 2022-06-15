@@ -42,9 +42,9 @@ log.info """
 workflow set_up_params {
     main:
         Channel.fromPath("${params.bcl_dir_path}").set{bcls}
-        Channel.fromPath("${params.lane}").set{lane}
-        Channel.fromPath("${params.run_id}").set{run_id}
-        Channel.fromPath("${params.study_name}").set{study_name}
+        Channel.value("${params.lane}").set{lane}
+        Channel.value("${params.run_id}").set{run_id}
+        Channel.value("${params.study_name}").set{study_name}
         Channel.fromPath("${params.manifest_file_path}").set{manifest}
 
 	//manifest2tag
@@ -67,7 +67,7 @@ workflow {
 
 // Stage 1 - Step 1: BCL to CRAM
 
-    bcl_to_cram(set_up_params.out.bcls, set_up_params.out.lane, set_up_params.out.run_id, set_up_params.out.study_name, set_up_params.out.barcodes_file)
+    bcl_to_cram(set_up_params.out.bcls, set_up_params.out.lane, set_up_params.out.run_id, set_up_params.out.study_name)//, set_up_params.out.barcodes_file)
 }
 
 // -------------- Check if everything went okay -------------------------------
