@@ -4,12 +4,10 @@
 nextflow.enable.dsl = 2
 
 // import modules
-include { reads_retrieval_workflow  } from './pipeline_workflows/reads_retrieval_workflow.nf'
-include { filtering_workflow } from './pipeline_workflows/filtering_workflow.nf'
-include { variant_calling_workflow } from './pipeline_workflows/variant_calling_workflow.nf'
-include { genotyping_workflow } from './pipeline_workflows/genotyping_workflow.nf'
+include { bcl_to_cram } from './pipeline_workflows/step1.1-bcl-to-cram.nf'
+include { get_tag_list_file } from './modules/manifest2tag.nf'
 
-// logginh info ----------------------------------------------------------------
+// logging info ----------------------------------------------------------------
 // This part of the code is based on the FASTQC PIPELINE (https://github.com/angelovangel/nxf-fastqc/blob/master/main.nf)
 
 /*
@@ -24,7 +22,7 @@ log.info """
          AMPSEQ_0.0 (dev : prototype)
          Used parameters:
         -------------------------------------------
-         --bcl_path            : ${params.bcl_path}
+         --bcl_dir_path            : ${params.bcl_dir_path}
 
          Runtime data:
         -------------------------------------------
@@ -38,16 +36,27 @@ log.info """
          .stripIndent()
 
 
-// logginh info ----------------------------------------------------------------
+// logging info ----------------------------------------------------------------
 
 
 workflow set_up_params {
     main:
-        Channel.fromPath("${params.bcl_path}/*.bcl").set {bcls}
-        //Channel.fromPath(params.irods_paths).set {irods_paths}
+        Channel.fromPath("${params.bcl_dir_path}").set{bcls}
+        Channel.fromPath("${params.lane}").set{lane}
+        Channel.fromPath("${params.run_id}").set{run_id}
+        Channel.fromPath("${params.study_name}").set{study_name}
+        Channel.fromPath("${params.manifest_file_path}").set{manifest}
+
+	//manifest2tag
+        get_tag_list_file(manifest, "library", "sample", study_name)
+        barcodes_file = get_tag_list_file.out.taglist_file
+
     emit:
         bcls
-        //irods_paths
+        lane
+        run_id
+        study_name
+        barcodes_file
 }
 
 // Main entry-point workflow
@@ -56,21 +65,9 @@ workflow {
 
     set_up_params()
 
-// Step 1 - Reads retrieval
+// Stage 1 - Step 1: BCL to CRAM
 
-    reads_retrieval_workflow(set_up_params.out)
-
-// Step 2 - Added filtering
-
-    filtering_workflow(reads_retrieval_workflow.out)
-
-// Step 3 - Variant calling
-
-    variant_calling_workflow(filtering_workflow.out)
-
-// Step 4 - Drug resistance genotyping
-
-    genotyping_workflow(variant_calling_workflow.out)
+    bcl_to_cram(set_up_params.out.bcls, set_up_params.out.lane, set_up_params.out.run_id, set_up_params.out.study_name, set_up_params.out.barcodes_file)
 }
 
 // -------------- Check if everything went okay -------------------------------
