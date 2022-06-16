@@ -5,8 +5,10 @@ nextflow.enable.dsl = 2
 
 // import modules
 include { bcl_to_cram } from './pipeline_workflows/step1.1-bcl-to-cram.nf'
-include { get_tag_list_file } from './modules/manifest2tag.nf'
-
+include { get_taglist_file } from './modules/manifest2tag.nf'
+include { validate_parameters; load_manifest_ch } from './modules/inputHandling.nf'
+include { make_samplesheet_manifest } from './modules/samplesheet_parser.nf'
+include { validate_samplesheet_manifest } from './modules/samplesheet_manifest_validation.nf'
 // logging info ----------------------------------------------------------------
 // This part of the code is based on the FASTQC PIPELINE (https://github.com/angelovangel/nxf-fastqc/blob/master/main.nf)
 
@@ -22,12 +24,11 @@ log.info """
          AMPSEQ_0.0 (dev : prototype)
          Used parameters:
         -------------------------------------------
-         --bcl_dir_path            : ${params.bcl_dir_path}
-
+         --manifest            : ${params.manifest}
+         --results_dir         : ${params.results_dir}
          Runtime data:
         -------------------------------------------
          Running with profile:   ${ANSI_GREEN}${workflow.profile}${ANSI_RESET}
-         Run container:          ${ANSI_GREEN}${workflow.container}${ANSI_RESET}
          Running as user:        ${ANSI_GREEN}${workflow.userName}${ANSI_RESET}
          Launch dir:             ${ANSI_GREEN}${workflow.launchDir}${ANSI_RESET}
          Base dir:               ${ANSI_GREEN}${baseDir}${ANSI_RESET}
@@ -35,10 +36,12 @@ log.info """
          """
          .stripIndent()
 
+//Run container:          ${ANSI_GREEN}${workflow.container}${ANSI_RESET}
+
 
 // logging info ----------------------------------------------------------------
 
-
+/*
 workflow set_up_params {
     main:
         Channel.fromPath("${params.bcl_dir_path}").set{bcls}
@@ -58,12 +61,35 @@ workflow set_up_params {
         study_name
         barcodes_file
 }
+*/
 
 // Main entry-point workflow
 
-workflow {
 
-    set_up_params()
+
+workflow {
+    // -- Pre Processing ------------------------------------------------------
+    // validate input
+    validate_parameters()
+
+    // process manifest input
+    manifest_ch = load_manifest_ch()
+
+    // process samplesheets manifest (necessary to get barcodes) and validate it
+    make_samplesheet_manifest(manifest_ch)
+    validate_samplesheet_manifest(make_samplesheet_manifest.out)
+
+    get_taglist_file_In_ch = manifest_ch.join(validate_samplesheet_manifest.out)
+
+    get_taglist_file(get_taglist_file_In_ch)
+
+    // use generate barcode files (run_id.taglist) from samplesheet manifest
+    //manifest2tag_In_ch = manifest_ch.join(ssht_manifest_ch)
+    //get_taglist_file(ssht_manifest_ch)
+
+    // generate taglist
+
+
 
 // Stage 1 - Step 1: BCL to CRAM
 
