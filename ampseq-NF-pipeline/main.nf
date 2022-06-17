@@ -82,6 +82,9 @@ workflow {
     get_taglist_file_In_ch = manifest_ch.join(validate_samplesheet_manifest.out)
 
     get_taglist_file(get_taglist_file_In_ch)
+    tag_files_ch = get_taglist_file.out
+
+    step1_Input_ch = manifest_ch.join(tag_files_ch)
 
     // use generate barcode files (run_id.taglist) from samplesheet manifest
     //manifest2tag_In_ch = manifest_ch.join(ssht_manifest_ch)
@@ -93,7 +96,8 @@ workflow {
 
 // Stage 1 - Step 1: BCL to CRAM
 
-    bcl_to_cram(set_up_params.out.bcls, set_up_params.out.lane, set_up_params.out.run_id, set_up_params.out.study_name)//, set_up_params.out.barcodes_file)
+    bcl_to_cram(step1_Input_ch)//, set_up_params.out.barcodes_file)
+    //bcl_to_cram(set_up_params.out.bcls, set_up_params.out.lane, set_up_params.out.run_id, set_up_params.out.study_name)//, set_up_params.out.barcodes_file)
 }
 
 // -------------- Check if everything went okay -------------------------------

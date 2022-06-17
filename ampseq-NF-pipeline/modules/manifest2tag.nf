@@ -12,7 +12,7 @@ process get_taglist_file {
 	//val study
 
 	output:
-	path("${tag_list}"), emit: taglist_file
+	tuple val(run_id), path("${tag_list}"), emit: taglist_file
 
 	script:
 	tag_list = "tag_file.tsv"

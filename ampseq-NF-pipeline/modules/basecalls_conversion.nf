@@ -8,13 +8,10 @@ process basecalls_conversion {
     container ''
 
     input:
-        path(base_dir)
-        val(lane)
-        val(read_group)
-        val(study_name)
+        tuple val(run_id), path(base_dir), val(lane), val(study_name), val(read_group), val(library), path(tag_file)
 
     output:
-        path("${output_file}")
+        tuple val(run_id), path("${output_file}")
 
     script:
         intensity_dir="${base_dir}/Data/Intensities"
@@ -22,7 +19,7 @@ process basecalls_conversion {
         read_group_id="${read_group}_${lane}"
         threads="${params.bambi_threads}"
         compression_level="${params.bambi_compression_level}"
-        output_file="bambi_i2b.bam"
+        output_file="${run_id}_bambi_i2b.bam"
 
         """
         bambi i2b \

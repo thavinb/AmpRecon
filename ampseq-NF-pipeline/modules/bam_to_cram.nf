@@ -5,10 +5,10 @@ process bam_to_cram {
     container ''
 
     input:
-        path(input_bam)
+        tuple val(run_id), path(adapters_bam_file)
 
     output:
-        path("*.cram")
+        tuple val(run_id), path("*.cram")
 
     script:
         """
@@ -17,6 +17,6 @@ process bam_to_cram {
             -v \
             --output-fmt "cram",no_ref=1 \
             -f "%!.cram" \
-            ${input_bam}
+            ${adapters_bam_file}
         """
 }

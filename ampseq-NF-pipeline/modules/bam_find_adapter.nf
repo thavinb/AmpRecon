@@ -2,16 +2,17 @@ process bam_find_adapter {
     /*
     * Searches for sequencing adapter contamination with a BAM  file.
     */
-    container ''
+    publishDir "${params.results_dir}/${run_id}/", overwrite: true
 
     input:
-        path(bam_file)
+        tuple val(run_id), path(bam_file), path(not_used1)
 
     output:
-        path("${adapters_bam_file}")
+        tuple val(run_id), path("${adapters_bam_file}")
 
     script:
         adapters_bam_file = "${bam_file}.adapters"
+        // TODO add threads option ?
         """
         bamadapterfind level=9 < ${bam_file} > ${adapters_bam_file}
         """
