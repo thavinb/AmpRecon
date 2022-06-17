@@ -96,8 +96,22 @@ workflow {
 
 // Stage 1 - Step 1: BCL to CRAM
 
-    bcl_to_cram(step1_Input_ch)//, set_up_params.out.barcodes_file)
-    //bcl_to_cram(set_up_params.out.bcls, set_up_params.out.lane, set_up_params.out.run_id, set_up_params.out.study_name)//, set_up_params.out.barcodes_file)
+    bcl_to_cram(set_up_params.out.bcls, set_up_params.out.lane, set_up_params.out.run_id, set_up_params.out.study_name)//, set_up_params.out.barcodes_file)
+
+// Stage 1 - Step 2: CRAM to BAM
+    bcl_to_cram.out
+        .flatMap()
+        .map {
+            basename = it.getBaseName().replaceFirst(/\..*$/, '')  // 1234_5#6.cram -> 1234_5#6
+            tag = basename.replaceFirst(/.*#/, '')  // 1234_5#6 -> 6
+            [tag, it]
+        }.join(all_manifest_data)
+        .multiMap {
+            tag: it[0]
+            cram: it[1]
+        }.set { cram_to_bam_input }
+
+    cram_to_bam(cram_to_input.tag, cram_to_input.cram, set_up_params.reference_files, all_manifest_data)
 }
 
 // -------------- Check if everything went okay -------------------------------
