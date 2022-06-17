@@ -4,8 +4,9 @@
 nextflow.enable.dsl = 2
 
 // import modules
-include { bcl_to_cram } from './pipeline_workflows/step1.1-bcl-to-cram.nf'
 include { get_tag_list_file } from './modules/manifest2tag.nf'
+include { bcl_to_cram } from './pipeline_workflows/step1.1-bcl-to-cram.nf'
+include { cram_to_bam } from './pipeline_workflows/step1.2-cram-to-bam.nf'
 
 // logging info ----------------------------------------------------------------
 // This part of the code is based on the FASTQC PIPELINE (https://github.com/angelovangel/nxf-fastqc/blob/master/main.nf)
@@ -68,6 +69,21 @@ workflow {
 // Stage 1 - Step 1: BCL to CRAM
 
     bcl_to_cram(set_up_params.out.bcls, set_up_params.out.lane, set_up_params.out.run_id, set_up_params.out.study_name)//, set_up_params.out.barcodes_file)
+
+// Stage 1 - Step 2: CRAM to BAM
+    bcl_to_cram.out
+        .flatMap()
+        .map {
+            basename = it.getBaseName().replaceFirst(/\..*$/, '')  // 1234_5#6.cram -> 1234_5#6
+            tag = basename.replaceFirst(/.*#/, '')  // 1234_5#6 -> 6
+            [tag, it]
+        }.join(all_manifest_data)
+        .multiMap {
+            tag: it[0]
+            cram: it[1]
+        }.set { cram_to_bam_input }
+
+    cram_to_bam(cram_to_input.tag, cram_to_input.cram, set_up_params.reference_files, all_manifest_data)
 }
 
 // -------------- Check if everything went okay -------------------------------
