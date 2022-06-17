@@ -36,7 +36,7 @@ workflow cram_to_bam {
         // Convert BAM to FASTQ
         bam_to_fastq(clip_adapters.out)
 
-        // Map BAM to reference
+        // Map FASTQ to reference
         bam_to_fastq.out
         .join(all_manifest_data)
         .multiMap {
