@@ -92,7 +92,19 @@ workflow {
 
     // generate taglist
 
-
+    // manifest parsing
+    validate_samplesheet_manifest.out
+        .splitCsv(
+            header: ["lims_id", "sims_id", "index", "ref", "barcode_sequence", "well", "plate"],
+            skip: 18
+        ).map { row ->
+            ref_map = get_reference_files(row.ref)
+            manifest_map = ["lims_id": row.lims_id, "sims_id": row.sims_id, "index": row.index, "ref": row.ref,
+                            "barcode_sequence": row.barcode_sequence, "well": row.well, "plate": row.plate]
+            all_data_map = manifest_map + ref_map
+            indexed_all_data_map = [row.index, all_data_map]
+            indexed_all_data_map
+        }.set { all_manifest_data }
 
 // Stage 1 - Step 1: BCL to CRAM
 
