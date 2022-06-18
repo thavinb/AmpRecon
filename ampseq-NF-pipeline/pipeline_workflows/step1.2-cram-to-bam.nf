@@ -68,7 +68,7 @@ workflow cram_to_bam {
 
         // Split BAM rank pairs to single ranks per read
         mapping_reheader.out
-        .join(amplicon_mapping_steps_1_4.out)
+        .join(bam_to_fastq.out)
         .multiMap {
             tag: it[0]
             reheadered_bam: it[1]
