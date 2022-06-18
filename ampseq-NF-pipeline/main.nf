@@ -86,13 +86,28 @@ workflow {
 
     step1_Input_ch = manifest_ch.join(tag_files_ch)
 
-    // use generate barcode files (run_id.taglist) from samplesheet manifest
-    //manifest2tag_In_ch = manifest_ch.join(ssht_manifest_ch)
-    //get_taglist_file(ssht_manifest_ch)
-
     // generate taglist
 
-    // manifest parsing
+    // Stage 1 - Step 1: BCL to CRAM
+    bcl_to_cram(step1_Input_ch)//, set_up_params.out.barcodes_file)
+    //bcl_to_cram.out.view()
+    // Stage 1 - Step 2: CRAM to BAM
+        /*
+        bcl_to_cram.out
+            .flatMap()
+            .map {
+                basename = it.getBaseName().replaceFirst(/\..*$/, '')  // 1234_5#6.cram -> 1234_5#6
+                tag = basename.replaceFirst(/.*#/, '')  // 1234_5#6 -> 6
+                [tag, it]
+            }.join(all_manifest_data)
+            .multiMap {
+                tag: it[0]
+                cram: it[1]
+            }.set { cram_to_bam_input }
+        */
+        //cram_to_bam(cram_to_input.tag, cram_to_input.cram, set_up_params.reference_files, all_manifest_data)
+
+    /*
     validate_samplesheet_manifest.out
         .splitCsv(
             header: ["lims_id", "sims_id", "index", "ref", "barcode_sequence", "well", "plate"],
@@ -105,12 +120,10 @@ workflow {
             indexed_all_data_map = [row.index, all_data_map]
             indexed_all_data_map
         }.set { all_manifest_data }
+    */
 
-// Stage 1 - Step 1: BCL to CRAM
-
-    bcl_to_cram(set_up_params.out.bcls, set_up_params.out.lane, set_up_params.out.run_id, set_up_params.out.study_name)//, set_up_params.out.barcodes_file)
-
-// Stage 1 - Step 2: CRAM to BAM
+    // Stage 1 - Step 2: CRAM to BAM
+    /*
     bcl_to_cram.out
         .flatMap()
         .map {
@@ -124,6 +137,7 @@ workflow {
         }.set { cram_to_bam_input }
 
     cram_to_bam(cram_to_input.tag, cram_to_input.cram, set_up_params.reference_files, all_manifest_data)
+    */
 }
 
 // -------------- Check if everything went okay -------------------------------

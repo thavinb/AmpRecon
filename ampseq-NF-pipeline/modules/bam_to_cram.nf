@@ -2,7 +2,7 @@ process bam_to_cram {
     /*
     * split BAM by read group into CRAM.
     */
-    container ''
+    publishDir "${params.results_dir}/${run_id}", mode: 'copy', overwrite: true
 
     input:
         tuple val(run_id), path(adapters_bam_file)
