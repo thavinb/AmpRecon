@@ -5,6 +5,7 @@ nextflow.enable.dsl = 2
 
 // import modules
 include { bcl_to_cram } from './pipeline_workflows/step1.1-bcl-to-cram.nf'
+include { cram_to_bam } from './pipeline_workflows/step1.2-cram-to-bam.nf'
 include { get_taglist_file } from './modules/manifest2tag.nf'
 include { validate_parameters; load_manifest_ch } from './modules/inputHandling.nf'
 include { make_samplesheet_manifest } from './modules/samplesheet_parser.nf'
@@ -90,22 +91,11 @@ workflow {
 
     // Stage 1 - Step 1: BCL to CRAM
     bcl_to_cram(step1_Input_ch)//, set_up_params.out.barcodes_file)
-    //bcl_to_cram.out.view()
+    manifest_step1_1_Out_ch = bcl_to_cram.out.multiMap { it -> run_id: it[0]
+                                                                  mnf: it[1]}
+
     // Stage 1 - Step 2: CRAM to BAM
-        /*
-        bcl_to_cram.out
-            .flatMap()
-            .map {
-                basename = it.getBaseName().replaceFirst(/\..*$/, '')  // 1234_5#6.cram -> 1234_5#6
-                tag = basename.replaceFirst(/.*#/, '')  // 1234_5#6 -> 6
-                [tag, it]
-            }.join(all_manifest_data)
-            .multiMap {
-                tag: it[0]
-                cram: it[1]
-            }.set { cram_to_bam_input }
-        */
-        //cram_to_bam(cram_to_input.tag, cram_to_input.cram, set_up_params.reference_files, all_manifest_data)
+    cram_to_bam( manifest_step1_1_Out_ch.mnf )
 
     /*
     validate_samplesheet_manifest.out
@@ -122,7 +112,6 @@ workflow {
         }.set { all_manifest_data }
     */
 
-    // Stage 1 - Step 2: CRAM to BAM
     /*
     bcl_to_cram.out
         .flatMap()

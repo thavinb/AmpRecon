@@ -9,24 +9,44 @@ include { bam_reset } from '../modules/bam_reset.nf'
 include { clip_adapters } from '../modules/clip_adapters.nf'
 include { bam_to_fastq } from '../modules/bam_to_fastq.nf'
 include { align_bam } from '../modules/align_bam.nf'
-include { scramble_sam_to_bam  } from '../modules/scramble_sam_to_bam.nf'
+//include { scramble_sam_to_bam  } from '../modules/scramble_sam_to_bam.nf'
 include { mapping_reheader } from '../modules/mapping_reheader.nf'
 include { bam_split } from '../modules/bam_split.nf'
 include { bam_merge } from '../modules/bam_merge.nf'
 include { alignment_filter } from '../modules/alignment_filter.nf'
-include { sort_bam } from '../modules/sort_bam.nf'
+//include { sort_bam } from '../modules/sort_bam.nf'
 include { bam_to_cram } from '../modules/bam_to_cram.nf'
+
+def load_manifest_ch(csv_ch){
+  //if csv file is provided as parameter, use it by default and ignore input
+  if (!(params.manifest_step1_2 == '')){
+      println("Startin from")
+      // TODO : add check if file exist
+      manifest_fl = params.manifest_step1_2
+      csv_ch = Channel.fromPath(manifest_fl)
+      }
+  // if not set as parameter, assumes is a channel containing a path for the csv
+  manifest_ch = csv_ch |
+                splitCsv(header:true) |
+                map {row-> tuple(row.run_id, row.cram_fl)}
+
+  return manifest_ch
+}
 
 workflow cram_to_bam {
     take:
-        input_tag
-        input_cram
-        reference_index_files
-        all_manifest_data
+        manifest_fl
+        //input_tag
+        //input_cram
+        //reference_index_files
+        //all_manifest_data
     main:
-        // Collate cram files by name
-        collate_alignments(input_cram)
+        // Process manifest_ch
+        in_ch = load_manifest_ch(manifest_fl)
 
+        // Collate cram files by name
+        collate_alignments(in_ch)
+        /*
         // Transform BAM file to pre-aligned state
         bam_reset(collate_alignments.out)
 
@@ -99,4 +119,5 @@ workflow cram_to_bam {
 
     emit:
         bam_ch
+*/
 }

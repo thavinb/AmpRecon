@@ -62,8 +62,9 @@ workflow bcl_to_cram {
         bam_to_cram(bam_find_adapter.out)
         cram_ch = bam_to_cram.out
         writeOutputManifest(cram_ch)
+        manifest_out = writeOutputManifest.out
         // generate an output manifest
 
     emit:
-        cram_ch
+        manifest_out
 }
