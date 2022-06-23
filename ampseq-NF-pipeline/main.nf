@@ -3,13 +3,17 @@
 // enable dsl2
 nextflow.enable.dsl = 2
 
-// import modules
+// --- import modules ---------------------------------------------------------
+// - workflows
+include { prepare_reference } from './pipeline_workflows/step0.1b-prepare-reference.nf'
 include { bcl_to_cram } from './pipeline_workflows/step1.1-bcl-to-cram.nf'
 include { cram_to_bam } from './pipeline_workflows/step1.2-cram-to-bam.nf'
+// - process to extract and validade information expected based on input params
 include { get_taglist_file } from './modules/manifest2tag.nf'
 include { validate_parameters; load_manifest_ch } from './modules/inputHandling.nf'
 include { make_samplesheet_manifest } from './modules/samplesheet_parser.nf'
 include { validate_samplesheet_manifest } from './modules/samplesheet_manifest_validation.nf'
+
 // logging info ----------------------------------------------------------------
 // This part of the code is based on the FASTQC PIPELINE (https://github.com/angelovangel/nxf-fastqc/blob/master/main.nf)
 
@@ -25,8 +29,9 @@ log.info """
          AMPSEQ_0.0 (dev : prototype)
          Used parameters:
         -------------------------------------------
-         --manifest            : ${params.manifest}
-         --results_dir         : ${params.results_dir}
+         --manifest        (required) : ${params.manifest}
+         --reference_fasta (required) : ${params.reference_fasta}
+         --results_dir                : ${params.results_dir}
          Runtime data:
         -------------------------------------------
          Running with profile:   ${ANSI_GREEN}${workflow.profile}${ANSI_RESET}
@@ -87,7 +92,9 @@ workflow {
 
     step1_Input_ch = manifest_ch.join(tag_files_ch)
 
-    // generate taglist
+    // handle reference fasta
+    prepare_reference(params.reference_fasta)
+
 
     // Stage 1 - Step 1: BCL to CRAM
     bcl_to_cram(step1_Input_ch)//, set_up_params.out.barcodes_file)
