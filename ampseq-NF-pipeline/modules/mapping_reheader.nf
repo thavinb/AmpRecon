@@ -23,7 +23,7 @@ process mapping_reheader {
         set -o pipefail
         merge_headers.py "${alignment_input_file}" "${mapped_input_file_to_reheader}" "${reference_file}" | samtools reheader - \
             "${mapped_input_file_to_reheader}" \
-            > "${output_file}"
+            | samtools merge "${output_file}" -
         """
 }
 
