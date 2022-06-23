@@ -6,16 +6,16 @@ process bam_to_fastq {
     container ''
 
     input:
-        tuple val(tag), path(input_file)
+        tuple val(sample_tag), path(clipped_bam)
 
     output:
-        tuple val("${tag}"), path("${base_name}.fastq"), path(${input_file})
+        tuple val("${sample_tag}"), path("${base_name}.fastq"), path("${clipped_bam}")
 
     script:
-        base_name=input_file.baseName
+        base_name=clipped_bam.baseName
         """
         bamtofastq \
-            < "${base_name}.clipped.bam" \
+            < "${clipped_bam}" \
             > "${base_name}.fastq"
         """
 }

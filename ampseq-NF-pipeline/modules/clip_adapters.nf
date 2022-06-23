@@ -8,18 +8,18 @@ process clip_adapters {
     container ''
 
     input:
-        tuple val(tag), path(input_file)
+        tuple val(sample_tag), path(prealigned_bam)
 
     output:
-        tuple val("${tag}"), path("${base_name}.clipped.bam")
+        tuple val("${sample_tag}"), path("${base_name}.clipped.bam")
 
     script:
-        base_name=input_file.baseName
+        base_name=prealigned_bam.baseName
         """
         bamadapterclip \
             verbose=${params.bamadapterclip_verbose} \
             level=${params.bamadapterclip_level} \
-            < "${input_file}" \
+            < "${prealigned_bam}" \
             > "${base_name}.clipped.bam"
         """
 }

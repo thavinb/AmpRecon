@@ -10,19 +10,19 @@ process bam_reset {
     container ''
 
     input:
-        tuple val(tag), path(input_file)
+        tuple val(sample_tag), path(collated_bam)
 
     output:
-        tuple val("${tag}"), path("${base_name}.prealigned.bam")
+        tuple val("${sample_tag}"), path("${base_name}.prealigned.bam")
 
     script:
-        base_name=input_file.baseName
+        base_name=collated_bam.baseName
         """
         bamreset \
             resetaux=${params.bamreset_resetaux} \
             level=${params.bamreset_level} \
             verbose=${params.bamreset_verbose} \
-            < "${input_file}" \
+            < "${collated_bam}" \
             > "${base_name}.prealigned.bam"
 
         """
