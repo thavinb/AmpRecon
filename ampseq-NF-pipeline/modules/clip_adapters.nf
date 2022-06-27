@@ -5,13 +5,14 @@ process clip_adapters {
     /*
     * removes identified adapters from bam
     */
-    container ''
 
     input:
-        tuple val(sample_tag), path(prealigned_bam)
+        val(sample_tag)
+        path(prealigned_bam)
 
     output:
-        tuple val("${sample_tag}"), path("${base_name}.clipped.bam")
+        val("${sample_tag}"), emit: sample_tag
+        path("${base_name}.clipped.bam"), emit: clipped_bam
 
     script:
         base_name=prealigned_bam.baseName

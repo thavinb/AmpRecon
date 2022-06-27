@@ -3,13 +3,17 @@ process bam_to_fastq {
     /*
     * convert BAM files to FASTQ.
     */
-    container ''
+    //publishDir "${params.results_dir}/${run_id}", overwrite: true
 
     input:
-        tuple val(sample_tag), path(clipped_bam)
+        //val(run_id) //needed to know where to publish the files
+        val(sample_tag)
+        path(clipped_bam)
 
     output:
-        tuple val("${sample_tag}"), path("${base_name}.fastq"), path("${clipped_bam}")
+        val("${sample_tag}"), emit: sample_tag
+        path("${base_name}.fastq"), emit: fastq
+        //path("${clipped_bam}"), emit: clipped_bam
 
     script:
         base_name=clipped_bam.baseName

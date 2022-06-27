@@ -10,10 +10,12 @@ process bam_reset {
     container ''
 
     input:
-        tuple val(sample_tag), path(collated_bam)
+        val(sample_tag)
+        path(collated_bam)
 
     output:
-        tuple val("${sample_tag}"), path("${base_name}.prealigned.bam")
+        val("${sample_tag}"), emit: sample_tag
+        path("${base_name}.prealigned.bam"), emit: prealigned_bam
 
     script:
         base_name=collated_bam.baseName
