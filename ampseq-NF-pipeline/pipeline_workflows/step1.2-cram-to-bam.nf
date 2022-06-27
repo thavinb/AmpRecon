@@ -121,3 +121,19 @@ workflow cram_to_bam {
         bam_ch
 */
 }
+/*
+// -------------------------- DOCUMENTATION ----------------------------------- 
+[1] Read pairs within each CRAM file are first collated and output in BAM format.
+[2] Collated BAM files are reset to their prealigned state by removing all @SQ from header, all reads marked as unmapped, 
+dropping non-primary alignments and sorting order to set to unknown. 
+[4] Previously identified adapter sequences in each BAM are then clipped off and moved into auxiliary fields.
+[5] BAM files are converted to FASTQ format, before being aligned to a reference genome.
+[6] Reads in the mapped SAM files are split into separate BAM files depending on their alignments.
+[7] Specific headers from the adapters clipped BAM file are copied to the scrambled, realigned BAM. Duplicate IDs for @RG and @PG records in the header 
+are made unique with the addition of a suffix, read records are also updated.
+[8] Rank pairs produced by the collation are converted into single ranks per read. 
+[9] BAM files with the same reads are merged. Ranks are also stripped from the alignments, clipped sequences are reinserted and quality string parts added.
+[10] Reads from all of the BAM files are split into separate files depending on their alignments.
+[11] Alignments in the BAM files are sorted by coordinate. The sorted BAM files are emitted ready for further processing.
+
+*/
