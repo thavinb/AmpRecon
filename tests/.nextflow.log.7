@@ -1,0 +1,91 @@
+Jun-27 14:40:39.630 [main] DEBUG nextflow.cli.Launcher - $> nextflow run test_bambi_i2b.nf -c ../ampseq-NF-pipeline/nextflow.config -resume
+Jun-27 14:40:40.018 [main] INFO  nextflow.cli.CmdRun - N E X T F L O W  ~  version 22.04.0
+Jun-27 14:40:40.101 [main] DEBUG nextflow.config.ConfigBuilder - User config file: /lustre/scratch123/pam/dt5/personal/malpipe2/ss52-ampseq/ampseq-pipeline/tests/../ampseq-NF-pipeline/nextflow.config
+Jun-27 14:40:40.101 [main] DEBUG nextflow.config.ConfigBuilder - Parsing config file: /lustre/scratch123/pam/dt5/personal/malpipe2/ss52-ampseq/ampseq-pipeline/ampseq-NF-pipeline/nextflow.config
+Jun-27 14:40:40.159 [main] DEBUG nextflow.config.ConfigBuilder - Applying config profile: `standard`
+Jun-27 14:40:43.122 [main] INFO  nextflow.cli.CmdRun - Launching `test_bambi_i2b.nf` [stupefied_church] DSL2 - revision: 111d6f2fe1
+Jun-27 14:40:43.179 [main] DEBUG nextflow.plugin.PluginsFacade - Setting up plugin manager > mode=prod; plugins-dir=/nfs/users/nfs_m/malpipe/.nextflow/plugins; core-plugins: nf-amazon@1.7.1,nf-azure@0.13.1,nf-console@1.0.3,nf-ga4gh@1.0.3,nf-google@1.1.4,nf-sqldb@0.4.0,nf-tower@1.4.0
+Jun-27 14:40:43.190 [main] DEBUG nextflow.plugin.PluginsFacade - Plugins default=[]
+Jun-27 14:40:43.250 [main] INFO  org.pf4j.DefaultPluginStatusProvider - Enabled plugins: []
+Jun-27 14:40:43.251 [main] INFO  org.pf4j.DefaultPluginStatusProvider - Disabled plugins: []
+Jun-27 14:40:43.255 [main] INFO  org.pf4j.DefaultPluginManager - PF4J version 3.4.1 in 'deployment' mode
+Jun-27 14:40:43.333 [main] INFO  org.pf4j.AbstractPluginManager - No plugins
+Jun-27 14:40:46.896 [main] DEBUG nextflow.Session - Session uuid: 25c34d4f-a5db-46ba-b4f3-a012e7873bb6
+Jun-27 14:40:46.896 [main] DEBUG nextflow.Session - Run name: stupefied_church
+Jun-27 14:40:46.897 [main] DEBUG nextflow.Session - Executor pool size: 2
+Jun-27 14:40:47.239 [main] DEBUG nextflow.cli.CmdRun - 
+  Version: 22.04.0 build 5697
+  Created: 23-04-2022 18:00 UTC (19:00 BST)
+  System: Linux 5.4.0-107-generic
+  Runtime: Groovy 3.0.10 on OpenJDK 64-Bit Server VM 11+28
+  Encoding: UTF-8 (UTF-8)
+  Process: 66773@node-13-14 [10.160.20.23]
+  CPUs: 1 - Mem: 2 TB (1.3 TB) - Swap: 1.3 TB (1.1 TB)
+Jun-27 14:40:47.659 [main] DEBUG nextflow.Session - Work-dir: /lustre/scratch123/pam/dt5/personal/malpipe2/ss52-ampseq/ampseq-pipeline/tests/work [lustre]
+Jun-27 14:40:47.667 [main] DEBUG nextflow.Session - Script base path does not exist or is not a directory: /lustre/scratch123/pam/dt5/personal/malpipe2/ss52-ampseq/ampseq-pipeline/tests/bin
+Jun-27 14:40:47.718 [main] DEBUG nextflow.executor.ExecutorFactory - Extension executors providers=[]
+Jun-27 14:40:47.743 [main] DEBUG nextflow.Session - Observer factory: DefaultObserverFactory
+Jun-27 14:40:47.797 [main] DEBUG nextflow.cache.CacheFactory - Using Nextflow cache factory: nextflow.cache.DefaultCacheFactory
+Jun-27 14:40:47.883 [main] DEBUG nextflow.util.CustomThreadPool - Creating default thread pool > poolSize: 2; maxThreads: 1000
+Jun-27 14:40:48.794 [main] DEBUG nextflow.Session - Session start invoked
+Jun-27 14:40:49.558 [main] DEBUG nextflow.script.ScriptRunner - > Launching execution
+Jun-27 14:40:50.963 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: null
+Jun-27 14:40:50.964 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'local'
+Jun-27 14:40:50.976 [main] DEBUG nextflow.executor.Executor - [warm up] executor > local
+Jun-27 14:40:51.017 [main] DEBUG n.processor.LocalPollingMonitor - Creating local task monitor for executor 'local' > cpus=1; memory=2 TB; capacity=1; pollInterval=100ms; dumpInterval=5m
+Jun-27 14:40:51.297 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: null
+Jun-27 14:40:51.297 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'local'
+Jun-27 14:40:51.327 [main] DEBUG nextflow.script.ProcessConfig - Config settings `withName:basecalls_conversion` matches process basecalls_conversion
+Jun-27 14:40:51.331 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: null
+Jun-27 14:40:51.331 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'local'
+Jun-27 14:40:51.335 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: null
+Jun-27 14:40:51.335 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'local'
+Jun-27 14:40:51.351 [main] DEBUG nextflow.script.BindableDef - Bindable invocations=[subset_bam]
+Jun-27 14:40:51.354 [main] DEBUG nextflow.Session - Session aborted -- Cause: Process 'subset_bam' has been already used -- If you need to reuse the same component include it with a different name or include in a different workflow context
+Jun-27 14:40:51.459 [main] ERROR nextflow.cli.Launcher - @unknown
+nextflow.exception.DuplicateProcessInvocation: Process 'subset_bam' has been already used -- If you need to reuse the same component include it with a different name or include in a different workflow context
+	at nextflow.script.BindableDef.invoke_a(BindableDef.groovy:47)
+	at nextflow.script.ComponentDef.invoke_o(ComponentDef.groovy:41)
+	at nextflow.script.WorkflowBinding.invokeMethod(WorkflowBinding.groovy:94)
+	at groovy.lang.GroovyObject$invokeMethod$0.call(Unknown Source)
+	at org.codehaus.groovy.runtime.callsite.CallSiteArray.defaultCall(CallSiteArray.java:47)
+	at org.codehaus.groovy.runtime.callsite.AbstractCallSite.call(AbstractCallSite.java:125)
+	at org.codehaus.groovy.runtime.callsite.AbstractCallSite.call(AbstractCallSite.java:148)
+	at nextflow.script.BaseScript.invokeMethod(BaseScript.groovy:157)
+	at org.codehaus.groovy.runtime.metaclass.ClosureMetaClass.invokeOnDelegationObjects(ClosureMetaClass.java:424)
+	at org.codehaus.groovy.runtime.metaclass.ClosureMetaClass.invokeMethod(ClosureMetaClass.java:350)
+	at groovy.lang.MetaClassImpl.invokeMethod(MetaClassImpl.java:1035)
+	at groovy.lang.MetaClassImpl.invokeMethod(MetaClassImpl.java:819)
+	at groovy.lang.GroovyObject.invokeMethod(GroovyObject.java:39)
+	at org.codehaus.groovy.runtime.metaclass.ClosureMetaClass.invokeOnDelegationObjects(ClosureMetaClass.java:424)
+	at org.codehaus.groovy.runtime.metaclass.ClosureMetaClass.invokeMethod(ClosureMetaClass.java:350)
+	at org.codehaus.groovy.runtime.callsite.PogoMetaClassSite.callCurrent(PogoMetaClassSite.java:61)
+	at org.codehaus.groovy.runtime.callsite.CallSiteArray.defaultCallCurrent(CallSiteArray.java:51)
+	at org.codehaus.groovy.runtime.callsite.AbstractCallSite.callCurrent(AbstractCallSite.java:171)
+	at org.codehaus.groovy.runtime.callsite.AbstractCallSite.callCurrent(AbstractCallSite.java:185)
+	at Script_1bd8ef9d$_runScript_closure1$_closure3.doCall(Script_1bd8ef9d:23)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:566)
+	at org.codehaus.groovy.reflection.CachedMethod.invoke(CachedMethod.java:107)
+	at groovy.lang.MetaMethod.doMethodInvoke(MetaMethod.java:323)
+	at org.codehaus.groovy.runtime.metaclass.ClosureMetaClass.invokeMethod(ClosureMetaClass.java:274)
+	at groovy.lang.MetaClassImpl.invokeMethod(MetaClassImpl.java:1035)
+	at groovy.lang.Closure.call(Closure.java:412)
+	at groovy.lang.Closure.call(Closure.java:406)
+	at nextflow.script.WorkflowDef.run0(WorkflowDef.groovy:205)
+	at nextflow.script.WorkflowDef.run(WorkflowDef.groovy:189)
+	at nextflow.script.BindableDef.invoke_a(BindableDef.groovy:52)
+	at nextflow.script.ChainableDef$invoke_a.call(Unknown Source)
+	at org.codehaus.groovy.runtime.callsite.CallSiteArray.defaultCall(CallSiteArray.java:47)
+	at org.codehaus.groovy.runtime.callsite.AbstractCallSite.call(AbstractCallSite.java:125)
+	at org.codehaus.groovy.runtime.callsite.AbstractCallSite.call(AbstractCallSite.java:139)
+	at nextflow.script.BaseScript.runDsl2(BaseScript.groovy:194)
+	at nextflow.script.BaseScript.run(BaseScript.groovy:203)
+	at nextflow.script.ScriptParser.runScript(ScriptParser.groovy:220)
+	at nextflow.script.ScriptRunner.run(ScriptRunner.groovy:212)
+	at nextflow.script.ScriptRunner.execute(ScriptRunner.groovy:120)
+	at nextflow.cli.CmdRun.run(CmdRun.groovy:334)
+	at nextflow.cli.Launcher.run(Launcher.groovy:480)
+	at nextflow.cli.Launcher.main(Launcher.groovy:639)
