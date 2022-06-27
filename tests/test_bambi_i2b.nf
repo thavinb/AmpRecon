@@ -16,7 +16,7 @@ workflow {
 	bcl_dir_ch = download_bcl_from_s3("21045") //gets test bcl directory from s3
 	tags_file = Channel.fromPath("./tags.tsv") //fictitious data - not sure what purpose it serves
 
-	i2b_input_ch = generate_test_channel(bcl_dir_ch, tags_file) //under test 
+	i2b_input_ch = generate_test_channel(bcl_dir_ch, tags_file) 
 	test_bam = basecalls_conversion(i2b_input_ch)
 	
 	reference = download_i2b_output_from_s3("21045")
