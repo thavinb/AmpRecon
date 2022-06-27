@@ -73,3 +73,12 @@ workflow bcl_to_cram {
     emit:
         manifest_out
 }
+/*
+// -------------------------- DOCUMENTATION -----------------------------------
+[1] Mixed-sample MiSeq run sequencing data is first basecalled and then written to a BAM file.
+[2] Resulting multiplexed BAM files are demultiplexed to separate reads based upon their sample of origin.
+[3] BAM files are scanned for adapter sequence contamination, information about which is used to populate several auxiliary fields.
+[4] BAM files are split by read group into CRAM files, which are emitted ready for further processing.
+
+*/
+
