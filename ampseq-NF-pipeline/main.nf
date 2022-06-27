@@ -13,6 +13,7 @@ include { get_taglist_file } from './modules/manifest2tag.nf'
 include { validate_parameters; load_manifest_ch } from './modules/inputHandling.nf'
 include { make_samplesheet_manifest } from './modules/samplesheet_parser.nf'
 include { validate_samplesheet_manifest } from './modules/samplesheet_manifest_validation.nf'
+include { irods_retrieve } from './modules/irods_retrieve.nf'
 
 // logging info ----------------------------------------------------------------
 // This part of the code is based on the FASTQC PIPELINE (https://github.com/angelovangel/nxf-fastqc/blob/master/main.nf)
@@ -92,6 +93,16 @@ workflow {
 
     step1_Input_ch = manifest_ch.join(tag_files_ch)
 
+    // iRODS manifest check and parsing
+    if (params.irods_manifest){
+        Channel.fromPath(params.irods_manifest, checkIfExists: true)
+            .splitCsv(header: true, sep: ',')
+            .map{ row -> tuple(row.sample_id, path(row.file_path))}
+            .set{ irods_ch }
+    } else {
+        Channel.empty().set{ irods_ch }
+    }
+
     // handle reference fasta
     prepare_reference(params.reference_fasta)
     reference_idx_fls = prepare_reference.out
@@ -106,6 +117,12 @@ workflow {
                  reference_idx_fls.bwa_index_fls,
                  reference_idx_fls.fasta_index_fl,
                  reference_idx_fls.dict_fl)
+
+    // Retrieve BAM files from iRODS
+    irods_retrieve(irods_ch)
+
+    // Concatenate in-country channel with iRODS channel
+    cram_to_bam.out.concat(irods_retrieve.out).set{ bam_files_ch }
 
     /*
     validate_samplesheet_manifest.out
