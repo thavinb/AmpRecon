@@ -94,7 +94,7 @@ workflow {
 
     // handle reference fasta
     prepare_reference(params.reference_fasta)
-
+    reference_idx_fls = prepare_reference.out
 
     // Stage 1 - Step 1: BCL to CRAM
     bcl_to_cram(step1_Input_ch)//, set_up_params.out.barcodes_file)
@@ -102,7 +102,10 @@ workflow {
                                                                   mnf: it[1]}
 
     // Stage 1 - Step 2: CRAM to BAM
-    cram_to_bam( manifest_step1_1_Out_ch.mnf )
+    cram_to_bam( manifest_step1_1_Out_ch.mnf,
+                 reference_idx_fls.bwa_index_fls,
+                 reference_idx_fls.fasta_index_fl,
+                 reference_idx_fls.dict_fl)
 
     /*
     validate_samplesheet_manifest.out
