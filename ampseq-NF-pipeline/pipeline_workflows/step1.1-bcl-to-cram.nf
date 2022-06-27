@@ -28,13 +28,18 @@ cram_files_lst = "${cram_files}".split(" ")
 out_mnf = open("${run_id}_out1.1_mnf.csv", "w")
 cram_dir=f"${params.results_dir}{run_id}/"
 
+# get sample tags (nor proper ids yet, but will get the job done for now)
+sample_tag_lst = [f.split("/")[-1].split(".")[0] for f in cram_files_lst]
+
 # write manifest header
 
-out_mnf.write("run_id,cram_fl\n")
+out_mnf.write("run_id,cram_fl,sample_tag\n")
 
 # write manifest content
-for cram_fl in cram_files_lst:
-  out_mnf.write(f"{run_id},{cram_dir}{cram_fl}\n")
+for idx in range(0, len(cram_files_lst)):
+  cram_fl= cram_files_lst[idx]
+  sample_tag = sample_tag_lst[idx]
+  out_mnf.write(f"{run_id},{cram_dir}{cram_fl},{sample_tag}\n")
 out_mnf.close()
 /$
 }
