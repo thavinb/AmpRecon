@@ -27,9 +27,9 @@ workflow prepare_reference {
     generateFastaDict(reference_fasta)
 
   emit:
-    ref_bwa_index_fls = indexReferenceBWA.out
-    ref_fasta_index_fl = generateFastaIndex.out
-    ref_dict_fl = generateFastaDict.out
+    bwa_index_fls = indexReferenceBWA.out
+    fasta_index_fl = generateFastaIndex.out
+    dict_fl = generateFastaDict.out
 
 }
 
