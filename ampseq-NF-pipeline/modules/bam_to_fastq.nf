@@ -7,8 +7,7 @@ process bam_to_fastq {
 
     input:
         //val(run_id) //needed to know where to publish the files
-        val(sample_tag)
-        path(clipped_bam)
+        tuple val(sample_tag), path(clipped_bam)
 
     output:
         val("${sample_tag}"), emit: sample_tag

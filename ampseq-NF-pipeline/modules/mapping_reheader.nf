@@ -5,25 +5,28 @@ process mapping_reheader {
      */
 
     input:
-        val(tag)
-        path(alignment_input_file)
-        path(mapped_input_file_to_reheader)
-        val reference_file                  // fasta
-        path ref_files                      // list of ref reference index files to stage
+        tuple val(sample_tag), path(selected_bam), path(selected_bam_metrics), path(clipped_bam)
+        //val(sample_tag_clipped_bam) // sample tag provided by adapter clip
+        //path(clipped_bam) // original cram with clipped adapters
+        //val(sample_tag)
+        //path(selected_bam) //new mapped bam
+        path(reference_fasta) // reference fasta
+        path(ref_dict)     // list of ref reference index files to stage
 
     output:
-        tuple val(tag), path("${output_file}")
+        val(sample_tag), emit: sample_tag
+        path("${output_file}"), emit: reheadered_bam
 
     script:
-        base_name=mapped_input_file_to_reheader.baseName
+        base_name=selected_bam.baseName
         output_file="${base_name}.reheadered.bam"
-
         """
         set -e
         set -o pipefail
-        merge_headers.py "${alignment_input_file}" "${mapped_input_file_to_reheader}" "${reference_file}" | samtools reheader - \
-            "${mapped_input_file_to_reheader}" \
-            | samtools merge "${output_file}" -
+        python3 ${projectDir}/modules/merge_headers.py ${clipped_bam} \
+            ${selected_bam} \
+            ${reference_fasta} | samtools reheader - \
+            ${selected_bam} \
+            | samtools merge ${output_file} -
         """
 }
-
