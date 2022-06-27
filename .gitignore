@@ -1,3 +1,4 @@
 # Ignore nextflow generated files
 ampseq-NF-pipeline/.nextflow*
 ampseq-NF-pipeline/work
+*.nextflow*
