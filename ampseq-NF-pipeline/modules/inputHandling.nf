@@ -1,12 +1,31 @@
 def validate_parameters() {
+    // --- SANITY CHECKS ------------------------------------------------------
     def errors = 0
-    // check that the samplesheet file exists
+    // check if manifest file exists and if it was set
     if (params.manifest) {
         manifest_file=file(params.manifest)
         if (!manifest_file.exists()) {
             log.error("The manifest file specified does not exist.")
             errors += 1
         }
+    }
+    if (params.manifest==null){
+        log.error("A manifest must be specified.")
+        errors +=1
+    }
+
+
+    // check if reference fasta file exist and if it was set
+    if (params.reference_fasta){
+        reference_fasta = file(params.reference_fasta)
+        if (!reference_fasta.exists()){
+          log.error("The manifest file specified does not exist.")
+          errors += 1
+        }
+    }
+    if (params.reference_fasta==null){
+        log.error("A reference fasta must be specified.")
+        errors +=1
     }
 
     // check if output dir exists, if not create the default
@@ -17,6 +36,7 @@ def validate_parameters() {
          results_path.mkdir()
        }
     }
+
     // count errors and kill nextflow if any had been found
     if (errors > 0) {
         log.error(String.format("%d errors detected", errors))
