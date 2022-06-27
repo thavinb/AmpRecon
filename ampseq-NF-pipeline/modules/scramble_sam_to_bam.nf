@@ -1,8 +1,9 @@
 params.bambi_select_compression_level = 0
+params.bambi = "bambi"
 
 process bambi_select {
     /**
-    *                       
+    *
     */
     input:
         val(tag)
@@ -25,4 +26,3 @@ process bambi_select {
             -m "${output_metrics_file}"
         """
 }
-
