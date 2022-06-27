@@ -9,7 +9,7 @@ include { bam_reset } from '../modules/bam_reset.nf'
 include { clip_adapters } from '../modules/clip_adapters.nf'
 include { bam_to_fastq } from '../modules/bam_to_fastq.nf'
 include { align_bam } from '../modules/align_bam.nf'
-//include { scramble_sam_to_bam  } from '../modules/scramble_sam_to_bam.nf'
+include { bambi_select  } from '../modules/scramble_sam_to_bam.nf'
 include { mapping_reheader } from '../modules/mapping_reheader.nf'
 include { bam_split } from '../modules/bam_split.nf'
 include { bam_merge } from '../modules/bam_merge.nf'
@@ -20,7 +20,6 @@ include { bam_to_cram } from '../modules/bam_to_cram.nf'
 def load_manifest_ch(csv_ch){
   //if csv file is provided as parameter, use it by default and ignore input
   if (!(params.manifest_step1_2 == '')){
-      println("Startin from")
       // TODO : add check if file exist
       manifest_fl = params.manifest_step1_2
       csv_ch = Channel.fromPath(manifest_fl)
@@ -28,53 +27,55 @@ def load_manifest_ch(csv_ch){
   // if not set as parameter, assumes is a channel containing a path for the csv
   manifest_ch = csv_ch |
                 splitCsv(header:true) |
-                map {row-> tuple(row.run_id, row.cram_fl)}
+                multiMap {row -> run_id:row.run_id
+                                 cram_fl:row.cram_fl
+                                 sample_tag:row.sample_tag}
+                //map {row-> tuple(val(row.run_id), path(row.cram_fl), val(row.tag))}
 
   return manifest_ch
 }
 
 workflow cram_to_bam {
     take:
+        // manifest from step 1.1
         manifest_fl
-        //input_tag
-        //input_cram
-        //reference_index_files
-        //all_manifest_data
+        // reference index files
+        ref_bwa_index_fls
+        ref_fasta_index_fl
+        ref_dict_fl
     main:
-        // Process manifest_ch
-        in_ch = load_manifest_ch(manifest_fl)
+        // Process manifest
+        mnf_ch = load_manifest_ch(manifest_fl)
 
         // Collate cram files by name
-        collate_alignments(in_ch)
-        /*
-        // Transform BAM file to pre-aligned state
-        bam_reset(collate_alignments.out)
+        collate_alignments(mnf_ch.run_id, mnf_ch.cram_fl, mnf_ch.sample_tag)
+        //collate_alignments.out.view()
 
+        // Transform BAM file to pre-aligned state
+
+        bam_reset(collate_alignments.out.sample_tag,
+                  collate_alignments.out.collated_bam)
+        bamReset_Out_ch = bam_reset.out
         // Remove adapters
-        clip_adapters(bam_reset.out)
+        clip_adapters(bam_reset.out.sample_tag, bam_reset.out.prealigned_bam)
 
         // Convert BAM to FASTQ
-        bam_to_fastq(clip_adapters.out)
+        bam_to_fastq(clip_adapters.out.sample_tag,
+                     clip_adapters.out.clipped_bam)
+
+        align_bam(bam_to_fastq.out.sample_tag,
+                  bam_to_fastq.out.fastq,
+                  params.reference_fasta,
+                  ref_bwa_index_fls)
 
         // Map FASTQ to reference
-        bam_to_fastq.out
-        .join(all_manifest_data)
-        .multiMap {
-            tag: it[0]
-            fastq: it[1]
-            reference_filename: it[3]["reference_fasta"].getName()
-        }.set { alignment_input }
-        align_bam(alignment_input.tag, alignment_input.fastq, alignment_input.reference_filename, reference_index_files)
 
         // SAM to BAM
-        align_bam.out
-        .multiMap {
-            tag: it[0]
-            sam: it[1]
-        }.set { scramble_sam_to_bam_input }
-        scramble_sam_to_bam(scramble_sam_to_bam_input.tag, scramble_sam_to_bam_input.sam)
+        // scramble sam to bam (?)
+        bambi_select(align_bam.out.sample_tag, align_bam.out.sam_file)
 
         // Merges the current headers with the old ones. Keeping @SQ.*\tSN:([^\t]+) matching lines from the new header.
+        /*
         scramble_sam_to_bam.out
         .join(scramble_sam_to_bam.out)
         .join(all_manifest_data)
