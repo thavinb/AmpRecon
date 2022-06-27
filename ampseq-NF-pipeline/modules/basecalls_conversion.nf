@@ -8,7 +8,7 @@ process basecalls_conversion {
     container ''
 
     input:
-        tuple val(run_id), path(base_dir), val(lane), val(study_name), val(read_group), val(library)
+        tuple val(run_id), path(base_dir), val(lane), val(study_name), val(read_group), val(library) path(tag_file)
 
     output:
         tuple val(run_id), path("${output_file}")
