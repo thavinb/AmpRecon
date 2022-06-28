@@ -6,11 +6,14 @@ process bambi_select {
     *
     */
     input:
-        val(tag)
+        val(sample_tag)
         path(input_file) // e.g. bam
 
     output:
-        tuple val(tag), path("${output_file}"), path("${output_metrics_file}")
+        tuple val(sample_tag), path("${output_file}"), path("${output_metrics_file}")
+        //val(sample_tag), emit: sample_tag
+        //path("${output_file}"), emit: selected_bam
+        //path("${output_metrics_file}"), emit: selected_bam_metrics
 
     script:
         bambi=params.bambi
