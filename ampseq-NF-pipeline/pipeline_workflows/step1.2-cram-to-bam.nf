@@ -9,7 +9,8 @@ include { bam_reset } from '../modules/bam_reset.nf'
 include { clip_adapters } from '../modules/clip_adapters.nf'
 include { bam_to_fastq } from '../modules/bam_to_fastq.nf'
 include { align_bam } from '../modules/align_bam.nf'
-include { bambi_select  } from '../modules/scramble_sam_to_bam.nf'
+include { scramble_sam_to_bam } from '../modules/scramble.nf'
+include { bambi_select } from '../modules/scramble_sam_to_bam.nf'
 include { mapping_reheader } from '../modules/mapping_reheader.nf'
 include { bam_split } from '../modules/bam_split.nf'
 include { bam_merge } from '../modules/bam_merge.nf'
@@ -69,7 +70,8 @@ workflow cram_to_bam {
 
         // SAM to BAM
         // scramble sam to bam (?)
-        bambi_select(align_bam.out.sample_tag, align_bam.out.sam_file)
+//        bambi_select(align_bam.out.sample_tag, align_bam.out.sam_file)
+	scramble_sam_to_bam(align_bam.out.sample_tag, align_bam.out.sam_file)
 
         // Merges the current headers with the old ones.
         // Keeping @SQ.*\tSN:([^\t]+) matching lines from the new header.
@@ -125,8 +127,13 @@ workflow cram_to_bam {
 dropping non-primary alignments and sorting order to set to unknown.
 [4] Previously identified adapter sequences in each BAM are then clipped off and moved into auxiliary fields.
 [5] BAM files are converted to FASTQ format, before being aligned to a reference genome.
+<<<<<<< HEAD
 [6] Reads in the mapped SAM files are split into separate BAM files depending on their alignments.
 [7] Specific headers from the adapters clipped BAM file are copied to the scrambled, realigned BAM. Duplicate IDs for @RG and @PG records in the header
+=======
+[6] The mapped SAM files scrambled / converted into BAM files.
+[7] Specific headers from the adapters clipped BAM file are copied to the scrambled, realigned BAM. Duplicate IDs for @RG and @PG records in the header 
+>>>>>>> fe590260f13194b58a5d1a6be2e5107c6ec9ecd4
 are made unique with the addition of a suffix, read records are also updated.
 [8] Rank pairs produced by the collation are converted into single ranks per read.
 [9] BAM files with the same reads are merged. Ranks are also stripped from the alignments, clipped sequences are reinserted and quality string parts added.

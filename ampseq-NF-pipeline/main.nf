@@ -8,12 +8,13 @@ nextflow.enable.dsl = 2
 include { prepare_reference } from './pipeline_workflows/step0.1b-prepare-reference.nf'
 include { bcl_to_cram } from './pipeline_workflows/step1.1-bcl-to-cram.nf'
 include { cram_to_bam } from './pipeline_workflows/step1.2-cram-to-bam.nf'
-// - process to extract and validade information expected based on input params
+// - process to extract and validate information expected based on input params
 include { get_taglist_file } from './modules/manifest2tag.nf'
 include { validate_parameters; load_manifest_ch } from './modules/inputHandling.nf'
 include { make_samplesheet_manifest } from './modules/samplesheet_parser.nf'
 include { validate_samplesheet_manifest } from './modules/samplesheet_manifest_validation.nf'
 include { irods_retrieve } from './modules/irods_retrieve.nf'
+include { scramble_cram_to_bam } from './modules/scramble.nf'
 
 // logging info ----------------------------------------------------------------
 // This part of the code is based on the FASTQC PIPELINE (https://github.com/angelovangel/nxf-fastqc/blob/master/main.nf)
@@ -33,6 +34,7 @@ log.info """
          --manifest        (required) : ${params.manifest}
          --reference_fasta (required) : ${params.reference_fasta}
          --results_dir                : ${params.results_dir}
+         --irods_manifest             : ${params.irods_manifest}
          Runtime data:
         -------------------------------------------
          Running with profile:   ${ANSI_GREEN}${workflow.profile}${ANSI_RESET}
@@ -48,31 +50,7 @@ log.info """
 
 // logging info ----------------------------------------------------------------
 
-/*
-workflow set_up_params {
-    main:
-        Channel.fromPath("${params.bcl_dir_path}").set{bcls}
-        Channel.value("${params.lane}").set{lane}
-        Channel.value("${params.run_id}").set{run_id}
-        Channel.value("${params.study_name}").set{study_name}
-        Channel.fromPath("${params.manifest_file_path}").set{manifest}
-
-	//manifest2tag
-        get_tag_list_file(manifest, "library", "sample", study_name)
-        barcodes_file = get_tag_list_file.out.taglist_file
-
-    emit:
-        bcls
-        lane
-        run_id
-        study_name
-        barcodes_file
-}
-*/
-
 // Main entry-point workflow
-
-
 
 workflow {
     // -- Pre Processing ------------------------------------------------------
@@ -118,42 +96,14 @@ workflow {
                  reference_idx_fls.fasta_index_fl,
                  reference_idx_fls.dict_fl)
 
-    // Retrieve BAM files from iRODS
+    // Retrieve CRAM files from iRODS
     irods_retrieve(irods_ch)
 
-    // Concatenate in-country channel with iRODS channel
-    cram_to_bam.out.concat(irods_retrieve.out).set{ bam_files_ch }
+    // Convert iRODS CRAM files to BAM format
+//    scramble_cram_to_bam(irods_ch) //Unfinished
 
-    /*
-    validate_samplesheet_manifest.out
-        .splitCsv(
-            header: ["lims_id", "sims_id", "index", "ref", "barcode_sequence", "well", "plate"],
-            skip: 18
-        ).map { row ->
-            ref_map = get_reference_files(row.ref)
-            manifest_map = ["lims_id": row.lims_id, "sims_id": row.sims_id, "index": row.index, "ref": row.ref,
-                            "barcode_sequence": row.barcode_sequence, "well": row.well, "plate": row.plate]
-            all_data_map = manifest_map + ref_map
-            indexed_all_data_map = [row.index, all_data_map]
-            indexed_all_data_map
-        }.set { all_manifest_data }
-    */
-
-    /*
-    bcl_to_cram.out
-        .flatMap()
-        .map {
-            basename = it.getBaseName().replaceFirst(/\..*$/, '')  // 1234_5#6.cram -> 1234_5#6
-            tag = basename.replaceFirst(/.*#/, '')  // 1234_5#6 -> 6
-            [tag, it]
-        }.join(all_manifest_data)
-        .multiMap {
-            tag: it[0]
-            cram: it[1]
-        }.set { cram_to_bam_input }
-
-    cram_to_bam(cram_to_input.tag, cram_to_input.cram, set_up_params.reference_files, all_manifest_data)
-    */
+    // Concatenate in-country BAM channel with iRODS BAM channel
+//    cram_to_bam.out.concat(scramble_cram_to_bam.out).set{ bam_files_ch }
 }
 
 // -------------- Check if everything went okay -------------------------------
