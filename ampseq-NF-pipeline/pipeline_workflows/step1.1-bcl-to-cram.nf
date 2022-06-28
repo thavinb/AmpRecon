@@ -46,13 +46,7 @@ out_mnf.close()
 
 workflow bcl_to_cram {
     take:
-        // pre_process_input_ch
         pre_process_input_ch
-        //bcl_dir
-        //lane
-        //read_group
-        //study_name
-        //barcode
     main:
         // convert basecalls
         basecalls_conversion(pre_process_input_ch)

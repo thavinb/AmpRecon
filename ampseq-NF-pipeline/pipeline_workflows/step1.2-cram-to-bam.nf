@@ -9,7 +9,8 @@ include { bam_reset } from '../modules/bam_reset.nf'
 include { clip_adapters } from '../modules/clip_adapters.nf'
 include { bam_to_fastq } from '../modules/bam_to_fastq.nf'
 include { align_bam } from '../modules/align_bam.nf'
-include { bambi_select  } from '../modules/scramble_sam_to_bam.nf'
+include { scramble_sam_to_bam } from '../modules/scramble.nf'
+include { bambi_select } from '../modules/scramble_sam_to_bam.nf'
 include { mapping_reheader } from '../modules/mapping_reheader.nf'
 include { bam_split } from '../modules/bam_split.nf'
 include { bam_merge } from '../modules/bam_merge.nf'
@@ -72,7 +73,8 @@ workflow cram_to_bam {
 
         // SAM to BAM
         // scramble sam to bam (?)
-        bambi_select(align_bam.out.sample_tag, align_bam.out.sam_file)
+//        bambi_select(align_bam.out.sample_tag, align_bam.out.sam_file)
+	scramble_sam_to_bam(align_bam.out.sample_tag, align_bam.out.sam_file)
 
         // Merges the current headers with the old ones. Keeping @SQ.*\tSN:([^\t]+) matching lines from the new header.
         /*
