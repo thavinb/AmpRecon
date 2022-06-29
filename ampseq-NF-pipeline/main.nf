@@ -45,14 +45,42 @@ log.info """
          """
          .stripIndent()
 
-//Run container:          ${ANSI_GREEN}${workflow.container}${ANSI_RESET}
 
+def printHelp() {
+  log.info """
+  Usage:
+    nextflow run main.nf --manifest [path/to/my/manifest.csv]
+    [TO DO] nextflow run main.ng --from_step 1.2 --manifest_step1_2 [path/to/my/manifest_for_step1_2.csv]
 
-// logging info ----------------------------------------------------------------
+  Description:
+    (temporary - honest - description)
+    Ampseq amazing brand new pipeline built from the ground up to be awesome.
+
+    A manifest containing my run_id, bcl_dir, study_name, read_group, library,
+    and reference fasta path is necessary to run the ampseq pipeline from step 0
+
+    *for a complete description of input files check [LINK AMPSEQ]
+
+  Options:
+    Inputs:
+      --manifest (A manifest csv file)
+      --manifest_step1_2 (manifest file to be submitted to step 1.2, previous steps are ignored)
+
+    Additional options:
+      --help (Prints this help message. Default: false)
+      --results_dir (Results directory. Default: $launchDir/output/)
+   """.stripIndent()
+}
 
 // Main entry-point workflow
 
 workflow {
+    // --- Print help if requested -------------------------------------------
+    // Show help message
+    if (params.help) {
+        printHelp()
+        exit 0
+    }
     // -- Pre Processing ------------------------------------------------------
     // validate input
     validate_parameters()
@@ -100,7 +128,9 @@ workflow {
     irods_retrieve(irods_ch)
 
     // Convert iRODS CRAM files to BAM format
-    scramble_cram_to_bam(irods_retrieve.out, params.reference_fasta, reference_idx_fls.fasta_index_fl)
+    scramble_cram_to_bam(irods_retrieve.out,
+                         params.reference_fasta,
+                         reference_idx_fls.fasta_index_fl)
 
     // Concatenate in-country BAM channel with iRODS BAM channel
     cram_to_bam.out.concat(scramble_cram_to_bam.out).set{ bam_files_ch }
