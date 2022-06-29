@@ -75,7 +75,7 @@ workflow {
     if (params.irods_manifest){
         Channel.fromPath(params.irods_manifest, checkIfExists: true)
             .splitCsv(header: true, sep: ',')
-            .map{ row -> tuple(row.sample_id, file(row.file_path))}
+            .map{ row -> tuple(row.sample_id, row.file_path)}
             .set{ irods_ch }
     } else {
         Channel.empty().set{ irods_ch }
