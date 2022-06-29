@@ -19,9 +19,6 @@ workflow {
 	reference_bam = download_bamadapterfind_output_from_s3("21045")
 
 	compare_bam_subset(test_bam, reference_bam) 	
-	 	
-
-
 
 }
 
@@ -41,4 +38,4 @@ process generate_test_channel {
 	echo
 	"""
 
-}
+}}
