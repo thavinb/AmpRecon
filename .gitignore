@@ -2,3 +2,8 @@
 ampseq-NF-pipeline/.nextflow*
 ampseq-NF-pipeline/work
 *.nextflow*
+*MANIFEST*
+*index*
+*LOCK*
+*.log
+*history*
