@@ -20,7 +20,7 @@ process get_taglist_file {
 	// current understanding is that this information is not used
   sample = run_id
 	"""
-	python ${workflow.projectDir}/modules/manifest2tag.py -m $manifest -l $library --sample $sample --study $study_name
+	python3 ${workflow.projectDir}/modules/manifest2tag.py -m $manifest -l $library --sample $sample --study $study_name
 	"""
 
 }
