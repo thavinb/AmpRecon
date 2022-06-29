@@ -34,6 +34,40 @@ process download_i2b_output_from_s3 {
 	"""
 	s3cmd get s3://amplicon-test-data/${bcl_id}.test_i2b.subset.bam
 	"""
+}
 
+
+process download_bambi_decode_output_from_s3 {
+	
+	//download bambi decode test data from s3 
+
+	input:
+	val(bcl_id) 
+
+	output:
+	tuple path("*.bam"), path("*.metrics")
+
+	script:
+	"""
+	s3cmd get s3://amplicon-test-data/${bcl_id}_bambi_decode.subset.bam
+	s3cmd get s3://amplicon-test-data/${bcl_id}.subset.metrics
+	"""
+
+}
+
+
+process download_bamadapterfind_output_from_s3 {
+
+
+	input:
+	val(bcl_id)
+
+	output:
+	path("*.bam")
+
+	script:
+	"""
+	s3cmd get s3://amplicon-test-data/${bcl_id}.adapters.bam
+	"""
 
 }

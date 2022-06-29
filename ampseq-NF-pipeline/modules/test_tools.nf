@@ -121,6 +121,26 @@ process compare_bam_subset {
 
 }
 
+process compare_text_file_differences {
+
+	//compares plain-text files for equality
+
+	input:
+	path(reference)
+	path(under_test)
+
+	script:
+	"""
+	diff ${reference} ${under_test} > f_differences.txt
+	wait
+	if [[ `wc -l < differences.txt` -ge 1 ]]; then
+		echo text files differ
+		echo test failed
+		exit 1 
+	fi
+	"""
+}
+
 
 process check_md5sum {
     /**
