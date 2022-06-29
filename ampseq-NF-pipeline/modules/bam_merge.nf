@@ -12,15 +12,15 @@ process bam_merge {
     container ''
 
     input:
-        tuple val(tag), path(input_split_bam_file)
-        path(input_merge_file)
+        tuple val(sample_tag), path(reheadered_bam), path(split_bam)
 
     output:
-        tuple val(tag), path("${output_file}")
+        val(sample_tag), emit: sample_tag
+        path("${merged_bam}"), emit: merged_bam
 
     script:
-        base_name=input_merge_file.baseName
-        output_file="${base_name}.merged.bam"
+        base_name=reheadered_bam.baseName
+        merged_bam="${base_name}.merged.bam"
 
         """
         bam12auxmerge \
@@ -29,9 +29,8 @@ process bam_merge {
             ranksplit=${params.bam12auxmerge_ranksplit} \
             zztoname=${params.bam12auxmerge_zztoname} \
             clipreinsert=${params.bam12auxmerge_clipreinsert} \
-            "${input_merge_file}" \
-            < "${input_split_bam_file}" \
-            > "${output_file}"
-
+            "${reheadered_bam}" \
+            < "${split_bam}" \
+            > "${merged_bam}"
         """
 }

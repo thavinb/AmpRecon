@@ -5,19 +5,18 @@ process bam_split {
     /*
     * Splits BAM rank pairs to single ranks per read
     */
-    container ''
 
     input:
-        path(input_bam)
+        tuple val(sample_tag), path(reheadered_bam)
 
     output:
-        tuple val(tag), path("*.split.bam")
+        tuple val(sample_tag), path("*.split.bam")
 
     script:
-        """
-        bam12split verbose=${params.bam12split_verbose} level=${params.bam12split_level} \
-            < "${input_bam}" \
-            > "${base_name}.split.bam"
-
-        """
+      base_name = reheadered_bam.getBaseName()
+      """
+      bam12split verbose=${params.bam12split_verbose} level=${params.bam12split_level} \
+          < "${reheadered_bam}" \
+          > "${base_name}.split.bam"
+      """
 }

@@ -6,7 +6,7 @@ params.bamsort_fixmate = 1
 params.bamsort_add_markup_support = 1
 
 
-process bam_sort {
+process sort_bam {
     input:
         val(tag)
         path(input_file) // e.g. bam
@@ -33,4 +33,3 @@ process bam_sort {
 
         """
 }
-

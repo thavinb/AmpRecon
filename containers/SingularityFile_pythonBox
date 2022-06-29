@@ -1,13 +1,15 @@
 Bootstrap: docker
-From: python:3.8-slim-bullseye
-Stage: spython-base
+From:staphb/samtools
+
+# python:3.8-slim-bullseye
 
 %post
 # Copy sample_vcf_to_zarr.py to WORKDIR
 DEBIAN_FRONTEND=noninteractive
 
 # Install OS dependencies
-apt-get update -qq -y && \
+apt-get update -qq -y
+apt install -y pip
 
 # Install Python dependencies
 pip install --upgrade pip

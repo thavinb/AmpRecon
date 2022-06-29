@@ -19,7 +19,7 @@ process align_bam {
         //path(ref_files)       // list of ref reference index files
 
     output:
-        tuple val("${sample_tag}"), emit: sample_tag
+        val("${sample_tag}"), emit: sample_tag
         path("${basename}.sam"), emit: sam_file
 
     script:
