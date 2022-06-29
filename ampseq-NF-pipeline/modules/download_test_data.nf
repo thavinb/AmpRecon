@@ -71,3 +71,21 @@ process download_bamadapterfind_output_from_s3 {
 	"""
 
 }
+
+
+process download_test_cram_from_s3 {
+
+
+	input:
+	val(file_id)
+
+	output:
+	path("*.cram")
+
+	script:
+	"""
+	s3cmd get s3://amplicon-test-data/${file_id}.cram
+	"""
+
+
+}
