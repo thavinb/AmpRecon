@@ -100,10 +100,10 @@ workflow {
     irods_retrieve(irods_ch)
 
     // Convert iRODS CRAM files to BAM format
-//    scramble_cram_to_bam(irods_ch) //Unfinished
+    scramble_cram_to_bam(irods_retrieve.out, params.reference_fasta, reference_idx_fls.fasta_index_fl)
 
     // Concatenate in-country BAM channel with iRODS BAM channel
-//    cram_to_bam.out.concat(scramble_cram_to_bam.out).set{ bam_files_ch }
+    cram_to_bam.out.concat(scramble_cram_to_bam.out).set{ bam_files_ch }
 }
 
 // -------------- Check if everything went okay -------------------------------

@@ -14,7 +14,7 @@ process scramble_sam_to_bam {
 
     script:
         base_name=sam_file.getBaseName()
-        bam_file="${base_name}.scrambled.bam"
+        bam_file="${base_name}.bam"
 
         scramble=params.scramble
 
@@ -33,8 +33,7 @@ process scramble_cram_to_bam {
     */
 
     input:
-        val(tag)
-        path(cram_file)
+        tuple val(tag), path(cram_file)
         path(reference_file)
         path(reference_idx_file)
 
@@ -59,3 +58,4 @@ process scramble_cram_to_bam {
             > "${bam_file}"
         """
 }
+
