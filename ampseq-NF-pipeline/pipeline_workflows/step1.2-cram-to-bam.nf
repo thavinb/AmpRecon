@@ -15,7 +15,7 @@ include { mapping_reheader } from '../modules/mapping_reheader.nf'
 include { bam_split } from '../modules/bam_split.nf'
 include { bam_merge } from '../modules/bam_merge.nf'
 include { alignment_filter } from '../modules/alignment_filter.nf'
-//include { sort_bam } from '../modules/sort_bam.nf'
+include { sort_bam } from '../modules/sort_bam.nf'
 include { bam_to_cram } from '../modules/bam_to_cram.nf'
 
 def load_manifest_ch(csv_ch){
@@ -70,25 +70,16 @@ workflow cram_to_bam {
 
         // SAM to BAM
         // scramble sam to bam (?)
-//        bambi_select(align_bam.out.sample_tag, align_bam.out.sam_file)
-	scramble_sam_to_bam(align_bam.out.sample_tag, align_bam.out.sam_file)
+        //bambi_select(align_bam.out.sample_tag, align_bam.out.sam_file)
+        scramble_sam_to_bam(align_bam.out.sample_tag, align_bam.out.sam_file)
 
         // Merges the current headers with the old ones.
         // Keeping @SQ.*\tSN:([^\t]+) matching lines from the new header.
-        reheader_in_ch = bambi_select.out.join(clip_adapters.out)
+        reheader_in_ch = scramble_sam_to_bam.out.join(clip_adapters.out)
 
         mapping_reheader(reheader_in_ch, params.reference_fasta, ref_dict_fl)
-        // Split BAM rank pairs to single ranks per read
-        /*
-        mapping_reheader.out
-        .join(bam_to_fastq.out)
-        .multiMap {
-            tag: it[0]
-            reheadered_bam: it[1]
-            clipped: it[3]
-        }.set { bam_split_input }
-        */
 
+        // Split BAM rank pairs to single ranks per read
         bam_split(mapping_reheader.out)
 
         // Merge BAM files with same reads
@@ -96,29 +87,20 @@ workflow cram_to_bam {
         //bam_merge_In_ch.view()
 
         bam_merge(bam_merge_In_ch)
-        /*
-        // Split alignments into different files
-        bam_merge.out
-        .multiMap {
-            tag: it[0]
-            bam: it[1]
-        }.set { alignment_filter_input }
-        */
 
-        alignment_filter(alignment_filter_input.tag, alignment_filter_input.bam)
-        /*
+        // Split alignments into different files
+        alignment_filter(bam_merge.out.sample_tag,
+                         bam_merge.out.merged_bam)
+
         // BAM sort by coordinate
-        alignment_filter.out
-        .multiMap {
-            tag: it[0]
-            alignment_file: it[1]
-        }.set { bam_sort_input }
-        sort_bam(bam_sort_input.tag, bam_sort_input.alignment_file)
+
+        sort_bam(alignment_filter.out.sample_tag,
+                 alignment_filter.out.selected_bam)
         bam_ch = sort_bam.out
 
     emit:
         bam_ch
-    */
+
 }
 /*
 // -------------------------- DOCUMENTATION -----------------------------------
