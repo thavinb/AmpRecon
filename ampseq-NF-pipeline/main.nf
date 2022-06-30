@@ -15,7 +15,7 @@ include { make_samplesheet_manifest } from './modules/make_samplesheet_manifest.
 include { validate_samplesheet_manifest } from './modules/samplesheet_manifest_validation.nf'
 include { irods_retrieve } from './modules/irods_retrieve.nf'
 include { scramble_cram_to_bam } from './modules/scramble.nf'
-include { irods_samplesheet_parser } from './modules/irods_samplesheet_parser.nf'
+include { irods_manifest_parser } from './modules/irods_manifest_parser.nf'
 
 // logging info ----------------------------------------------------------------
 // This part of the code is based on the FASTQC PIPELINE (https://github.com/angelovangel/nxf-fastqc/blob/master/main.nf)
@@ -66,7 +66,7 @@ def printHelp() {
     Inputs:
       --manifest (A manifest csv file)
       --manifest_step1_2 (manifest file to be submitted to step 1.2, previous steps are ignored)
-      --irods_manifest (manifest containing sample id and irods paths to cram files)
+      --irods_manifest (tab-delimited file containing rows of WG_lane and id_run data for CRAM files on iRODS)
 
     Additional options:
       --help (Prints this help message. Default: false)
@@ -126,8 +126,8 @@ workflow {
                  reference_idx_fls.fasta_index_fl,
                  reference_idx_fls.dict_fl)
 
-    // Parse iRODS samplesheet / amplicon lanes file
-    irods_samplesheet_parser(irods_ch)
+    // Parse iRODS manifest file
+    irods_manifest_parser(irods_ch)
 
     // Retrieve CRAM files from iRODS
     irods_retrieve(irods_samplesheet_parser.out)
