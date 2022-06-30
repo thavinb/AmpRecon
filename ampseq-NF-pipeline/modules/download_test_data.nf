@@ -67,7 +67,7 @@ process download_bamadapterfind_output_from_s3 {
 
 	script:
 	"""
-	curl https://amplicon-test-data.cog.sanger.ac.uk/${bcl_id}.adapters.bam
+	curl https://amplicon-test-data.cog.sanger.ac.uk/${bcl_id}.adapters.bam > test.adapters.bam
 	"""
 
 }
