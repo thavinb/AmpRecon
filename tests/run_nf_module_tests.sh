@@ -4,4 +4,4 @@
 set -e
 
 
-nextflow run tests/test_bamadapter_find.nf -c ampseq-NF-pipeline/nextflow.config -profile standard 
+nextflow run test_bamadapter_find.nf -c test_bamadapter_find.config -profile standard 
