@@ -22,6 +22,6 @@ test_bamadapterfind:
   stage: test
   <<: *set_environment
   script:
-    ./tests/run_nf_module_tests.sh
+    tests/run_nf_module_tests.sh
 
 
