@@ -104,7 +104,7 @@ workflow {
     // iRODS manifest check and parsing
     if (params.irods_manifest){
         Channel.fromPath(params.irods_manifest, checkIfExists: true)
-            .splitCsv(header: true, sep: ',')
+            .splitCsv(header: true, sep: '\t')
             .map{ row -> tuple(row.id_run, row.WG_lane)}
             .set{ irods_ch }
     } else {
