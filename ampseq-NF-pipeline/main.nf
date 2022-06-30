@@ -130,7 +130,7 @@ workflow {
     irods_manifest_parser(irods_ch)
 
     // Retrieve CRAM files from iRODS
-    irods_retrieve(irods_samplesheet_parser.out)
+    irods_retrieve(irods_manifest_parser.out)
 
     // Convert iRODS CRAM files to BAM format
     scramble_cram_to_bam(irods_retrieve.out,
