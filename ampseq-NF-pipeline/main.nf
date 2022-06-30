@@ -15,6 +15,7 @@ include { make_samplesheet_manifest } from './modules/make_samplesheet_manifest.
 include { validate_samplesheet_manifest } from './modules/samplesheet_manifest_validation.nf'
 include { irods_retrieve } from './modules/irods_retrieve.nf'
 include { scramble_cram_to_bam } from './modules/scramble.nf'
+include { irods_samplesheet_parser } from './modules/irods_samplesheet_parser.nf'
 
 // logging info ----------------------------------------------------------------
 // This part of the code is based on the FASTQC PIPELINE (https://github.com/angelovangel/nxf-fastqc/blob/master/main.nf)
@@ -104,7 +105,7 @@ workflow {
     if (params.irods_manifest){
         Channel.fromPath(params.irods_manifest, checkIfExists: true)
             .splitCsv(header: true, sep: ',')
-            .map{ row -> tuple(row.sample_id, row.file_path)}
+            .map{ row -> tuple(row.id_run, row.WG_lane)}
             .set{ irods_ch }
     } else {
         Channel.empty().set{ irods_ch }
@@ -125,8 +126,11 @@ workflow {
                  reference_idx_fls.fasta_index_fl,
                  reference_idx_fls.dict_fl)
 
+    // Parse iRODS samplesheet / amplicon lanes file
+    irods_samplesheet_parser(irods_ch)
+
     // Retrieve CRAM files from iRODS
-    irods_retrieve(irods_ch)
+    irods_retrieve(irods_samplesheet_parser.out)
 
     // Convert iRODS CRAM files to BAM format
     scramble_cram_to_bam(irods_retrieve.out,
