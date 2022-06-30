@@ -16,7 +16,6 @@ default:
     - apt-get install -y sudo openjdk-11-jdk wget curl
     - wget -qO- https://get.nextflow.io | bash
     - sudo mv nextflow /usr/bin
-    - sudo apt-get install -y s3cmd
     - sleep 10
 
 test_bamadapterfind:
@@ -24,5 +23,3 @@ test_bamadapterfind:
   <<: *set_environment
   script:
     - tests/run_nf_module_tests.sh
-
-
