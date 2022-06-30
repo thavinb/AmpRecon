@@ -1,4 +1,4 @@
-process irods_samplesheet_parser {
+process irods_manifest_parser {
     /*
     Creates iRODS file path from amplicon lanes file and retrieves sample ID from iRODS.
     */
