@@ -32,7 +32,7 @@ process download_i2b_output_from_s3 {
 	
 	script:
 	"""
-	s3cmd get s3://amplicon-test-data/${bcl_id}.test_i2b.subset.bam
+	curl https://amplicon-test-data.cog.sanger.ac.uk/${bcl_id}.test_i2b.subset.bam > ${bcl_id}.test.bam
 	"""
 }
 
@@ -49,8 +49,8 @@ process download_bambi_decode_output_from_s3 {
 
 	script:
 	"""
-	s3cmd get s3://amplicon-test-data/${bcl_id}_bambi_decode.subset.bam
-	s3cmd get s3://amplicon-test-data/${bcl_id}.subset.metrics
+	curl https://amplicon-test-data.cog.sanger.ac.uk/${bcl_id}_bambi_decode.subset.bam > test.decode.bam
+	curl https://amplicon-test-data.cog.sanger.ac.uk/${bcl_id}.subset.metrics > test.decode.metrics
 	"""
 
 }
