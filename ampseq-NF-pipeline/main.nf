@@ -11,7 +11,7 @@ include { cram_to_bam } from './pipeline_workflows/step1.2-cram-to-bam.nf'
 // - process to extract and validate information expected based on input params
 include { get_taglist_file } from './modules/manifest2tag.nf'
 include { validate_parameters; load_manifest_ch } from './modules/inputHandling.nf'
-include { make_samplesheet_manifest } from './modules/samplesheet_parser.nf'
+include { make_samplesheet_manifest } from './modules/make_samplesheet_manifest.nf'
 include { validate_samplesheet_manifest } from './modules/samplesheet_manifest_validation.nf'
 include { irods_retrieve } from './modules/irods_retrieve.nf'
 include { scramble_cram_to_bam } from './modules/scramble.nf'
@@ -65,6 +65,7 @@ def printHelp() {
     Inputs:
       --manifest (A manifest csv file)
       --manifest_step1_2 (manifest file to be submitted to step 1.2, previous steps are ignored)
+      --irods_manifest (manifest containing sample id and irods paths to cram files)
 
     Additional options:
       --help (Prints this help message. Default: false)
@@ -86,18 +87,18 @@ workflow {
     validate_parameters()
 
     // process manifest input
+    // TODO validate paths on the manifest
     manifest_ch = load_manifest_ch()
-
+    manifest_ch.view()
     // process samplesheets manifest (necessary to get barcodes) and validate it
-    make_samplesheet_manifest(manifest_ch)
+    make_samplesheet_manifest(manifest_ch)//run_id, manifest_ch.bcl_dir)
     validate_samplesheet_manifest(make_samplesheet_manifest.out)
 
     get_taglist_file_In_ch = manifest_ch.join(validate_samplesheet_manifest.out)
 
     get_taglist_file(get_taglist_file_In_ch)
-    tag_files_ch = get_taglist_file.out
 
-    step1_Input_ch = manifest_ch.join(tag_files_ch)
+    step1_Input_ch = manifest_ch.join(get_taglist_file.out)
 
     // iRODS manifest check and parsing
     if (params.irods_manifest){
