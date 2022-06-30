@@ -13,10 +13,10 @@ default:
     - echo '{"bip":"192.168.5.3/24","registry-mirrors":["https://docker-hub-mirror.internal.sanger.ac.uk:5000"],"default-address-pools":[{"base":"192.168.4.0/16","size":24}]}' > /etc/docker/daemon.json
     - dockerd > /var/log/dockerd.log 2>&1 &
     - apt-get update -y
-    - sudo apt-get install s3cmd
     - apt-get install -y sudo openjdk-11-jdk wget curl
     - wget -qO- https://get.nextflow.io | bash
     - sudo mv nextflow /usr/bin
+    - sudo apt-get install s3cmd
     - sleep 10
 
 test_bamadapterfind:
