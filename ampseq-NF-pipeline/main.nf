@@ -90,7 +90,7 @@ workflow {
     // process manifest input
     // TODO validate paths on the manifest
     manifest_ch = load_manifest_ch()
-    manifest_ch.view()
+
     // process samplesheets manifest (necessary to get barcodes) and validate it
     make_samplesheet_manifest(manifest_ch)//run_id, manifest_ch.bcl_dir)
     validate_samplesheet_manifest(make_samplesheet_manifest.out)

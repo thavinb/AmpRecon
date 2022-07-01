@@ -10,14 +10,15 @@ include { bam_find_adapter } from '../modules/bam_find_adapter.nf'
 include { bam_to_cram } from '../modules/bam_to_cram.nf'
 
 process writeOutputManifest {
+
   publishDir "${params.results_dir}/${run_id}", mode: 'copy', overwrite: true
 
-input:
-   tuple val(run_id), path(cram_files)
-   // TODO create a python box container
+  input:
+    tuple val(run_id), path(cram_files)
+    // TODO create a python box container
 
-output:
-   tuple val(run_id), path("${run_id}_out1.1_mnf.csv")
+  output:
+    tuple val(run_id), path("${run_id}_out1.1_mnf.csv")
 // The $/ ... /$ is necessary to avoid nextflow to read "\n" correctly
 $/
 #!/usr/bin/python3
@@ -75,4 +76,3 @@ workflow bcl_to_cram {
 [4] BAM files are split by read group into CRAM files, which are emitted ready for further processing.
 
 */
-

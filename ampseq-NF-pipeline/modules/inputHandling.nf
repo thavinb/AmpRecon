@@ -47,13 +47,13 @@ def validate_parameters() {
 
 def load_manifest_ch(){
 
-  manifest_ch = Channel.fromPath(params.manifest) | splitCsv(header:true) | map {
-                row-> tuple(row.run_id,
-                            file(row.bcl_dir_path),
-                            row.lane,
-                            row.study_name,
-                            row.read_group,
-                            row.library)
+  manifest_ch = Channel.fromPath(params.manifest) | splitCsv(header:true) |
+                map {row-> tuple(row.run_id,
+                                 row.bcl_dir_path,
+                                 row.lane,
+                                 row.study_name,
+                                 row.read_group,
+                                 row.library)
                     }
   return manifest_ch
 }
