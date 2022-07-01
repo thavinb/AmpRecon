@@ -17,6 +17,10 @@ include { bam_merge } from '../modules/bam_merge.nf'
 include { alignment_filter } from '../modules/alignment_filter.nf'
 include { sort_bam } from '../modules/sort_bam.nf'
 include { bam_to_cram } from '../modules/bam_to_cram.nf'
+include { scramble_cram_to_bam } from '../modules/scramble.nf'
+include { irods_manifest_parser } from '../modules/irods_manifest_parser.nf'
+include { irods_retrieve } from '../modules/irods_retrieve.nf'
+
 
 def load_manifest_ch(csv_ch){
   //if csv file is provided as parameter, use it by default and ignore input
@@ -81,13 +85,14 @@ workflow cram_to_bam {
         ref_bwa_index_fls
         ref_fasta_index_fl
         ref_dict_fl
+        //irods channel
+        irods_ch
     main:
         // Process manifest
         mnf_ch = load_manifest_ch(manifest_fl)
 
         // Collate cram files by name
         collate_alignments(mnf_ch.run_id, mnf_ch.cram_fl, mnf_ch.sample_tag)
-        //collate_alignments.out.view()
 
         // Transform BAM file to pre-aligned state
 
@@ -135,8 +140,24 @@ workflow cram_to_bam {
                  alignment_filter.out.selected_bam)
         bam_ch = sort_bam.out
 
+        // --- IRODS ----------------------------------------------------------
+        // Parse iRODS manifest file
+        irods_manifest_parser(irods_ch)
+
+        // Retrieve CRAM files from iRODS
+        irods_retrieve(irods_manifest_parser.out)
+
+        // Convert iRODS CRAM files to BAM format
+        scramble_cram_to_bam(irods_retrieve.out,
+                             params.reference_fasta,
+                             ref_fasta_index_fl)
+
+        // Concatenate in-country BAM channel with iRODS BAM channel
+        bam_ch.concat(scramble_cram_to_bam.out).set{ bam_files_ch }
+
+        // --------------------------------------------------------------------
         // write manifest out
-        writeOutputManifest(bam_ch, mnf_ch.run_id)
+        writeOutputManifest(bam_files_ch, mnf_ch.run_id)
 
     emit:
         bam_ch

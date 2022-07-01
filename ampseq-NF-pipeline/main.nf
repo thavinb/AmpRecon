@@ -13,9 +13,6 @@ include { get_taglist_file } from './modules/manifest2tag.nf'
 include { validate_parameters; load_manifest_ch } from './modules/inputHandling.nf'
 include { make_samplesheet_manifest } from './modules/make_samplesheet_manifest.nf'
 include { validate_samplesheet_manifest } from './modules/samplesheet_manifest_validation.nf'
-include { irods_retrieve } from './modules/irods_retrieve.nf'
-include { scramble_cram_to_bam } from './modules/scramble.nf'
-include { irods_manifest_parser } from './modules/irods_manifest_parser.nf'
 
 // logging info ----------------------------------------------------------------
 // This part of the code is based on the FASTQC PIPELINE (https://github.com/angelovangel/nxf-fastqc/blob/master/main.nf)
@@ -124,8 +121,9 @@ workflow {
     cram_to_bam( manifest_step1_1_Out_ch.mnf,
                  reference_idx_fls.bwa_index_fls,
                  reference_idx_fls.fasta_index_fl,
-                 reference_idx_fls.dict_fl)
-
+                 reference_idx_fls.dict_fl,
+                 irods_ch)
+    /*
     // Parse iRODS manifest file
     irods_manifest_parser(irods_ch)
 
@@ -139,6 +137,7 @@ workflow {
 
     // Concatenate in-country BAM channel with iRODS BAM channel
     cram_to_bam.out.concat(scramble_cram_to_bam.out).set{ bam_files_ch }
+    */
 }
 
 // -------------- Check if everything went okay -------------------------------
