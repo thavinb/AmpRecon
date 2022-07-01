@@ -84,7 +84,7 @@ process download_test_cram_from_s3 {
 
 	script:
 	"""
-	s3cmd get s3://amplicon-test-data/${file_id}.cram
+	curl https://amplicon-test-data.cog.sanger.ac.uk/${file_id}.cram > test.cram
 	"""
 
 

@@ -23,3 +23,10 @@ test_bamadapterfind:
   <<: *set_environment
   script:
     - tests/run_nf_module_tests.sh
+
+test_samtools_bam2cram:
+  stage: test
+  <<: *set_environment
+  script:
+   - tests/run_samtoolsbam2cram.sh
+
