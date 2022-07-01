@@ -31,9 +31,46 @@ def load_manifest_ch(csv_ch){
                 multiMap {row -> run_id:row.run_id
                                  cram_fl:row.cram_fl
                                  sample_tag:row.sample_tag}
-                //map {row-> tuple(val(row.run_id), path(row.cram_fl), val(row.tag))}
-
   return manifest_ch
+}
+
+process writeOutputManifest {
+
+  //publishDir "${params.results_dir}/${run_id}", mode: 'copy', overwrite: true
+
+  input:
+    tuple val(sample_tag), path(bam_file)
+    val(run_id)
+    // TODO create a python box container
+
+  //output:
+  //  tuple val(run_id), path("${run_id}_out1.2_mnf.csv")
+// The $/ ... /$ is necessary to avoid nextflow to read "\n" incorrectly
+$/
+#!/usr/bin/python3
+from pathlib import Path
+
+# setup inputs
+run_id = "${run_id}"
+bam_fl = "${bam_file}"
+sample_tag = "${sample_tag}"
+publishDir = f"${params.results_dir}/{run_id}/"
+bam_dir=f"${params.results_dir}{run_id}/"
+
+# if manifest already exists, just append new lines
+path_to_mnf = f"{publishDir}/{run_id}_out1.2_mnf.csv"
+if Path(path_to_mnf).is_file():
+    out_mnf = open(f"{path_to_mnf}", "a")
+
+# if manifest does not exist, create file and write header
+else:
+    out_mnf = open(f"{path_to_mnf}", "w")
+    out_mnf.write("run_id,bam_fl,sample_tag\n")
+
+# write manifest line for the bam file
+out_mnf.write(f"{run_id},{bam_dir}{bam_fl},{sample_tag}\n")
+out_mnf.close()
+/$
 }
 
 workflow cram_to_bam {
@@ -97,6 +134,9 @@ workflow cram_to_bam {
         sort_bam(alignment_filter.out.sample_tag,
                  alignment_filter.out.selected_bam)
         bam_ch = sort_bam.out
+
+        // write manifest out
+        writeOutputManifest(bam_ch, mnf_ch.run_id)
 
     emit:
         bam_ch
