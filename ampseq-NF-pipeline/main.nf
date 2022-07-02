@@ -13,6 +13,7 @@ include { get_taglist_file } from './modules/manifest2tag.nf'
 include { validate_parameters; load_manifest_ch } from './modules/inputHandling.nf'
 include { make_samplesheet_manifest } from './modules/make_samplesheet_manifest.nf'
 include { validate_samplesheet_manifest } from './modules/samplesheet_manifest_validation.nf'
+include { samplesheet_validation } from './modules/samplesheet_validation.nf'
 
 // logging info ----------------------------------------------------------------
 // This part of the code is based on the FASTQC PIPELINE (https://github.com/angelovangel/nxf-fastqc/blob/master/main.nf)
@@ -87,6 +88,9 @@ workflow {
     // process manifest input
     // TODO validate paths on the manifest
     manifest_ch = load_manifest_ch()
+
+    // validate MiSeq run files and directory structure
+    samplesheet_validation(manifest_ch)
 
     // process samplesheets manifest (necessary to get barcodes) and validate it
     make_samplesheet_manifest(manifest_ch)//run_id, manifest_ch.bcl_dir)
