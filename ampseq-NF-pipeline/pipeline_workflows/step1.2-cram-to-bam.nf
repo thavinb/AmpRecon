@@ -24,9 +24,9 @@ include { irods_retrieve } from '../modules/irods_retrieve.nf'
 
 def load_manifest_ch(csv_ch){
   //if csv file is provided as parameter, use it by default and ignore input
-  if (!(params.manifest_step1_2 == '')){
+  if (!(params.step1_2_in_csv == '')){
       // TODO : add check if file exist
-      manifest_fl = params.manifest_step1_2
+      manifest_fl = params.step1_2_in_csv
       csv_ch = Channel.fromPath(manifest_fl)
       }
   // if not set as parameter, assumes is a channel containing a path for the csv
