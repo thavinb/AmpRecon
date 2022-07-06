@@ -32,4 +32,14 @@ singularity pull docker://staphb/samtools:1.15
 echo "@ pulling bwa_0.7.17.sif"
 singularity pull docker://staphb/bwa:0.7.17
 
+echo "@ building picard.sif"
+singularity build --fakeroot picard.sif SingularityFile_picard
+
+echo "@ building bwa.sif"
+singularity build --fakeroot bwa.sif SingularityFile_bwa
+
+echo "@ building pythonBox.sif"
+singularity build --fakeroot pythonBox.sif SingularityFile_pythonBox
+
+
 echo ":: DONE ::"
