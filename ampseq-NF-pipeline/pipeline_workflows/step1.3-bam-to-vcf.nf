@@ -17,24 +17,8 @@ workflow reset_bam_alignment {
 		input_ch = input_manifest.splitCsv(header : true)
 					 .multiMap { 
 							row  -> bam_fl:row.bam_fl
-							sample_tag:row.sample_tag 
+							        sample_tag:row.sample_tag 
 						}
-
 		 bam_reset(input_ch.sample_tag, input_ch.bam_fl)
-			                         
-
-
-
 
 }
-
-workflow {
-
-
-        manifest_ch = Channel.fromPath("./test_manifest.csv")
-
-        reset_bam_alignment(manifest_ch)
-
-
-}
-
