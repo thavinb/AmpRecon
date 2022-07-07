@@ -10,7 +10,7 @@ include { bcl_to_cram } from './pipeline_workflows/step1.1-bcl-to-cram.nf'
 include { cram_to_bam } from './pipeline_workflows/step1.2-cram-to-bam.nf'
 // - process to extract and validate information expected based on input params
 include { get_taglist_file } from './modules/manifest2tag.nf'
-include { validate_parameters; load_manifest_ch } from './modules/inputHandling.nf'
+include { validate_parameters; load_manifest_ch; load_steps_to_run } from './modules/inputHandling.nf'
 include { make_samplesheet_manifest } from './modules/make_samplesheet_manifest.nf'
 include { validate_samplesheet_manifest } from './modules/samplesheet_manifest_validation.nf'
 include { samplesheet_validation } from './modules/samplesheet_validation.nf'
@@ -32,8 +32,11 @@ log.info """
         -------------------------------------------
          --manifest        (required) : ${params.manifest}
          --reference_fasta (required) : ${params.reference_fasta}
+         --start_from                 : ${params.start_from}
          --results_dir                : ${params.results_dir}
          --irods_manifest             : ${params.irods_manifest}
+
+         ------------------------------------------
          Runtime data:
         -------------------------------------------
          Running with profile:   ${ANSI_GREEN}${workflow.profile}${ANSI_RESET}
@@ -84,24 +87,57 @@ workflow {
     // -- Pre Processing ------------------------------------------------------
     // validate input
     validate_parameters()
+    // get steps to run
+    steps_to_run_tags = load_steps_to_run()
+    tag_provided = params.start_from.toString()
 
-    // process manifest input
-    // TODO validate paths on the manifest
-    manifest_ch = load_manifest_ch()
+    if (steps_to_run_tags.contains("0")) {
+      // process manifest input
+      manifest_ch = load_manifest_ch()
+      // validate MiSeq run files and directory structure
+      samplesheet_validation(manifest_ch)
 
-    // validate MiSeq run files and directory structure
-    samplesheet_validation(manifest_ch)
+      // process samplesheets manifest (necessary to get barcodes) and validate it
+      make_samplesheet_manifest(manifest_ch)//run_id, manifest_ch.bcl_dir)
+      validate_samplesheet_manifest(make_samplesheet_manifest.out)
+      // get taglist
+      get_taglist_file_In_ch = manifest_ch.join(validate_samplesheet_manifest.out)
+      get_taglist_file(get_taglist_file_In_ch)
 
-    // process samplesheets manifest (necessary to get barcodes) and validate it
-    make_samplesheet_manifest(manifest_ch)//run_id, manifest_ch.bcl_dir)
-    validate_samplesheet_manifest(make_samplesheet_manifest.out)
+      // set step1 input channel
+      step1_Input_ch = manifest_ch.join(get_taglist_file.out)
 
-    get_taglist_file_In_ch = manifest_ch.join(validate_samplesheet_manifest.out)
+      // Stage 1 - Step 1: BCL to CRAM
+      bcl_to_cram(step1_Input_ch)
+      manifest_step1_1_Out_ch = bcl_to_cram.out.multiMap { it -> run_id: it[0]
+                                                                    mnf: it[1]}
+    }
 
-    get_taglist_file(get_taglist_file_In_ch)
+    if (steps_to_run_tags.contains("1.2")) {
+      // handle reference fasta
+      prepare_reference(params.reference_fasta)
+      reference_idx_fls = prepare_reference.out
 
-    step1_Input_ch = manifest_ch.join(get_taglist_file.out)
+      // if start from this step, use the provided in_csv, if not, use previous
+      // step output
+      if (tag_provided=="1.2"){
+        step1_2_In_mnf = params.step1_2_in_csv
+        csv_ch = Channel.fromPath(params.step1_2_in_csv)
+      }
+      else {
+        csv_ch = manifest_step1_1_Out_ch.mnf
+      }
 
+      // Stage 1 - Step 2: CRAM to BAM
+      cram_to_bam( csv_ch,
+                   reference_idx_fls.bwa_index_fls,
+                   reference_idx_fls.fasta_index_fl,
+                   reference_idx_fls.dict_fl)//,
+                   //irods_ch)
+    }
+
+    /*
+    // --- iRODS --------------------------------------------------------------
     // iRODS manifest check and parsing
     if (params.irods_manifest){
         Channel.fromPath(params.irods_manifest, checkIfExists: true)
@@ -112,21 +148,6 @@ workflow {
         Channel.empty().set{ irods_ch }
     }
 
-    // handle reference fasta
-    prepare_reference(params.reference_fasta)
-    reference_idx_fls = prepare_reference.out
-
-    // Stage 1 - Step 1: BCL to CRAM
-    bcl_to_cram(step1_Input_ch)//, set_up_params.out.barcodes_file)
-    manifest_step1_1_Out_ch = bcl_to_cram.out.multiMap { it -> run_id: it[0]
-                                                                  mnf: it[1]}
-
-    // Stage 1 - Step 2: CRAM to BAM
-    cram_to_bam( manifest_step1_1_Out_ch.mnf,
-                 reference_idx_fls.bwa_index_fls,
-                 reference_idx_fls.fasta_index_fl,
-                 reference_idx_fls.dict_fl,
-                 irods_ch)
     /*
     // Parse iRODS manifest file
     irods_manifest_parser(irods_ch)

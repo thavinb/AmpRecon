@@ -33,7 +33,13 @@ def validate_parameters() {
         log.error("A manifest must be specified.")
         errors +=1
       }
+
   }
+  // the input csv is only needed if starts from 0, otherwise should be ignored
+  if (params.manifest && !(tag_provided== "0")){
+    log.warn("A manifest was provided (${params.manifest}) but not needed for start_from = ${params.start_from}")
+  }
+
   // a reference fasta is required for starting from 0 or 1.2
   if (tag_provided=="0" || tag_provided=="1.2") {
       // check if reference fasta file exist and if it was set
@@ -49,10 +55,9 @@ def validate_parameters() {
         errors +=1
       }
   }
-
   // A step1.1 out csv is required for step 1.2
-  if (params.start_from="1.2"){
-      if (params.step1_2_in_csv==null){
+  if (tag_provided=="1.2"){
+      if (params.step1_2_in_csv==''){
         log.error("A step1_2_out_csv must be specified.")
         errors +=1
       }
@@ -85,4 +90,32 @@ def load_manifest_ch(){
                                  row.library)
                     }
   return manifest_ch
+}
+
+def load_steps_to_run(){
+  /*
+  this function define which tags / subworkflows should be considered for
+  current run.
+  INPUT: params.start_from
+  */
+
+  // get number of steps to run
+  // the steps_to_run_tags list should be ordered according to expected
+  // execution order
+  // PS: for now this is okay, but if we need subworkflows that create branchs
+  //     to a set of exclusive process
+  def steps_to_run_tags = ["0","1.2"]
+  def tag_provided = params.start_from.toString()
+
+  // remove previous steps from the tag provided
+  for(int i = 0;i<steps_to_run_tags.size();i++) {
+    def curr_step = steps_to_run_tags.get(i)
+    if (curr_step==tag_provided){
+      break
+    }
+    else {
+      steps_to_run_tags.remove(i)
+    }
+  }
+  return steps_to_run_tags
 }
