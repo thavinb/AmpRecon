@@ -23,12 +23,14 @@ include { irods_retrieve } from '../modules/irods_retrieve.nf'
 
 
 def load_manifest_ch(csv_ch){
+  /*
   //if csv file is provided as parameter, use it by default and ignore input
-  if (!(params.manifest_step1_2 == '')){
+  if (!(params.step1_2_in_csv == '')){
       // TODO : add check if file exist
-      manifest_fl = params.manifest_step1_2
+      manifest_fl = params.step1_2_in_csv
       csv_ch = Channel.fromPath(manifest_fl)
       }
+  */
   // if not set as parameter, assumes is a channel containing a path for the csv
   manifest_ch = csv_ch |
                 splitCsv(header:true) |
@@ -86,7 +88,7 @@ workflow cram_to_bam {
         ref_fasta_index_fl
         ref_dict_fl
         //irods channel
-        irods_ch
+        //irods_ch
     main:
         // Process manifest
         mnf_ch = load_manifest_ch(manifest_fl)
@@ -140,6 +142,7 @@ workflow cram_to_bam {
                  alignment_filter.out.selected_bam)
         bam_ch = sort_bam.out
 
+        /*
         // --- IRODS ----------------------------------------------------------
         // Parse iRODS manifest file
         irods_manifest_parser(irods_ch)
@@ -154,10 +157,11 @@ workflow cram_to_bam {
 
         // Concatenate in-country BAM channel with iRODS BAM channel
         bam_ch.concat(scramble_cram_to_bam.out).set{ bam_files_ch }
+        */
 
         // --------------------------------------------------------------------
         // write manifest out
-        writeOutputManifest(bam_files_ch, mnf_ch.run_id)
+        writeOutputManifest(bam_ch, mnf_ch.run_id)
 
     emit:
         bam_ch
