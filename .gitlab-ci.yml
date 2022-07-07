@@ -4,6 +4,12 @@ stages:
 default:
   image:
     name: gitlab-registry.internal.sanger.ac.uk/isg/gitlab-ci-docker-docker
+stages:
+  - test
+
+default:
+  image:
+    name: gitlab-registry.internal.sanger.ac.uk/isg/gitlab-ci-docker-docker
 
 .job_template: &set_environment
   tags:
