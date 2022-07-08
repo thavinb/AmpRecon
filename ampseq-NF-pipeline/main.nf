@@ -90,7 +90,7 @@ workflow {
     // get steps to run
     steps_to_run_tags = load_steps_to_run()
     tag_provided = params.start_from.toString()
-
+    println(steps_to_run_tags)
     if (steps_to_run_tags.contains("0")) {
       // process manifest input
       manifest_ch = load_manifest_ch()
@@ -113,14 +113,14 @@ workflow {
                                                                     mnf: it[1]}
     }
 
-    if (steps_to_run_tags.contains("1.2")) {
+    if (steps_to_run_tags.contains("1.2a")) {
       // handle reference fasta
       prepare_reference(params.reference_fasta)
       reference_idx_fls = prepare_reference.out
 
       // if start from this step, use the provided in_csv, if not, use previous
       // step output
-      if (tag_provided=="1.2"){
+      if (tag_provided=="1.2a"){
         step1_2_In_mnf = params.step1_2_in_csv
         csv_ch = Channel.fromPath(params.step1_2_in_csv)
       }
@@ -129,13 +129,24 @@ workflow {
       }
 
       // Stage 1 - Step 2: CRAM to BAM
-      cram_to_bam( csv_ch,
-                   reference_idx_fls.bwa_index_fls,
-                   reference_idx_fls.fasta_index_fl,
-                   reference_idx_fls.dict_fl)//,
-                   //irods_ch)
+      cram_to_bam(csv_ch,
+                  reference_idx_fls.bwa_index_fls,
+                  reference_idx_fls.fasta_index_fl,
+                  reference_idx_fls.dict_fl)//,
+                  //irods_ch)
     }
 
+    if (tag_provided=="1.2b"){
+      if (params.irods_manifest){
+          Channel.fromPath(params.irods_manifest, checkIfExists: true)
+              .splitCsv(header: true, sep: '\t')
+              .map{ row -> tuple(row.id_run, row.WG_lane)}
+              .set{ irods_ch }
+      }
+      // else {
+      //    Channel.empty().set{ irods_ch }
+      //}
+    }
     /*
     // --- iRODS --------------------------------------------------------------
     // iRODS manifest check and parsing
