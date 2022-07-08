@@ -44,3 +44,14 @@ process align_bam {
 
 // TODO: decide if alt file should be added or not
 // ----------------------------------------------------------------------------
+
+/*
+  --- | DOCUMENTATION | -------------------------------------------------------
+ https://manpages.ubuntu.com/manpages/bionic/man1/bwa.1.html
+ we use -p to signal this is an interleaved paired-end fastq
+ we use -Y to signal soft-clipping CIGAR operation for supplementary alignments 
+ 
+ Information regarding soft-clpping and what CIGAR string is, look here
+ https://sites.google.com/site/bioinformaticsremarks/bioinfo/sam-bam-format/what-is-a-cigar
+  ------------------------------------------------------------------------------
+*/
