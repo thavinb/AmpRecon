@@ -17,7 +17,6 @@ include { bam_merge } from '../modules/bam_merge.nf'
 include { alignment_filter } from '../modules/alignment_filter.nf'
 include { sort_bam } from '../modules/sort_bam.nf'
 include { bam_to_cram } from '../modules/bam_to_cram.nf'
-include { scramble_cram_to_bam } from '../modules/scramble.nf'
 include { irods_manifest_parser } from '../modules/irods_manifest_parser.nf'
 include { irods_retrieve } from '../modules/irods_retrieve.nf'
 

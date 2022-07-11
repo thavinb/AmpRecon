@@ -4,6 +4,8 @@ process scramble_sam_to_bam {
     /**
     * Converts a sam to bam.
     */
+    publishDir "${params.results_dir}/${run_id}", mode: 'copy', overwrite: true
+
 
     input:
         val(tag)
@@ -31,14 +33,16 @@ process scramble_cram_to_bam {
     /**
     * Converts a cram to bam.
     */
+    publishDir "${params.results_dir}/${run_id}", mode: 'copy', overwrite: true
+
 
     input:
-        tuple val(tag), path(cram_file)
+        tuple val(tag), path(cram_file), val(run_id)
         path(reference_file)
         path(reference_idx_file)
 
     output:
-        tuple val(tag), path("${bam_file}")
+        tuple val(tag), path("${bam_file}"), val(run_id)
 
     script:
         base_name=cram_file.getBaseName()

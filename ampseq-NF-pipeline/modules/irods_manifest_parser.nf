@@ -8,7 +8,7 @@ process irods_manifest_parser {
          tuple val(id_run), val(WG_lane)
 
     output:
-        tuple env(sample_id), val("${iRODS_file_path}")
+        tuple env(sample_id), val("${iRODS_file_path}"), env(run_id)
 
     script:
         iRODS_file_path = "/seq/${id_run}/${WG_lane}.cram"
@@ -16,5 +16,6 @@ process irods_manifest_parser {
         """
         imeta ls -d "${iRODS_file_path}" > imeta_data
         sample_id=\$(cat imeta_data | grep -A1 "attribute: sample_id" | tail -n 1 | cut -d" " -f2)
+        run_id=\$(cat imeta_data | grep -A1 "attribute: sample_id" | tail -n 1 | cut -d" " -f2)
         """
 }
