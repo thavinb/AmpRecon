@@ -1,7 +1,7 @@
 
 def validate_parameters() {
   def errors = 0
-  def valid_start_from_tags = ["0","1.2a","1.2b"]
+  def valid_start_from_tags = ["0","1.2a","1.2b","1.3"]
   // be sure that a start from is interpret as a string
   def tag_provided = params.start_from.toString()
 
@@ -37,7 +37,7 @@ def validate_parameters() {
   }
   // the input csv is only needed if starts from 0, otherwise should be ignored
   if (params.manifest && !(tag_provided== "0")){
-    log.warn("A manifest was provided (${params.manifest}) but not needed for start_from = ${params.start_from}")
+    log.warn("A manifest was provided (${params.manifest}) but ignored (not needed for start_from = ${params.start_from})")
   }
 
   // a reference fasta is required for starting from 0 or 1.2
@@ -58,7 +58,6 @@ def validate_parameters() {
   if (params.irods_manifest && !(tag_provided== "1.2b")){
     log.warn("An iRODS manifest was provided (${params.irods_manifest}) but not needed for start_from = ${params.start_from}")
   }
-
 
   // A step1.1 out csv is required for step 1.2
   if (tag_provided=="1.2a"){
@@ -90,6 +89,11 @@ def validate_parameters() {
       }
     }
   }
+  // --- 1.3 tag checks -------------------------------------------------------
+  if (tag_provided=="1.3"){
+
+  }
+
   // count errors and kill nextflow if any had been found
   if (errors > 0) {
         log.error(String.format("%d errors detected", errors))
