@@ -91,8 +91,8 @@ workflow cram_to_bam {
     main:
         // Process manifest
         mnf_ch = load_manifest_ch(manifest_fl)
-
         // Collate cram files by name
+
         collate_alignments(mnf_ch.run_id, mnf_ch.cram_fl, mnf_ch.sample_tag)
 
         // Transform BAM file to pre-aligned state
@@ -137,34 +137,17 @@ workflow cram_to_bam {
 
         // BAM sort by coordinate
 
-        sort_bam(alignment_filter.out.sample_tag,
+        sort_bam(mnf_ch.run_id,
+                 alignment_filter.out.sample_tag,
                  alignment_filter.out.selected_bam)
         bam_ch = sort_bam.out
-
-        /*
-        // --- IRODS ----------------------------------------------------------
-        // Parse iRODS manifest file
-        irods_manifest_parser(irods_ch)
-
-        // Retrieve CRAM files from iRODS
-        irods_retrieve(irods_manifest_parser.out)
-
-        // Convert iRODS CRAM files to BAM format
-        scramble_cram_to_bam(irods_retrieve.out,
-                             params.reference_fasta,
-                             ref_fasta_index_fl)
-
-        // Concatenate in-country BAM channel with iRODS BAM channel
-        bam_ch.concat(scramble_cram_to_bam.out).set{ bam_files_ch }
-        */
 
         // --------------------------------------------------------------------
         // write manifest out
         writeOutputManifest(bam_ch, mnf_ch.run_id)
 
     emit:
-        bam_ch
-
+        bam_ch//final_bam_ch
 }
 /*
 // -------------------------- DOCUMENTATION -----------------------------------

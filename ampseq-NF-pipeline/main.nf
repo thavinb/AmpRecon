@@ -140,8 +140,9 @@ workflow {
                 reference_idx_fls.dict_fl)//,
                 //irods_ch)
     cram_to_bam.out
-    step1_2_Out_ch = cram_to_bam.out.multiMap { it -> run_id: it[0]
-                                                      mnf: it[1]}
+    step1_2_Out_ch = cram_to_bam.out.multiMap { it -> sample_tag: it[0]
+                                                      bam_file: it[1]
+                                                      run_id:it[2]}
   }
    // --- ADD irods pulling here 1.2b ---------------------------------------
    // it should generate an 1.2b_out_csv equivalent to the 1.2a_out_csv
