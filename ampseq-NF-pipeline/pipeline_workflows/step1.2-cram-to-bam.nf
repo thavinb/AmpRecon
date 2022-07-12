@@ -126,7 +126,7 @@ workflow cram_to_bam {
         bam_split(mapping_reheader.out)
 
         // Merge BAM files with same reads
-        bam_merge_In_ch = mapping_reheader.out.join(bam_split.out)
+        bam_merge_In_ch = clip_adapters.out.join(bam_split.out)
         //bam_merge_In_ch.view()
 
         bam_merge(bam_merge_In_ch)
