@@ -38,9 +38,6 @@ process scramble_cram_to_bam {
 
     input:
         tuple val(tag), path(cram_file), val(run_id)
-        path(reference_file)
-        path(reference_idx_file)
-
     output:
         tuple val(tag), path("${bam_file}"), val(run_id)
 
@@ -56,9 +53,20 @@ process scramble_cram_to_bam {
             ${params.scramble_cram_to_bam_compression_level} \
             -I cram \
             -O bam \
+            < "${cram_file}" \
+            > "${bam_file}"
+        """
+        /*
+        """
+        ${scramble} \
+            -t ${params.scramble_cram_to_bam_threads} \
+            ${params.scramble_cram_to_bam_compression_level} \
+            -I cram \
+            -O bam \
             -r "${reference_file}" \
             -e \
             < "${cram_file}" \
             > "${bam_file}"
         """
+        */
 }

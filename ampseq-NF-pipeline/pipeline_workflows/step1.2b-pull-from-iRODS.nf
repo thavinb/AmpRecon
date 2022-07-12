@@ -48,8 +48,6 @@ out_mnf.close()
 workflow pull_from_iRODS {
   take:
     irods_ch
-    ref_fasta
-    ref_fasta_index_fl
 
   main:
     // process manifest
@@ -60,9 +58,7 @@ workflow pull_from_iRODS {
     irods_retrieve(irods_manifest_parser.out)
 
     // Convert iRODS CRAM files to BAM format
-    scramble_cram_to_bam(irods_retrieve.out,
-                         ref_fasta,
-                         ref_fasta_index_fl)
+    scramble_cram_to_bam(irods_retrieve.out)
 
     // Concatenate in-country BAM channel with iRODS BAM channel
     bam_files_ch = scramble_cram_to_bam.out
@@ -71,7 +67,6 @@ workflow pull_from_iRODS {
     // Write manifest 1.2b_out.csv
     writeOutputManifest(bam_files_ch)
     //writeOutputManifest.out.view()
-    bam_files_ch.view()
     // --------------------------------------------------------------------
 
   emit:

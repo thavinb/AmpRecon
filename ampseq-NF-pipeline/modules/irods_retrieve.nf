@@ -4,10 +4,10 @@ process irods_retrieve {
     */
 
     input:
-        tuple val(sample), val(irods_path)
+        tuple val(sample), val(irods_path), val(run_id)
 
     output:
-        tuple val(sample), file("${output_file}")
+        tuple val(sample), file("${output_file}"), val(run_id)
 
     script:
     output_file=file(irods_path).getFileName()
@@ -31,4 +31,3 @@ process irods_retrieve {
     fi
     """
 }
-

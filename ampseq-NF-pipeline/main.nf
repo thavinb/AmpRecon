@@ -115,7 +115,7 @@ workflow {
     manifest_step1_1_Out_ch = bcl_to_cram.out.multiMap { it -> run_id: it[0]
                                                                   mnf: it[1]}
   }
-  if (steps_to_run_tags.contains("1.2a") || steps_to_run_tags.contains("1.2b")){
+  if (steps_to_run_tags.contains("1.2a")) {
     // handle reference fasta
     prepare_reference(params.reference_fasta)
     reference_idx_fls = prepare_reference.out
@@ -156,9 +156,7 @@ workflow {
                       | map { row -> tuple(row.id_run, row.WG_lane) }
 
      // run step1.2b - pull from iRODS
-     pull_from_iRODS(irods_ch,
-                   params.reference_fasta,
-                   reference_idx_fls.fasta_index_fl)
+     pull_from_iRODS(irods_ch)
      // prepare channel for step 1.3
      step1_2_Out_ch = pull_from_iRODS.out.multiMap { it -> sample_tag: it[0]
                                                            bam_file: it[1]
