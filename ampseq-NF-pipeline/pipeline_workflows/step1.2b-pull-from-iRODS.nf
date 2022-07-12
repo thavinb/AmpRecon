@@ -75,7 +75,7 @@ workflow pull_from_iRODS {
     // --------------------------------------------------------------------
 
   emit:
-  bam_files_ch
+    bam_files_ch
 }
 
 /*

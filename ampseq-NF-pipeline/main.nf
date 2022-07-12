@@ -150,34 +150,43 @@ workflow {
    //
 
    if (tag_provided=="1.2b"){
-         irods_ch =  Channel.fromPath(params.irods_manifest, checkIfExists: true)
+
+     irods_ch =  Channel.fromPath(params.irods_manifest, checkIfExists: true)
                       | splitCsv(header: true, sep: '\t')
                       | map { row -> tuple(row.id_run, row.WG_lane) }
 
-   //run step1.2b - pull from iRODS
-   pull_from_iRODS(irods_ch,
+     // run step1.2b - pull from iRODS
+     pull_from_iRODS(irods_ch,
                    params.reference_fasta,
                    reference_idx_fls.fasta_index_fl)
+     // prepare channel for step 1.3
+     step1_2_Out_ch = pull_from_iRODS.out.multiMap { it -> sample_tag: it[0]
+                                                           bam_file: it[1]
+                                                           run_id:it[2]
+                                                   }
    }
- //}
- // --- ADD irods pulling here 1.2b ---------------------------------------
- // it should generate an 1.2b_out_csv equivalent to the 1.2a_out_csv
- // -----------------------------------------------------------------------
-  /*
+
+
   if (steps_to_run_tags.contains("1.3")){
     // if start from this step, use the provided in_csv, if not, use step 1.2x
     // step output
     if (tag_provided=="1.3"){
       step1_3_In_mnf = params.step1_3_in_csv
-      step1_3_csv_ch = Channel.fromPath(params.step1_2_in_csv)
+      step1_3_In_ch = step1_3_In_mnf.splitCsv(header : true)
+                            .multiMap {
+                              row  -> run_id:row.run_id
+                                      bam_file:row.bam_fl
+                                      sample_tag:row.sample_tag
+                }
     } else {
-        step1_3_run_id =
-        step1_3_csv_ch = step1_2_Out_ch.mnf
+        step1_3_In_ch = step1_2_Out_ch
     }
     // run step1.3 - BAM to VCF
-    reset_bam_alignment(step1_3_csv_ch)
+    reset_bam_alignment(step1_3_In_ch.sample_tag,
+                        step1_3_In_ch.bam_file,
+                        step1_3_In_ch.run_id)
   }
-  */
+
 }
 
 // -------------- Check if everything went okay -------------------------------

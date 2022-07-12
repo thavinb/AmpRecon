@@ -7,7 +7,7 @@ process bam_reset {
     /*
     * resets a BAM file to a pre-aligned state
     */
-    container ''
+    errorStrategy 'ignore'
 
     input:
         val(sample_tag)
