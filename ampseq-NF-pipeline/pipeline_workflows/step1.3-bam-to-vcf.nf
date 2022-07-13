@@ -4,8 +4,16 @@
 nextflow.enable.dsl = 2
 
 include { bam_reset } from '../modules/bam_reset.nf'
+<<<<<<< HEAD
 include { bam_to_fastq } from '../modules/bam_to_fastq.nf'
 include { align_bam } from '../modules/align_bam.nf'
+=======
+include { align_bam } from '../modules/align_bam.nf'
+include {indexReferenceBWA} from "../modules/bwa_index.nf"
+include { bam_to_fastq } from '../modules/bam_to_fastq.nf'
+
+
+>>>>>>> 52a3ddfc08ca80a835cd6fbbabdf0c046a493faa
 workflow reset_bam_alignment {
   //remove alignment from bam - this process proceeds directly after the end of 1.2x
 
@@ -94,4 +102,23 @@ workflow read_alignment {
 		align_bam(sample_tag, input_fastq, reference_genome, reference_idx)
 
 }
+<<<<<<< HEAD
 */
+=======
+
+workflow read_alignment {
+
+	take:
+		reference_genome
+		input_fastq_ch //this can be output from bam_to_fastq
+
+
+	main:
+		sample_tag = input_fastq_ch.map { it -> it[0] } 
+		input_fastq = input_fastq_ch.map { it -> it[1] }
+		reference_idx = indexReferenceBWA(reference_genome) //could add this as input to the workflow
+		align_bam(sample_tag, input_fastq, reference_genome, reference_idx) 
+
+}
+
+>>>>>>> 52a3ddfc08ca80a835cd6fbbabdf0c046a493faa
