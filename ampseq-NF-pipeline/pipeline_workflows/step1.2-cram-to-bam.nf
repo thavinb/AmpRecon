@@ -6,8 +6,13 @@ nextflow.enable.dsl = 2
 // import modules
 include { collate_alignments } from '../modules/collate_alignments.nf'
 include { bam_reset } from '../modules/bam_reset.nf'
-include { clip_adapters } from '../modules/clip_adapters.nf'
-include { bam_to_fastq } from '../modules/bam_to_fastq.nf'
+// --- GAMBIARRA ALERT -----------
+//include { clip_adapters } from '../modules/clip_adapters.nf'
+include { clip_adapters_gb } from '../modules/clip_adapters_gb.nf'
+
+//include { bam_to_fastq } from '../modules/bam_to_fastq.nf'
+include { bam_to_fastq_gb } from '../modules/bam_to_fastq_gb.nf'
+//--------------------------------
 include { align_bam } from '../modules/align_bam.nf'
 include { scramble_sam_to_bam } from '../modules/scramble.nf'
 include { bambi_select } from '../modules/scramble_sam_to_bam.nf'
@@ -99,17 +104,19 @@ workflow cram_to_bam {
 
         bam_reset(collate_alignments.out.sample_tag,
                   collate_alignments.out.collated_bam)
-        bamReset_Out_ch = bam_reset.out
         // Remove adapters
-        clip_adapters(bam_reset.out.sample_tag, bam_reset.out.prealigned_bam)
+        clip_adapters_gb(bam_reset.out.sample_tag, bam_reset.out.reset_bam)
 
         // Convert BAM to FASTQ
-        bam_to_fastq(clip_adapters.out)
+        bam_to_fastq_gb(clip_adapters_gb.out)
+        //bam_to_fastq(clip_adapters.out.sample_tag,
+        //             clip_adapters.out.clipped_bam)
 
-        align_bam(bam_to_fastq.out.sample_tag,
-                  bam_to_fastq.out.fastq,
+        align_bam(bam_to_fastq_gb.out.sample_tag,
+                  bam_to_fastq_gb.out.fastq,
                   params.reference_fasta,
-                  ref_bwa_index_fls)
+                  ref_bwa_index_fls,
+                  mnf_ch.run_id)
 
         // SAM to BAM
         // scramble sam to bam (?)
@@ -118,7 +125,7 @@ workflow cram_to_bam {
 
         // Merges the current headers with the old ones.
         // Keeping @SQ.*\tSN:([^\t]+) matching lines from the new header.
-        reheader_in_ch = scramble_sam_to_bam.out.join(clip_adapters.out)
+        reheader_in_ch = scramble_sam_to_bam.out.join(clip_adapters_gb.out)
 
         mapping_reheader(reheader_in_ch, params.reference_fasta, ref_dict_fl)
 
@@ -126,7 +133,7 @@ workflow cram_to_bam {
         bam_split(mapping_reheader.out)
 
         // Merge BAM files with same reads
-        bam_merge_In_ch = clip_adapters.out.join(bam_split.out)
+        bam_merge_In_ch = clip_adapters_gb.out.join(bam_split.out)
         //bam_merge_In_ch.view()
 
         bam_merge(bam_merge_In_ch)

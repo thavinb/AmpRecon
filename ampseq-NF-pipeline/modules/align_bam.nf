@@ -6,13 +6,14 @@ process align_bam {
     /*
     * Map reads to reference
     */
-    //publishDir "${params.results_dir}/${run_id}", overwrite: true
+    publishDir "${params.results_dir}/${run_id}", overwrite: true
 
     input:
         val(sample_tag)
         path(fastq)
         path(reference_fasta) // fasta file
         path(ref_bwa_index_fls) // index files for the reference
+        val(run_id)
         //val(tag)
         //path(input_fastq)
         //val(reference)        // reference fasta file
@@ -49,8 +50,8 @@ process align_bam {
   --- | DOCUMENTATION | -------------------------------------------------------
  https://manpages.ubuntu.com/manpages/bionic/man1/bwa.1.html
  we use -p to signal this is an interleaved paired-end fastq
- we use -Y to signal soft-clipping CIGAR operation for supplementary alignments 
- 
+ we use -Y to signal soft-clipping CIGAR operation for supplementary alignments
+
  Information regarding soft-clpping and what CIGAR string is, look here
  https://sites.google.com/site/bioinformaticsremarks/bioinfo/sam-bam-format/what-is-a-cigar
   ------------------------------------------------------------------------------

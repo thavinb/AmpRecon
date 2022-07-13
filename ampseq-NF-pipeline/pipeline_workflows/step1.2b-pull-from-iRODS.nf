@@ -13,7 +13,6 @@ process writeOutputManifest {
 
   input:
     tuple val(sample_tag), path(bam_file), val(run_id)
-    // TODO create a python box container
 
   output:
     //tuple val(run_id), path("${params.results_dir}/${run_id}/${run_id}_out1.2_mnf.csv")

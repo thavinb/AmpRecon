@@ -15,7 +15,7 @@ process bam_reset {
 
     output:
         val("${sample_tag}"), emit: sample_tag
-        path("${base_name}.prealigned.bam"), emit: prealigned_bam
+        path("${base_name}.reset.bam"), emit: reset_bam
 
     script:
         base_name=collated_bam.baseName
@@ -25,7 +25,6 @@ process bam_reset {
             level=${params.bamreset_level} \
             verbose=${params.bamreset_verbose} \
             < "${collated_bam}" \
-            > "${base_name}.prealigned.bam"
-
+            > "${base_name}.reset.bam"
         """
 }
