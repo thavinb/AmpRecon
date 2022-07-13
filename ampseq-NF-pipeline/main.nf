@@ -5,7 +5,7 @@ nextflow.enable.dsl = 2
 
 // --- import modules ---------------------------------------------------------
 // - workflows
-include { prepare_reference } from './pipeline_workflows/step0.1b-prepare-reference.nf'
+include { prepare_reference; prepare_reference as prepare_redoref } from './pipeline_workflows/step0.1b-prepare-reference.nf'
 include { bcl_to_cram } from './pipeline_workflows/step1.1-bcl-to-cram.nf'
 include { cram_to_bam } from './pipeline_workflows/step1.2-cram-to-bam.nf'
 include { reset_bam_alignment } from './pipeline_workflows/step1.3-bam-to-vcf'
@@ -38,7 +38,7 @@ log.info """
          --start_from                 : ${params.start_from}
          --results_dir                : ${params.results_dir}
          --irods_manifest             : ${params.irods_manifest}
-
+         --redo_reference_fasta       : ${params.redo_reference_fasta}
          ------------------------------------------
          Runtime data:
         -------------------------------------------
@@ -139,7 +139,6 @@ workflow {
                 reference_idx_fls.fasta_index_fl,
                 reference_idx_fls.dict_fl)//,
                 //irods_ch)
-    cram_to_bam.out
     step1_2_Out_ch = cram_to_bam.out.multiMap { it -> sample_tag: it[0]
                                                       bam_file: it[1]
                                                       run_id:it[2]}
@@ -179,10 +178,18 @@ workflow {
     } else {
         step1_3_In_ch = step1_2_Out_ch
     }
+
+    // get index files from redo reference
+    prepare_redoref(params.redo_reference_fasta)
+    new_ref_idx_fls = prepare_redoref.out
+
     // run step1.3 - BAM to VCF
     reset_bam_alignment(step1_3_In_ch.sample_tag,
                         step1_3_In_ch.bam_file,
-                        step1_3_In_ch.run_id)
+                        step1_3_In_ch.run_id,
+                        params.redo_reference_fasta,
+                        new_ref_idx_fls.bwa_index_fls
+                        )
   }
 
 }
