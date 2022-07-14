@@ -21,23 +21,23 @@ def validate_parameters() {
   // ------------------------------------------------------------------------
   // Check if everything required was provided for a given entry point
   if (tag_provided == "0"){
-      // check if manifest was set and if the file exists
-      if (params.manifest) {
-        manifest_file=file(params.manifest)
-        if (!manifest_file.exists()) {
+      // check if input_params_csv was set and if the file exists
+      if (params.input_params_csv) {
+        input_csv_file=file(params.input_params_csv)
+        if (!input_csv_file.exists()) {
             log.error("The manifest file specified does not exist.")
             errors += 1
           }
       }
-      if (params.manifest==''){
-        log.error("A manifest must be specified.")
+      if (params.input_params_csv==''){
+        log.error("A input_params_csv must be specified.")
         errors +=1
       }
 
   }
   // the input csv is only needed if starts from 0, otherwise should be ignored
-  if (params.manifest && !(tag_provided== "0")){
-    log.warn("A manifest was provided (${params.manifest}) but ignored (not needed for start_from = ${params.start_from})")
+  if (params.input_params_csv && !(tag_provided== "0")){
+    log.warn("A input_params_csv was provided (${params.input_params_csv}) but ignored (not needed for start_from = ${params.start_from})")
   }
 
   // a reference fasta is required for starting from 0 or 1.2a
@@ -46,7 +46,7 @@ def validate_parameters() {
       if (params.reference_fasta){
         reference_fasta = file(params.reference_fasta)
         if (!reference_fasta.exists()){
-          log.error("The manifest file specified does not exist.")
+          log.error("The reference_fasta file specified ${params.reference_fasta} does not exist.")
           errors += 1
         }
       }
@@ -130,9 +130,9 @@ def validate_parameters() {
 }
 
 
-def load_manifest_ch(){
+def load_input_csv_ch(){
 
-  manifest_ch = Channel.fromPath(params.manifest) | splitCsv(header:true) |
+  input_csv_ch = Channel.fromPath(params.input_params_csv) | splitCsv(header:true) |
                 map {row-> tuple(row.run_id,
                                  row.bcl_dir_path,
                                  row.lane,
@@ -140,7 +140,7 @@ def load_manifest_ch(){
                                  row.read_group,
                                  row.library)
                     }
-  return manifest_ch
+  return input_csv_ch
 }
 
 def load_steps_to_run(){
