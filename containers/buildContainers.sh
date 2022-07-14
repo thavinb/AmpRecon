@@ -29,9 +29,6 @@ singularity build --fakeroot mergeHeaders.sif SingularityFile_mergeHeaders
 echo "@ pulling samtools_1.15.sif"
 singularity pull docker://staphb/samtools:1.15
 
-echo "@ pulling bwa_0.7.17.sif"
-singularity pull docker://staphb/bwa:0.7.17
-
 echo "@ building picard.sif"
 singularity build --fakeroot picard.sif SingularityFile_picard
 

@@ -1,0 +1,2 @@
+idx	study_name	pipeline_id	primer_panel	taxon_id	common_name	name	supplier_name	donor_id	instrument_model	qc_complete	id_run	lane	tag	qc	WG_lane
+0	Team 112 R&D	GBS	PFA_GRC1_v1.0	5833	Plasmodium Falciparum	3429STDY7977888	RCN15139	3429STDY7977888	MiSeq	2019-05-30 03:38:57	29632	1	55	1	29632_1#55

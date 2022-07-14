@@ -8,11 +8,12 @@ params.bamsort_add_markup_support = 1
 
 process sort_bam {
     input:
+        val(run_id)
         val(tag)
         path(input_file) // e.g. bam
 
     output:
-        tuple val(tag), path("${output_file}")
+        tuple val(tag), path("${output_file}"), val(run_id)
 
     script:
         bamsort=params.bamsort

@@ -5,9 +5,12 @@ nextflow.enable.dsl = 2
 
 // --- import modules ---------------------------------------------------------
 // - workflows
-include { prepare_reference } from './pipeline_workflows/step0.1b-prepare-reference.nf'
+include { prepare_reference; prepare_reference as prepare_redoref } from './pipeline_workflows/step0.1b-prepare-reference.nf'
 include { bcl_to_cram } from './pipeline_workflows/step1.1-bcl-to-cram.nf'
 include { cram_to_bam } from './pipeline_workflows/step1.2-cram-to-bam.nf'
+include { redo_alignment } from './pipeline_workflows/step1.3-redo_alignment'
+include { pull_from_iRODS } from './pipeline_workflows/step1.2b-pull-from-iRODS.nf'
+
 // - process to extract and validate information expected based on input params
 include { get_taglist_file } from './modules/manifest2tag.nf'
 include { validate_parameters; load_manifest_ch; load_steps_to_run } from './modules/inputHandling.nf'
@@ -35,7 +38,7 @@ log.info """
          --start_from                 : ${params.start_from}
          --results_dir                : ${params.results_dir}
          --irods_manifest             : ${params.irods_manifest}
-
+         --redo_reference_fasta       : ${params.redo_reference_fasta}
          ------------------------------------------
          Runtime data:
         -------------------------------------------
@@ -76,104 +79,119 @@ def printHelp() {
 }
 
 // Main entry-point workflow
-
 workflow {
-    // --- Print help if requested -------------------------------------------
-    // Show help message
-    if (params.help) {
-        printHelp()
-        exit 0
+  // --- Print help if requested -------------------------------------------
+  // Show help message
+  if (params.help) {
+      printHelp()
+      exit 0
+  }
+
+  // -- Pre Processing ------------------------------------------------------
+  // validate input
+  validate_parameters()
+  // get steps to run
+  steps_to_run_tags = load_steps_to_run()
+  tag_provided = params.start_from.toString()
+  println(steps_to_run_tags)
+  if (steps_to_run_tags.contains("0")) {
+    // process manifest input
+    manifest_ch = load_manifest_ch()
+    // validate MiSeq run files and directory structure
+    samplesheet_validation(manifest_ch)
+
+    // process samplesheets manifest (necessary to get barcodes) and validate it
+    make_samplesheet_manifest(manifest_ch)//run_id, manifest_ch.bcl_dir)
+    validate_samplesheet_manifest(make_samplesheet_manifest.out)
+    // get taglist
+    get_taglist_file_In_ch = manifest_ch.join(validate_samplesheet_manifest.out)
+    get_taglist_file(get_taglist_file_In_ch)
+
+    // set step1 input channel
+    step1_Input_ch = manifest_ch.join(get_taglist_file.out)
+
+    // Stage 1 - Step 1: BCL to CRAM
+    bcl_to_cram(step1_Input_ch)
+    manifest_step1_1_Out_ch = bcl_to_cram.out.multiMap { it -> run_id: it[0]
+                                                                  mnf: it[1]}
+  }
+  if (steps_to_run_tags.contains("1.2a")) {
+    // handle reference fasta
+    prepare_reference(params.reference_fasta)
+    reference_idx_fls = prepare_reference.out
+  }
+
+  if (steps_to_run_tags.contains("1.2a")) {
+
+    // if start from this step, use the provided in_csv, if not, use previous
+    // step output
+    if (tag_provided=="1.2a"){
+      step1_2_In_mnf = params.step1_2_in_csv
+      csv_ch = Channel.fromPath(params.step1_2_in_csv)
     }
-    // -- Pre Processing ------------------------------------------------------
-    // validate input
-    validate_parameters()
-    // get steps to run
-    steps_to_run_tags = load_steps_to_run()
-    tag_provided = params.start_from.toString()
-    println(steps_to_run_tags)
-    if (steps_to_run_tags.contains("0")) {
-      // process manifest input
-      manifest_ch = load_manifest_ch()
-      // validate MiSeq run files and directory structure
-      samplesheet_validation(manifest_ch)
-
-      // process samplesheets manifest (necessary to get barcodes) and validate it
-      make_samplesheet_manifest(manifest_ch)//run_id, manifest_ch.bcl_dir)
-      validate_samplesheet_manifest(make_samplesheet_manifest.out)
-      // get taglist
-      get_taglist_file_In_ch = manifest_ch.join(validate_samplesheet_manifest.out)
-      get_taglist_file(get_taglist_file_In_ch)
-
-      // set step1 input channel
-      step1_Input_ch = manifest_ch.join(get_taglist_file.out)
-
-      // Stage 1 - Step 1: BCL to CRAM
-      bcl_to_cram(step1_Input_ch)
-      manifest_step1_1_Out_ch = bcl_to_cram.out.multiMap { it -> run_id: it[0]
-                                                                    mnf: it[1]}
-    }
-
-    if (steps_to_run_tags.contains("1.2a")) {
-      // handle reference fasta
-      prepare_reference(params.reference_fasta)
-      reference_idx_fls = prepare_reference.out
-
-      // if start from this step, use the provided in_csv, if not, use previous
-      // step output
-      if (tag_provided=="1.2a"){
-        step1_2_In_mnf = params.step1_2_in_csv
-        csv_ch = Channel.fromPath(params.step1_2_in_csv)
-      }
-      else {
-        csv_ch = manifest_step1_1_Out_ch.mnf
-      }
-
-      // Stage 1 - Step 2: CRAM to BAM
-      cram_to_bam(csv_ch,
-                  reference_idx_fls.bwa_index_fls,
-                  reference_idx_fls.fasta_index_fl,
-                  reference_idx_fls.dict_fl)//,
-                  //irods_ch)
+    else {
+      csv_ch = manifest_step1_1_Out_ch.mnf
     }
 
-    if (tag_provided=="1.2b"){
-      if (params.irods_manifest){
-          Channel.fromPath(params.irods_manifest, checkIfExists: true)
-              .splitCsv(header: true, sep: '\t')
-              .map{ row -> tuple(row.id_run, row.WG_lane)}
-              .set{ irods_ch }
-      }
-      // else {
-      //    Channel.empty().set{ irods_ch }
-      //}
-    }
-    /*
-    // --- iRODS --------------------------------------------------------------
-    // iRODS manifest check and parsing
-    if (params.irods_manifest){
-        Channel.fromPath(params.irods_manifest, checkIfExists: true)
-            .splitCsv(header: true, sep: '\t')
-            .map{ row -> tuple(row.id_run, row.WG_lane)}
-            .set{ irods_ch }
+    // Stage 1 - Step 2: CRAM to BAM
+    cram_to_bam(csv_ch,
+                reference_idx_fls.bwa_index_fls,
+                reference_idx_fls.fasta_index_fl,
+                reference_idx_fls.dict_fl)//,
+                //irods_ch)
+    step1_2_Out_ch = cram_to_bam.out.multiMap { it -> sample_tag: it[0]
+                                                      bam_file: it[1]
+                                                      run_id:it[2]}
+  }
+   // --- ADD irods pulling here 1.2b ---------------------------------------
+   // it should generate an 1.2b_out_csv equivalent to the 1.2a_out_csv
+   // -----------------------------------------------------------------------
+   //
+
+   if (tag_provided=="1.2b"){
+
+     irods_ch =  Channel.fromPath(params.irods_manifest, checkIfExists: true)
+                      | splitCsv(header: true, sep: '\t')
+                      | map { row -> tuple(row.id_run, row.WG_lane) }
+
+     // run step1.2b - pull from iRODS
+     pull_from_iRODS(irods_ch)
+     // prepare channel for step 1.3
+     step1_2_Out_ch = pull_from_iRODS.out.multiMap { it -> sample_tag: it[0]
+                                                           bam_file: it[1]
+                                                           run_id:it[2]
+                                                   }
+   }
+
+
+  if (steps_to_run_tags.contains("1.3")){
+    // if start from this step, use the provided in_csv, if not, use step 1.2x
+    // step output
+    if (tag_provided=="1.3"){
+      step1_3_In_mnf = params.step1_3_in_csv
+      step1_3_In_ch = step1_3_In_mnf.splitCsv(header : true)
+                            .multiMap {
+                              row  -> run_id:row.run_id
+                                      bam_file:row.bam_fl
+                                      sample_tag:row.sample_tag
+                }
     } else {
-        Channel.empty().set{ irods_ch }
+        step1_3_In_ch = step1_2_Out_ch
     }
 
-    /*
-    // Parse iRODS manifest file
-    irods_manifest_parser(irods_ch)
+    // get index files from redo reference
+    prepare_redoref(params.redo_reference_fasta)
+    new_ref_idx_fls = prepare_redoref.out
 
-    // Retrieve CRAM files from iRODS
-    irods_retrieve(irods_manifest_parser.out)
+    // run step1.3 - BAM to VCF
+    redo_alignment(step1_3_In_ch.sample_tag,
+                        step1_3_In_ch.bam_file,
+                        step1_3_In_ch.run_id,
+                        params.redo_reference_fasta,
+                        new_ref_idx_fls.bwa_index_fls
+                        )
+  }
 
-    // Convert iRODS CRAM files to BAM format
-    scramble_cram_to_bam(irods_retrieve.out,
-                         params.reference_fasta,
-                         reference_idx_fls.fasta_index_fl)
-
-    // Concatenate in-country BAM channel with iRODS BAM channel
-    cram_to_bam.out.concat(scramble_cram_to_bam.out).set{ bam_files_ch }
-    */
 }
 
 // -------------- Check if everything went okay -------------------------------
