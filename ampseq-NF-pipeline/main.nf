@@ -8,7 +8,7 @@ nextflow.enable.dsl = 2
 include { prepare_reference; prepare_reference as prepare_redoref } from './pipeline_workflows/step0.1b-prepare-reference.nf'
 include { bcl_to_cram } from './pipeline_workflows/step1.1-bcl-to-cram.nf'
 include { cram_to_bam } from './pipeline_workflows/step1.2-cram-to-bam.nf'
-include { reset_bam_alignment } from './pipeline_workflows/step1.3-bam-to-vcf'
+include { redo_alignment } from './pipeline_workflows/step1.3-redo_alignment'
 include { pull_from_iRODS } from './pipeline_workflows/step1.2b-pull-from-iRODS.nf'
 
 // - process to extract and validate information expected based on input params
@@ -184,7 +184,7 @@ workflow {
     new_ref_idx_fls = prepare_redoref.out
 
     // run step1.3 - BAM to VCF
-    reset_bam_alignment(step1_3_In_ch.sample_tag,
+    redo_alignment(step1_3_In_ch.sample_tag,
                         step1_3_In_ch.bam_file,
                         step1_3_In_ch.run_id,
                         params.redo_reference_fasta,
