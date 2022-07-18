@@ -14,7 +14,7 @@ process mpileup {
 	script:
 	"""
 	bcftools mpileup \
-	--min_BQ 20 \
+	--min-BQ 20 \
 	--annotate FORMAT/AD,FORMAT/DP \
 	--max-depth 50000 \
 	--targets-file ${annotation_vcf} \
@@ -24,3 +24,4 @@ process mpileup {
 	"""
 
 }
+
