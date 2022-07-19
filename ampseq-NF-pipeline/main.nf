@@ -106,6 +106,9 @@ workflow {
     get_taglist_file(get_taglist_file_In_ch)
 
     // set step1 input channel
+    // NOTE: the input_csv_ch must be a tuple for this join to work =/
+    //       later we should check if we can get rid of the tuple structure
+    //       and do it using emit instead
     step1_Input_ch = input_csv_ch.join(get_taglist_file.out)
 
     // Stage 1 - Step 1: BCL to CRAM
@@ -189,7 +192,6 @@ workflow {
                         new_ref_idx_fls.bwa_index_fls
                         )
   }
-
 }
 
 // -------------- Check if everything went okay -------------------------------

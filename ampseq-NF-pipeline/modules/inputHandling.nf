@@ -138,8 +138,12 @@ def load_input_csv_ch(){
                                  row.lane,
                                  row.study_name,
                                  row.read_group,
-                                 row.library)
+                                 row.library,
+                                 //row.reference_fasta,
+                                 row.redo_reference_fasta
+                                 )
                     }
+  // TODO: add checks to validade bcl_dir_path and redo_reference_fasta
   return input_csv_ch
 }
 

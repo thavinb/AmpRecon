@@ -8,6 +8,7 @@ include { basecalls_conversion } from '../modules/basecalls_conversion.nf'
 include { decode_multiplexed_bam } from '../modules/decode_multiplexed_bam.nf'
 include { bam_find_adapter } from '../modules/bam_find_adapter.nf'
 include { bam_to_cram } from '../modules/bam_to_cram.nf'
+include { rename_cram_fls } from '../modules/rename_cram_fls.nf'
 
 process writeOutputManifest {
 
@@ -59,11 +60,18 @@ workflow bcl_to_cram {
         // find adapter contamination in bam
         bam_find_adapter(find_adapter_In_ch)
         // split bam by read group into cram
-        bam_to_cram(bam_find_adapter.out)
-        cram_ch = bam_to_cram.out
+        bam_to_cram(bam_find_adapter.out.run_id,
+                    bam_find_adapter.out.bam_adapter_file,
+                    bam_find_adapter.out.bam_metrics_file)
+        // rename samples to samplesheet provided names
+        rename_cram_fls(bam_to_cram.out.run_id,
+                        bam_to_cram.out.metrics_bam_file,
+                        bam_to_cram.out.cram_fls
+                        )
+        cram_ch = rename_cram_fls.out
+        // generate an output manifest
         writeOutputManifest(cram_ch)
         manifest_out = writeOutputManifest.out
-        // generate an output manifest
 
     emit:
         manifest_out
