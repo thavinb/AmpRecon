@@ -1,0 +1,44 @@
+#!/bin/bash
+
+
+Bootstrap: docker
+From: ubuntu:bionic-20191029
+Stage: spython-base
+
+%post
+
+
+apt-get update -y 
+apt-get install gcc -y
+apt-get install make -y
+apt-get install libbz2-dev -y
+apt-get install zlib1g-dev -y
+apt-get install libncurses5-dev -y
+apt-get install libncursesw5-dev -y
+apt-get install liblzma-dev -y
+apt-get install -y tar gzip wget xz-utils
+
+
+cd /tmp
+
+wget https://github.com/samtools/bcftools/releases/download/1.9/bcftools-1.9.tar.bz2
+
+tar -C /tmp/  -vxjf /tmp/bcftools-1.9.tar.bz2
+rm bcftools-1.9.tar.bz2
+cd bcftools-1.9
+make
+
+cp -r * /usr/local/bin
+
+cp -r * /usr/local/lib
+
+cd /
+
+%runscript
+cd /
+exec /bin/bash "$@"
+
+%startscript
+cd /
+exec /bin/bash "$@"
+
