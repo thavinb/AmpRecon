@@ -6,8 +6,8 @@ nextflow.enable.dsl = 2
 // --- import modules ---------------------------------------------------------
 // - workflows
 include { prepare_reference; prepare_reference as prepare_redoref } from './pipeline_workflows/step0.1b-prepare-reference.nf'
-include { bcl_to_cram } from './pipeline_workflows/step1.1-bcl-to-cram.nf'
-include { cram_to_bam } from './pipeline_workflows/step1.2-cram-to-bam.nf'
+include { bcl_to_cram } from './pipeline_workflows/step1.1-bcl-to-cram/step1.1-bcl-to-cram.nf'
+include { cram_to_bam } from './pipeline_workflows/step1.2-cram-to-bam/step1.2-cram-to-bam.nf'
 include { redo_alignment } from './pipeline_workflows/step1.3-redo_alignment'
 include { pull_from_iRODS } from './pipeline_workflows/step1.2b-pull-from-iRODS.nf'
 
@@ -135,14 +135,16 @@ workflow {
     }
 
     // Stage 1 - Step 2: CRAM to BAM
-    cram_to_bam(csv_ch,
-                reference_idx_fls.bwa_index_fls,
-                reference_idx_fls.fasta_index_fl,
-                reference_idx_fls.dict_fl)//,
+    cram_to_bam(csv_ch)//,
+                //reference_idx_fls.bwa_index_fls,
+                //reference_idx_fls.fasta_index_fl,
+                //reference_idx_fls.dict_fl)//,
                 //irods_ch)
+    /*
     step1_2_Out_ch = cram_to_bam.out.multiMap { it -> sample_tag: it[0]
                                                       bam_file: it[1]
                                                       run_id:it[2]}
+    */
   }
    // --- ADD irods pulling here 1.2b ---------------------------------------
    // it should generate an 1.2b_out_csv equivalent to the 1.2a_out_csv
@@ -164,7 +166,7 @@ workflow {
                                                    }
    }
 
-
+  /*
   if (steps_to_run_tags.contains("1.3")){
     // if start from this step, use the provided in_csv, if not, use step 1.2x
     // step output
@@ -192,6 +194,7 @@ workflow {
                         new_ref_idx_fls.bwa_index_fls
                         )
   }
+  */
 }
 
 // -------------- Check if everything went okay -------------------------------
