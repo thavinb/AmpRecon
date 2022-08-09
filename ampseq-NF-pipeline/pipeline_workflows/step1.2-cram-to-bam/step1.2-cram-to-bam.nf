@@ -4,44 +4,27 @@
 nextflow.enable.dsl = 2
 
 // import modules
-include { collate_alignments } from '../modules/collate_alignments.nf'
-include { bam_reset } from '../modules/bam_reset.nf'
-// --- GAMBIARRA ALERT -----------
-//include { clip_adapters } from '../modules/clip_adapters.nf'
-include { clip_adapters_gb } from '../modules/clip_adapters_gb.nf'
+include { collate_alignments } from './modules/collate_alignments.nf'
+include { bam_reset } from './modules/bam_reset.nf'
+include { clip_adapters } from './modules/clip_adapters.nf'
+include { bam_to_fastq } from './modules/bam_to_fastq.nf'
+include { align_bam } from './modules/align_bam.nf'
+include { scramble_sam_to_bam } from './modules/scramble.nf'
+include { mapping_reheader } from './modules/mapping_reheader.nf'
+include { bam_split } from './modules/bam_split.nf'
+include { bam_merge } from './modules/bam_merge.nf'
+include { alignment_filter } from './modules/alignment_filter.nf'
+include { sort_bam } from './modules/sort_bam.nf'
+include { get_sample_ref } from './modules/get_sample_ref.nf'
 
-//include { bam_to_fastq } from '../modules/bam_to_fastq.nf'
-include { bam_to_fastq_gb } from '../modules/bam_to_fastq_gb.nf'
-//--------------------------------
-include { align_bam } from '../modules/align_bam.nf'
-include { scramble_sam_to_bam } from '../modules/scramble.nf'
-include { bambi_select } from '../modules/scramble_sam_to_bam.nf'
-include { mapping_reheader } from '../modules/mapping_reheader.nf'
-include { bam_split } from '../modules/bam_split.nf'
-include { bam_merge } from '../modules/bam_merge.nf'
-include { alignment_filter } from '../modules/alignment_filter.nf'
-include { sort_bam } from '../modules/sort_bam.nf'
-include { bam_to_cram } from '../modules/bam_to_cram.nf'
-include { irods_manifest_parser } from '../modules/irods_manifest_parser.nf'
-include { irods_retrieve } from '../modules/irods_retrieve.nf'
-
-
-def load_manifest_ch(csv_ch){
-  /*
-  //if csv file is provided as parameter, use it by default and ignore input
-  if (!(params.step1_2_in_csv == '')){
-      // TODO : add check if file exist
-      manifest_fl = params.step1_2_in_csv
-      csv_ch = Channel.fromPath(manifest_fl)
-      }
-  */
+def load_intermediate_ch(csv_ch){
   // if not set as parameter, assumes is a channel containing a path for the csv
-  manifest_ch = csv_ch |
+  intermediateCSV_ch = csv_ch |
                 splitCsv(header:true) |
                 multiMap {row -> run_id:row.run_id
                                  cram_fl:row.cram_fl
                                  sample_tag:row.sample_tag}
-  return manifest_ch
+  return intermediateCSV_ch
 }
 
 process writeOutputManifest {
@@ -86,54 +69,75 @@ out_mnf.close()
 workflow cram_to_bam {
     take:
         // manifest from step 1.1
-        manifest_fl
-        // reference index files
-        ref_bwa_index_fls
-        ref_fasta_index_fl
-        ref_dict_fl
-        //irods channel
-        //irods_ch
+        intermediate_csv
+
     main:
         // Process manifest
-        mnf_ch = load_manifest_ch(manifest_fl)
-        // Collate cram files by name
+        intCSV_ch = load_intermediate_ch(intermediate_csv)
+        //--SAMPLE TO REF RELATIONSHIP ----------------------------------------
+        // get sample references from [run_id]_manifest.csv
+        // curent solution assumes [run_id]_manifest.csv is at the output folder
+        // TODO: in the future, changed it to be specified
+        get_sample_ref(
+                       intCSV_ch.run_id,
+                       intCSV_ch.sample_tag,
+                       intCSV_ch.cram_fl
+                      )
+        sample_ref_ch = get_sample_ref.out
 
-        collate_alignments(mnf_ch.run_id, mnf_ch.cram_fl, mnf_ch.sample_tag)
+        // sample_ref_ch = tuple [run_id, cram_fl, sample_tag,
+        //                        ref_fasta_file, ref_bwa_idxs, ref_fasta_fai,
+        //                        ref_fasta_dct]
+        // prepare channels to be used on join for input for other processes
+        sample_ref_ch.map {it -> tuple(it[2],it[3],it[4], it[0])}.set{sample2ref_tuple_ch}
+        sample_ref_ch.map {it -> tuple(it[2],it[3],it[6])}.set{sample2ref_fadct_tuple_ch}
+
+        // --------------------------------------------------------------------
+
+        // Collate cram files by name
+        collate_alignments(intCSV_ch.run_id,
+                          intCSV_ch.cram_fl,
+                          intCSV_ch.sample_tag)
 
         // Transform BAM file to pre-aligned state
-
         bam_reset(collate_alignments.out.sample_tag,
                   collate_alignments.out.collated_bam)
+
         // Remove adapters
-        clip_adapters_gb(bam_reset.out.sample_tag, bam_reset.out.reset_bam)
+        clip_adapters(
+                  bam_reset.out.sample_tag,
+                  bam_reset.out.reset_bam)
 
         // Convert BAM to FASTQ
-        bam_to_fastq_gb(clip_adapters_gb.out)
+        bam_to_fastq(clip_adapters.out.tuple)
         //bam_to_fastq(clip_adapters.out.sample_tag,
         //             clip_adapters.out.clipped_bam)
 
-        align_bam(bam_to_fastq_gb.out.sample_tag,
-                  bam_to_fastq_gb.out.fastq,
-                  params.reference_fasta,
-                  ref_bwa_index_fls,
-                  mnf_ch.run_id)
+        bam_to_fastq.out.join(sample2ref_tuple_ch).set{align_bam_In_ch}
+        //align_bam_In_ch = [sample_tag, fastq, ref_fasta, ref_bwa_idx_fls, run_id]
+        //align_bam_In_ch.view()
+        align_bam(align_bam_In_ch)
 
         // SAM to BAM
         // scramble sam to bam (?)
         //bambi_select(align_bam.out.sample_tag, align_bam.out.sam_file)
-        scramble_sam_to_bam(align_bam.out.sample_tag, align_bam.out.sam_file)
+        scramble_sam_to_bam(align_bam.out.sample_tag,
+                            align_bam.out.sam_file,
+        )
 
         // Merges the current headers with the old ones.
         // Keeping @SQ.*\tSN:([^\t]+) matching lines from the new header.
-        reheader_in_ch = scramble_sam_to_bam.out.join(clip_adapters_gb.out)
+        reheader_in_ch = scramble_sam_to_bam.out
+                            | join(clip_adapters.out.tuple)
+                            | join(sample2ref_fadct_tuple_ch)
 
-        mapping_reheader(reheader_in_ch, params.reference_fasta, ref_dict_fl)
+        mapping_reheader(reheader_in_ch)
 
         // Split BAM rank pairs to single ranks per read
         bam_split(mapping_reheader.out)
 
         // Merge BAM files with same reads
-        bam_merge_In_ch = clip_adapters_gb.out.join(bam_split.out)
+        bam_merge_In_ch = bam_split.out.join(clip_adapters.out.tuple)//clip_adapters_gb.out.join(bam_split.out)
         //bam_merge_In_ch.view()
 
         bam_merge(bam_merge_In_ch)
@@ -144,17 +148,17 @@ workflow cram_to_bam {
 
         // BAM sort by coordinate
 
-        sort_bam(mnf_ch.run_id,
+        sort_bam(intCSV_ch.run_id,
                  alignment_filter.out.sample_tag,
                  alignment_filter.out.selected_bam)
         bam_ch = sort_bam.out
 
         // --------------------------------------------------------------------
         // write manifest out
-        writeOutputManifest(bam_ch, mnf_ch.run_id)
+        writeOutputManifest(bam_ch, intCSV_ch.run_id)
 
     emit:
-        bam_ch//final_bam_ch
+        bam_ch
 }
 /*
 // -------------------------- DOCUMENTATION -----------------------------------
