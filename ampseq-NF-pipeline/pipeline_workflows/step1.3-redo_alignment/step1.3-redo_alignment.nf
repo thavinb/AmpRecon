@@ -7,7 +7,7 @@ include { bam_reset } from './modules/bam_reset.nf'
 include { bam_to_fastq } from './modules/bam_to_fastq.nf'
 include { align_bam } from './modules/align_bam.nf'
 include { scramble_sam_to_bam } from './modules/scramble.nf'
-include { sort_and_index } from '../modules/read_count_per_region.nf'
+include { sort_and_index } from './modules/read_count_per_region.nf'
 include { read_count_per_region_qc } from './modules/read_count_per_region.nf'
 
 workflow redo_alignment {
