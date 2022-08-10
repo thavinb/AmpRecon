@@ -3,9 +3,9 @@
 // enable dsl2
 nextflow.enable.dsl = 2
 
-include { bam_reset } from '../modules/bam_reset.nf'
-include { bam_to_fastq } from '../modules/bam_to_fastq.nf'
-include { align_bam } from '../modules/align_bam.nf'
+include { bam_reset } from './modules/bam_reset.nf'
+include { bam_to_fastq } from './modules/bam_to_fastq.nf'
+include { align_bam } from './modules/align_bam.nf'
 
 workflow redo_alignment {
   //remove alignment from bam - this process proceeds directly after the end of 1.2x

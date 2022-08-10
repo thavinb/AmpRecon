@@ -17,6 +17,7 @@ process bam_reset {
         val("${sample_tag}"), emit: sample_tag
         path("${base_name}.reset.bam"), emit: reset_bam
 
+
     script:
         base_name=collated_bam.baseName
         """

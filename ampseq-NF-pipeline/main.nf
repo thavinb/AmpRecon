@@ -7,13 +7,13 @@ nextflow.enable.dsl = 2
 // - workflows
 include { prepare_reference; prepare_reference as prepare_redoref } from './pipeline_workflows/step0.1b-prepare-reference.nf'
 include { bcl_to_cram } from './pipeline_workflows/step1.1-bcl-to-cram/step1.1-bcl-to-cram.nf'
-include { cram_to_bam } from './pipeline_workflows/step1.2-cram-to-bam/step1.2-cram-to-bam.nf'
-include { redo_alignment } from './pipeline_workflows/step1.3-redo_alignment'
+include { cram_to_bam } from './pipeline_workflows/step1.2a-cram-to-bam/step1.2-cram-to-bam.nf'
+include { redo_alignment } from './pipeline_workflows/step1.3-redo_alignment/step1.3-redo_alignment'
 include { pull_from_iRODS } from './pipeline_workflows/step1.2b-pull-from-iRODS.nf'
 
 // - process to extract and validate information expected based on input params
+include { validate_parameters; load_input_csv_ch; load_steps_to_run } from './pipeline_workflows/inputHandling.nf'
 include { get_taglist_file } from './modules/manifest2tag.nf'
-include { validate_parameters; load_input_csv_ch; load_steps_to_run } from './modules/inputHandling.nf'
 include { make_samplesheet_manifest } from './modules/make_samplesheet_manifest.nf'
 include { validate_samplesheet_manifest } from './modules/samplesheet_manifest_validation.nf'
 include { samplesheet_validation } from './modules/samplesheet_validation.nf'
@@ -34,7 +34,6 @@ log.info """
          Used parameters:
         -------------------------------------------
          --input_params_csv           : ${params.input_params_csv}
-         --reference_fasta            : ${params.reference_fasta}
          --start_from                 : ${params.start_from}
          --results_dir                : ${params.results_dir}
          --irods_manifest             : ${params.irods_manifest}
@@ -92,6 +91,8 @@ workflow {
   steps_to_run_tags = load_steps_to_run()
   tag_provided = params.start_from.toString()
   println(steps_to_run_tags)
+
+  // -- In Country-------------------------------------------------------------
   if (steps_to_run_tags.contains("0")) {
     // process input_params_csv
     input_csv_ch = load_input_csv_ch()
@@ -111,17 +112,13 @@ workflow {
     //       and do it using emit instead
     step1_Input_ch = input_csv_ch.join(get_taglist_file.out)
 
+    // -- In Country (1.1) ----------------------------------------------------
     // Stage 1 - Step 1: BCL to CRAM
     bcl_to_cram(step1_Input_ch)
     manifest_step1_1_Out_ch = bcl_to_cram.out.multiMap { it -> run_id: it[0]
                                                                   mnf: it[1]}
   }
-  if (steps_to_run_tags.contains("1.2a")) {
-    // handle reference fasta
-    prepare_reference(params.reference_fasta)
-    reference_idx_fls = prepare_reference.out
-  }
-
+  // -- In Country (1.2) ------------------------------------------------------
   if (steps_to_run_tags.contains("1.2a")) {
 
     // if start from this step, use the provided in_csv, if not, use previous
@@ -135,22 +132,12 @@ workflow {
     }
 
     // Stage 1 - Step 2: CRAM to BAM
-    cram_to_bam(csv_ch)//,
-                //reference_idx_fls.bwa_index_fls,
-                //reference_idx_fls.fasta_index_fl,
-                //reference_idx_fls.dict_fl)//,
-                //irods_ch)
-    /*
+    cram_to_bam(csv_ch)
     step1_2_Out_ch = cram_to_bam.out.multiMap { it -> sample_tag: it[0]
                                                       bam_file: it[1]
                                                       run_id:it[2]}
-    */
   }
-   // --- ADD irods pulling here 1.2b ---------------------------------------
-   // it should generate an 1.2b_out_csv equivalent to the 1.2a_out_csv
-   // -----------------------------------------------------------------------
-   //
-
+  // --- iRODS Pulling --------------------------------------------------------
    if (tag_provided=="1.2b"){
 
      irods_ch =  Channel.fromPath(params.irods_manifest, checkIfExists: true)
@@ -166,7 +153,7 @@ workflow {
                                                    }
    }
 
-  /*
+
   if (steps_to_run_tags.contains("1.3")){
     // if start from this step, use the provided in_csv, if not, use step 1.2x
     // step output
@@ -194,7 +181,7 @@ workflow {
                         new_ref_idx_fls.bwa_index_fls
                         )
   }
-  */
+
 }
 
 // -------------- Check if everything went okay -------------------------------
