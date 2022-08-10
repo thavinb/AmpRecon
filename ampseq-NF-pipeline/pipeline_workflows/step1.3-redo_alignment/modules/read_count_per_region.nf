@@ -53,7 +53,7 @@ process read_count_per_region_qc {
         done
 
         grep ${qc_run_id} "mock_manifest.csv" | awk 'BEGIN {FS=","; OFS=","} {print \$1}' > "${plex_file}"
-        python3 ${projectDir}/modules/count_reads_per_region.py \
+        python3 ${projectDir}/pipeline_workflows/step1.3-redo_alignment/modules/count_reads_per_region.py \
             --design_file "${qc_cnf_file}" \
             --plex_file "${plex_file}" \
             --input_dir "${bam_directory}" \
