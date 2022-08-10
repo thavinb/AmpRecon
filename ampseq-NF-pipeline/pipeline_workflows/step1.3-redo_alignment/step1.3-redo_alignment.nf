@@ -11,6 +11,16 @@ include { sort_and_index } from './modules/read_count_per_region.nf'
 include { read_count_per_region_qc } from './modules/read_count_per_region.nf'
 include { get_sample_ref } from '../step1.2a-cram-to-bam/modules/get_sample_ref.nf'
 
+def load_intermediate_ch(csv_ch){
+  // if not set as parameter, assumes is a channel containing a path for the csv
+  intermediateCSV_ch = csv_ch |
+                splitCsv(header:true) |
+                multiMap {row -> run_id:row.run_id
+                                 cram_fl:row.cram_fl
+                                 sample_tag:row.sample_tag}
+  return intermediateCSV_ch
+}
+
 workflow redo_alignment {
   //remove alignment from bam - this process proceeds directly after the end of 1.2x
 
