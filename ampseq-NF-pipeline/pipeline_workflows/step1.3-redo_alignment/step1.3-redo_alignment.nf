@@ -6,6 +6,9 @@ nextflow.enable.dsl = 2
 include { bam_reset } from './modules/bam_reset.nf'
 include { bam_to_fastq } from './modules/bam_to_fastq.nf'
 include { align_bam } from './modules/align_bam.nf'
+include { scramble_sam_to_bam } from './modules/scramble.nf'
+include { sort_and_index } from '../modules/read_count_per_region.nf'
+include { read_count_per_region_qc } from './modules/read_count_per_region.nf'
 
 workflow redo_alignment {
   //remove alignment from bam - this process proceeds directly after the end of 1.2x
@@ -32,6 +35,24 @@ workflow redo_alignment {
       reference_idx_fls,
       run_id
       )
+
+    // convert sam to bam
+    scramble_sam_to_bam(align_bam.out.sam_file)
+
+    // sort and index bam
+    sort_and_index(scramble_sam_to_bam.out)
+    sort_and_index.out.bam_dir.unique().collect().set{bam_dir_ch} // Needed to ensure correct execution order
+
+    // Get read counts
+    qc_run_ids_ch = Channel.from("GRC1", "GRC2", "Spec")
+    qc_run_cnf_files_ch = Channel.from(file(params.grc1_qc_file), file(params.grc2_qc_file), file(params.spec_qc_file))
+    read_count_per_region_qc(
+        run_id,
+        bam_dir_ch,
+        qc_run_ids_ch,
+        qc_run_cnf_files_ch
+    )
+
   //emit:
 
 }
