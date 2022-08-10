@@ -36,8 +36,8 @@ workflow redo_alignment {
       run_id
       )
 
-    // convert sam to bam
-    scramble_sam_to_bam(align_bam.out.sam_file)
+    // convert sam to bam_dir
+    scramble_sam_to_bam(align_bam.out.sample_tag, align_bam.out.sam_file)
 
     // sort and index bam
     sort_and_index(scramble_sam_to_bam.out)
