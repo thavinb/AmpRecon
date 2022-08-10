@@ -23,7 +23,7 @@ manifest = "${params.results_dir}/${run_id}/${run_id}_manifest.csv"
 // ----------------------------------------------------------------------------
 ref_database = "${projectDir}/references/"
 """
-python3 ${projectDir}/pipeline_workflows/step1.2-cram-to-bam/modules/scripts/getSamplesRef.py \
+python3 ${projectDir}/pipeline_workflows/step1.2a-cram-to-bam/modules/scripts/getSamplesRef.py \
               -m ${manifest} -cfl ${cram_fl} -rdb ${ref_database}
 """
 }
