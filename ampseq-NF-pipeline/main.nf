@@ -153,33 +153,22 @@ workflow {
                                                    }
    }
 
-
   if (steps_to_run_tags.contains("1.3")){
     // if start from this step, use the provided in_csv, if not, use step 1.2x
     // step output
     if (tag_provided=="1.3"){
-      step1_3_In_mnf = params.step1_3_in_csv
-      step1_3_In_ch = step1_3_In_mnf.splitCsv(header : true)
-                            .multiMap {
-                              row  -> run_id:row.run_id
-                                      bam_file:row.bam_fl
-                                      sample_tag:row.sample_tag
-                }
+      step1_3_In_mnf = Channel.fromPath(params.step1_3_in_csv)
+
     } else {
-        step1_3_In_ch = step1_2_Out_ch
+        step1_3_In_ch = manifest_step1_2_Out_ch.mnf
     }
 
     // get index files from redo reference
-    prepare_redoref(params.redo_reference_fasta)
-    new_ref_idx_fls = prepare_redoref.out
+//    prepare_redoref(params.redo_reference_fasta)
+//    new_ref_idx_fls = prepare_redoref.out
 
     // run step1.3 - BAM to VCF
-    redo_alignment(step1_3_In_ch.sample_tag,
-                        step1_3_In_ch.bam_file,
-                        step1_3_In_ch.run_id,
-                        params.redo_reference_fasta,
-                        new_ref_idx_fls.bwa_index_fls
-                        )
+    redo_alignment(step1_3_In_ch)
   }
 
 }
