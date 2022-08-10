@@ -20,7 +20,7 @@ process mapping_reheader {
         """
         set -e
         set -o pipefail
-        python3 ${projectDir}/pipeline_workflows/step1.2a-cram-to-bam/modules/scripts/modules/merge_headers.py ${clipped_bam} \
+        python3 ${projectDir}/pipeline_workflows/step1.2a-cram-to-bam/modules/scripts/merge_headers.py ${clipped_bam} \
             ${scrambled_bam} \
             ${reference_fasta} | samtools reheader - \
             ${scrambled_bam} \
