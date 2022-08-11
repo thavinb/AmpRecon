@@ -9,15 +9,7 @@ process align_bam {
     publishDir "${params.results_dir}/${run_id}", overwrite: true
 
     input:
-        val(sample_tag)
-        path(fastq)
-        path(reference_fasta) // fasta file
-        path(ref_bwa_index_fls) // index files for the reference
-        val(run_id)
-        //val(tag)
-        //path(input_fastq)
-        //val(reference)        // reference fasta file
-        //path(ref_files)       // list of ref reference index files
+        tuple val(sample_tag), path(fastq), path(reference_fasta), path(ref_bwa_index_fls), val(run_id)
 
     output:
         val("${sample_tag}"), emit: sample_tag
