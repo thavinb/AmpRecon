@@ -159,7 +159,6 @@ workflow cram_to_bam {
         manifest_out = writeOutputManifest.out
     emit:
         bam_ch
-        manifest_out
 }
 /*
 // -------------------------- DOCUMENTATION -----------------------------------
