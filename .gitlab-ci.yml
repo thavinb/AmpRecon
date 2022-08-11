@@ -1,38 +1,14 @@
+# You can override the included template(s) by including variable overrides
+# SAST customization: https://docs.gitlab.com/ee/user/application_security/sast/#customizing-the-sast-settings
+# Secret Detection customization: https://docs.gitlab.com/ee/user/application_security/secret_detection/#customizing-settings
+# Dependency Scanning customization: https://docs.gitlab.com/ee/user/application_security/dependency_scanning/#customizing-the-dependency-scanning-settings
+# Container Scanning customization: https://docs.gitlab.com/ee/user/application_security/container_scanning/#customizing-the-container-scanning-settings
+# Note that environment variables can be set in several places
+# See https://docs.gitlab.com/ee/ci/variables/#cicd-variable-precedence
 stages:
-  - test
-
-default:
-  image:
-    name: gitlab-registry.internal.sanger.ac.uk/isg/gitlab-ci-docker-docker
-stages:
-  - test
-
-default:
-  image:
-    name: gitlab-registry.internal.sanger.ac.uk/isg/gitlab-ci-docker-docker
-
-.job_template: &set_environment
-  tags:
-    - openstack-autoscale-theta-docker-in-docker
-  before_script:
-    - mkdir -p /etc/docker
-    - echo '{"bip":"192.168.5.3/24","registry-mirrors":["https://docker-hub-mirror.internal.sanger.ac.uk:5000"],"default-address-pools":[{"base":"192.168.4.0/16","size":24}]}' > /etc/docker/daemon.json
-    - dockerd > /var/log/dockerd.log 2>&1 &
-    - apt-get update -y
-    - apt-get install -y sudo openjdk-11-jdk wget curl
-    - wget -qO- https://get.nextflow.io | bash
-    - sudo mv nextflow /usr/bin
-    - sleep 10
-
-      #remove expensive test
-      #test_bamadapterfind:
-      #stage: test
-      #<<: *set_environment
-      #script:
-      #- tests/run_nf_module_tests.sh
-
-test_samtools_bam2cram:
+- test
+sast:
   stage: test
-  <<: *set_environment
-  script:
-   - tests/run_samtoolsbam2cram.sh
+include:
+- template: Security/SAST.gitlab-ci.yml
+
