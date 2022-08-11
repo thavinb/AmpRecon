@@ -21,7 +21,7 @@ take:
   main:
 
     // Unmap the bam files (ubam)
-    bam_reset(intCSV_ch.sample_tag, intCSV_ch.bam_fl)
+    bam_reset(sample_tag, bam_file)
 
     // convert ubams to fastqs
     bam_to_fastq(bam_reset.out.sample_tag,
