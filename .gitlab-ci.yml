@@ -15,6 +15,7 @@ default:
   tags:
     - openstack-autoscale-theta-docker-in-docker
   before_script:
+    - "docker login -u \"${CI_REGISTRY_USER}\" -p \"${CI_REGISTRY_PASSWORD}\" \"${CI_REGISTRY}\""
     - mkdir -p /etc/docker
     - echo '{"bip":"192.168.5.3/24","registry-mirrors":["https://docker-hub-mirror.internal.sanger.ac.uk:5000"],"default-address-pools":[{"base":"192.168.4.0/16","size":24}]}' > /etc/docker/daemon.json
     - dockerd > /var/log/dockerd.log 2>&1 &
