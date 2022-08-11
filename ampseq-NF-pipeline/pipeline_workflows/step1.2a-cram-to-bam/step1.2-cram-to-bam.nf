@@ -156,9 +156,10 @@ workflow cram_to_bam {
         // --------------------------------------------------------------------
         // write manifest out
         writeOutputManifest(bam_ch, intCSV_ch.run_id)
-        manifest_out = writeOutputManifest.out
+
     emit:
         bam_ch
+        sample_ref_ch
 }
 /*
 // -------------------------- DOCUMENTATION -----------------------------------

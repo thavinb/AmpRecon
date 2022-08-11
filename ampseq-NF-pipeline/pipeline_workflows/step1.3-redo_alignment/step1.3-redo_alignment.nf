@@ -8,41 +8,17 @@ include { bam_to_fastq } from './modules/bam_to_fastq.nf'
 include { align_bam } from './modules/align_bam.nf'
 include { scramble_sam_to_bam } from './modules/scramble.nf'
 include { sort_and_index } from './modules/read_count_per_region.nf'
-include { read_count_per_region_qc } from './modules/read_count_per_region.nf'
-include { get_sample_ref } from '../step1.2a-cram-to-bam/modules/get_sample_ref.nf'
-
-def load_intermediate_ch(csv_ch){
-  // if not set as parameter, assumes is a channel containing a path for the csv
-  intermediateCSV_ch = csv_ch |
-                splitCsv(header:true) |
-                multiMap {row -> run_id:row.run_id
-                                 cram_fl:row.cram_fl
-                                 sample_tag:row.sample_tag}
-  return intermediateCSV_ch
-}
+include { read_count_per_region_qc } from './modules/read_count_per_region.nf'    
 
 workflow redo_alignment {
   //remove alignment from bam - this process proceeds directly after the end of 1.2x
 
-  take:
-    intermediate_csv
-
+take:
+    sample_tag
+    bam_file
+    run_id
+    sample_ref_ch
   main:
-    // Process manifest
-    intCSV_ch = load_intermediate_ch(intermediate_csv)
-    //--SAMPLE TO REF RELATIONSHIP ----------------------------------------
-    // get sample references from [run_id]_manifest.csv
-    // curent solution assumes [run_id]_manifest.csv is at the output folder
-    // TODO: in the future, changed it to be specified
-    get_sample_ref(
-        intCSV_ch.run_id,
-        intCSV_ch.sample_tag,
-        intCSV_ch.bam_fl
-    )
-    sample_ref_ch = get_sample_ref.out
-
-    // prepare channels to be used on join for input for other processes
-    sample_ref_ch.map {it -> tuple(it[2],it[3],it[4], it[0])}.set{sample2ref_tuple_ch}
 
     // Unmap the bam files (ubam)
     bam_reset(intCSV_ch.sample_tag, intCSV_ch.bam_fl)
@@ -50,6 +26,9 @@ workflow redo_alignment {
     // convert ubams to fastqs
     bam_to_fastq(bam_reset.out.sample_tag,
         bam_reset.out.reset_bam)
+
+    // prepare channels to be used on join for input for other processes
+    sample_ref_ch.map {it -> tuple(it[2],it[3],it[4], it[0])}.set{sample2ref_tuple_ch}
 
     bam_to_fastq.out.join(sample2ref_tuple_ch).set{align_bam_In_ch}
 
