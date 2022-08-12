@@ -58,6 +58,7 @@ def validate_parameters() {
   }
   */
   // --------------------------------------------------------------------------
+  /*
   // redo_reference_fasta required checks
   if ((tag_provided=="0") || (tag_provided=="1.2a") ||(tag_provided="1.2b") || (tag_provided =="1.3")){
       // assert a new_reference is provided and exists
@@ -73,7 +74,7 @@ def validate_parameters() {
         }
       }
   }
-
+  */
   if (params.irods_manifest && !(tag_provided== "1.2b")){
     log.warn("An iRODS manifest was provided (${params.irods_manifest}) but not needed for start_from = ${params.start_from}")
   }
