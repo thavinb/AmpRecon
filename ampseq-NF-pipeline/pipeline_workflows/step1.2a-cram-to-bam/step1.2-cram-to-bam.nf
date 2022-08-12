@@ -159,6 +159,7 @@ workflow cram_to_bam {
 
     emit:
         bam_ch
+        sample_ref_ch
 }
 /*
 // -------------------------- DOCUMENTATION -----------------------------------

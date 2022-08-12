@@ -9,7 +9,7 @@ include { prepare_reference; prepare_reference as prepare_redoref } from './pipe
 include { bcl_to_cram } from './pipeline_workflows/step1.1-bcl-to-cram/step1.1-bcl-to-cram.nf'
 include { cram_to_bam } from './pipeline_workflows/step1.2a-cram-to-bam/step1.2-cram-to-bam.nf'
 include { redo_alignment } from './pipeline_workflows/step1.3-redo_alignment/step1.3-redo_alignment'
-include { pull_from_iRODS } from './pipeline_workflows/step1.2b-pull-from-iRODS.nf'
+include { pull_from_iRODS } from './pipeline_workflows/step1.2b-pull-from-iRODS/step1.2b-pull-from-iRODS.nf'
 
 // - process to extract and validate information expected based on input params
 include { validate_parameters; load_input_csv_ch; load_steps_to_run } from './pipeline_workflows/inputHandling.nf'
@@ -133,7 +133,7 @@ workflow {
 
     // Stage 1 - Step 2: CRAM to BAM
     cram_to_bam(csv_ch)
-    step1_2_Out_ch = cram_to_bam.out.multiMap { it -> sample_tag: it[0]
+    step1_2_Out_ch = cram_to_bam.out.bam_ch.multiMap { it -> sample_tag: it[0]
                                                       bam_file: it[1]
                                                       run_id:it[2]}
   }
@@ -177,8 +177,9 @@ workflow {
     redo_alignment(step1_3_In_ch.sample_tag,
                         step1_3_In_ch.bam_file,
                         step1_3_In_ch.run_id,
-                        params.redo_reference_fasta,
-                        new_ref_idx_fls.bwa_index_fls
+                        cram_to_bam.out.sample_ref_ch
+//                        params.redo_reference_fasta,
+//                        new_ref_idx_fls.bwa_index_fls
                         )
   }
 

@@ -1,4 +1,3 @@
-
 process bam_to_fastq {
     /*
     * convert BAM files to FASTQ.
@@ -12,9 +11,7 @@ process bam_to_fastq {
         //tuple val(sample_tag), path(clipped_bam)
 
     output:
-        val("${sample_tag}"), emit: sample_tag
-        path("${base_name}.fastq"), emit: fastq
-        //path("${clipped_bam}"), emit: clipped_bam
+        tuple val(sample_tag), path("${base_name}.fastq")
 
     script:
         base_name=bam_file.baseName
