@@ -11,6 +11,7 @@ process sort_and_index {
     output:
         val("${output_directory}"), emit: bam_dir
         path("${bam_name}"), emit: bam
+        path("${bam_name}.bai"), emit: index
 
     script:
         output_directory = "${params.bam_dir}"
