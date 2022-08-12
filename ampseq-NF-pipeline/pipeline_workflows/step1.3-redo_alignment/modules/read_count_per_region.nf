@@ -26,9 +26,10 @@ process sort_and_index {
 
 process read_count_per_region_qc {
     stageInMode 'copy'
+    publishDir "${params.results_dir}/${run_id}", overwrite: true
 
     input:
-        val(key)
+        val(run_id)
         path(bam_directory)
         val(qc_run_id)
         path(qc_cnf_file)
@@ -38,8 +39,8 @@ process read_count_per_region_qc {
         path("${plex_file}"), emit: qc_plex_file
 
     script:
-        output_file = "${key}_${qc_run_id}_reads_per_region.csv"
-        plex_file = "${key}_${qc_run_id}.plex"
+        output_file = "${run_id}_${qc_run_id}_reads_per_region.csv"
+        plex_file = "${run_id}_${qc_run_id}.plex"
 
         """
         set -eo pipefail
