@@ -14,7 +14,7 @@ process sort_and_index {
 
     script:
         output_directory = "${params.bam_dir}"
-        base_name = aligned_sam.simpleName
+        base_name = input_bam.simpleName
         bam_name="${base_name}.sorted.bam"
 
         """
