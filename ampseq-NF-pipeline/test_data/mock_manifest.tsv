@@ -1,5 +1,0 @@
-run_id,bcl_dir_path,lane,study_name,read_group,library
-21045,input/bcl_dir/21045/,1,test,21045_1,lib
-210710,input/bcl_dir/210710/,1,test,210710_1,lib
-210714,input/bcl_dir/210714/,1,test,210714_1,lib
-211022,input/bcl_dir/211022/,1,test,211022_1,lib
