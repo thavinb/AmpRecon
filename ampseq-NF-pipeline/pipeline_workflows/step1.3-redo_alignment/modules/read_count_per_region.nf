@@ -3,33 +3,37 @@
 // enable dsl2
 nextflow.enable.dsl = 2
 
-process sort_and_index {
-    publishDir "${params.bam_dir}", mode: 'copy', overwrite: true
+process make_file_list {
+
     input:
-        tuple val(sample_tag), path(input_bam)
+        path(bam_directory)
 
     output:
-        val("${output_directory}"), emit: bam_dir
-        path("${bam_name}"), emit: bam
-        path("${bam_name}.bai"), emit: index
+        path("file_list.csv")
 
     script:
-        output_directory = "${params.bam_dir}"
-        base_name = input_bam.simpleName
-        bam_name="${base_name}.sorted.bam"
 
         """
-        samtools sort --threads 2 -o "${bam_name}" "${input_bam}"
-        samtools index -b "${bam_name}"
+        set -eo pipefail
+
+        for file in "${bam_directory}"/*.bam;
+        do
+            base_name=\$(basename "\$file" .bam)
+
+            echo "\$base_name,PFA_Spec" >> "file_list.csv"
+            echo "\$base_name,PFA_GRC1_v1.0" >> "file_list.csv"
+            echo "\$base_name,PFA_GRC2_v1.0" >> "file_list.csv"
+        done
         """
 }
 
-process read_count_per_region_qc {
+process read_count_per_region {
     stageInMode 'copy'
     publishDir "${params.results_dir}/${run_id}", overwrite: true
 
     input:
         val(run_id)
+        path(file_list)
         path(bam_directory)
         val(qc_run_id)
         path(qc_cnf_file)
@@ -45,16 +49,7 @@ process read_count_per_region_qc {
         """
         set -eo pipefail
 
-        for file in "${bam_directory}"/*.bam;
-        do
-            base_name=\$(basename "\$file" .bam)
-
-            echo "\$base_name,PFA_Spec" >> "mock_manifest.csv"
-            echo "\$base_name,PFA_GRC1_v1.0" >> "mock_manifest.csv"
-            echo "\$base_name,PFA_GRC2_v1.0" >> "mock_manifest.csv"
-        done
-
-        grep ${qc_run_id} "mock_manifest.csv" | awk 'BEGIN {FS=","; OFS=","} {print \$1}' > "${plex_file}"
+        grep ${qc_run_id} "${file_list}" | awk 'BEGIN {FS=","; OFS=","} {print \$1}' > "${plex_file}"
         python3 ${projectDir}/pipeline_workflows/step1.3-redo_alignment/modules/count_reads_per_region.py \
             --design_file "${qc_cnf_file}" \
             --plex_file "${plex_file}" \

@@ -9,13 +9,10 @@ include { scramble_cram_to_bam } from './modules/scramble.nf'
 
 process writeOutputManifest {
 
-  //publishDir "${params.results_dir}/${run_id}", mode: 'copy', overwrite: true
-
   input:
     tuple val(sample_tag), path(bam_file), val(run_id)
 
   output:
-    //tuple val(run_id), path("${params.results_dir}/${run_id}/${run_id}_out1.2_mnf.csv")
 // The $/ ... /$ is necessary to avoid nextflow to read "\n" incorrectly
 $/
 #!/usr/bin/python3
@@ -49,7 +46,6 @@ workflow pull_from_iRODS {
     irods_ch
 
   main:
-    // process manifest
     // Parse iRODS manifest file
     irods_manifest_parser(irods_ch)
 
@@ -61,11 +57,11 @@ workflow pull_from_iRODS {
 
     // Concatenate in-country BAM channel with iRODS BAM channel
     bam_files_ch = scramble_cram_to_bam.out
-    //bam_ch.concat(scramble_cram_to_bam.out).set{ bam_files_ch }
+
 
     // Write manifest 1.2b_out.csv
     writeOutputManifest(bam_files_ch)
-    //writeOutputManifest.out.view()
+
     // --------------------------------------------------------------------
 
   emit:

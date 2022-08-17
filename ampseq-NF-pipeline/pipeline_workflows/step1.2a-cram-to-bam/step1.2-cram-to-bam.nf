@@ -87,7 +87,7 @@ workflow cram_to_bam {
 
         // sample_ref_ch = tuple [run_id, cram_fl, sample_tag,
         //                        ref_fasta_file, ref_bwa_idxs, ref_fasta_fai,
-        //                        ref_fasta_dct]
+        //
         // prepare channels to be used on join for input for other processes
         sample_ref_ch.map {it -> tuple(it[2],it[3],it[4], it[0])}.set{sample2ref_tuple_ch}
         sample_ref_ch.map {it -> tuple(it[2],it[3],it[6])}.set{sample2ref_fadct_tuple_ch}
@@ -110,16 +110,13 @@ workflow cram_to_bam {
 
         // Convert BAM to FASTQ
         bam_to_fastq(clip_adapters.out.tuple)
-        //bam_to_fastq(clip_adapters.out.sample_tag,
-        //             clip_adapters.out.clipped_bam)
 
         bam_to_fastq.out.join(sample2ref_tuple_ch).set{align_bam_In_ch}
         //align_bam_In_ch = [sample_tag, fastq, ref_fasta, ref_bwa_idx_fls, run_id]
         //align_bam_In_ch.view()
         align_bam(align_bam_In_ch)
 
-        // SAM to BAM
-        // scramble sam to bam (?)
+        // Convert SAM to BAM
         //bambi_select(align_bam.out.sample_tag, align_bam.out.sam_file)
         scramble_sam_to_bam(align_bam.out.sample_tag,
                             align_bam.out.sam_file,
@@ -137,8 +134,7 @@ workflow cram_to_bam {
         bam_split(mapping_reheader.out)
 
         // Merge BAM files with same reads
-        bam_merge_In_ch = bam_split.out.join(clip_adapters.out.tuple)//clip_adapters_gb.out.join(bam_split.out)
-        //bam_merge_In_ch.view()
+        bam_merge_In_ch = bam_split.out.join(clip_adapters.out.tuple)
 
         bam_merge(bam_merge_In_ch)
 
@@ -147,7 +143,6 @@ workflow cram_to_bam {
                          bam_merge.out.merged_bam)
 
         // BAM sort by coordinate
-
         sort_bam(intCSV_ch.run_id,
                  alignment_filter.out.sample_tag,
                  alignment_filter.out.selected_bam)

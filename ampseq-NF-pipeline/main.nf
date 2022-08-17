@@ -16,7 +16,7 @@ include { validate_parameters; load_input_csv_ch; load_steps_to_run } from './pi
 include { get_taglist_file } from './modules/manifest2tag.nf'
 include { make_samplesheet_manifest } from './modules/make_samplesheet_manifest.nf'
 include { validate_samplesheet_manifest } from './modules/samplesheet_manifest_validation.nf'
-include { samplesheet_validation } from './modules/samplesheet_validation.nf'
+include { miseq_run_validation } from './modules/miseq_run_validation.nf'
 
 // logging info ----------------------------------------------------------------
 // This part of the code is based on the FASTQC PIPELINE (https://github.com/angelovangel/nxf-fastqc/blob/master/main.nf)
@@ -97,7 +97,7 @@ workflow {
     // process input_params_csv
     input_csv_ch = load_input_csv_ch()
     // validate MiSeq run files and directory structure
-    samplesheet_validation(input_csv_ch)
+    miseq_run_validation(input_csv_ch)
 
     // process samplesheets manifest (necessary to get barcodes) and validate it
     make_samplesheet_manifest(input_csv_ch)//run_id, input_csv_ch.bcl_dir)
@@ -168,11 +168,6 @@ workflow {
     } else {
         step1_3_In_ch = step1_2_Out_ch
     }
-    /*
-    // get index files from redo reference
-    //prepare_redoref(params.redo_reference_fasta)
-    //new_ref_idx_fls = prepare_redoref.out
-    */
 
     // run step1.3 - BAM to VCF
     redo_alignment(step1_3_In_ch.sample_tag,
