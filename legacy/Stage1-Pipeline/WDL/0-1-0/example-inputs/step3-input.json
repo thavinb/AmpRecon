@@ -1,8 +1,0 @@
-{
-  "ASPIS_0_1_0_Stage1_Step3.InputBams":[ 
-  "/mnt/cromwell/cromwell-executions/BCL2BAM_step2/9eb3e10c-565b-466d-b567-a809ff9f5a1c/call-task_12_scramble2/shard-0/execution/27122_1#1.bam",
-  "/mnt/cromwell/cromwell-executions/BCL2BAM_step2/9eb3e10c-565b-466d-b567-a809ff9f5a1c/call-task_12_scramble2/shard-1/execution/27122_1#10.bam",
-  "/mnt/cromwell/cromwell-executions/BCL2BAM_step2/9eb3e10c-565b-466d-b567-a809ff9f5a1c/call-task_12_scramble2/shard-2/execution/27122_1#100.bam" ],
-  
-  "ASPIS_0_1_0_Stage1_Step3.References":[ "/home/ubuntu/inputs/references/grc1/Pf_GRC1v1.0.fasta","/home/ubuntu/inputs/references/grc1/Pf_GRC1v1.0.fasta","/home/ubuntu/inputs/references/grc1/Pf_GRC1v1.0.fasta" ]
-}
