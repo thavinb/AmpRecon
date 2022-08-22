@@ -2,7 +2,7 @@ include { MAKE_SAMPLESHEET_MANIFEST } from '../../modules/make_samplesheet_manif
 include { VALIDATE_SAMPLESHEET_MANIFEST } from '../../modules/samplesheet_manifest_validation.nf'
 include { GET_TAG_LIST_FILE } from '../../modules/manifest2tag.nf'
 
-workflow EXTRACT_PARAMS_INCOUNTRY {
+workflow EXTRACT_PARAMS {
 
     main:
     Channel.fromPath(params.input_params_csv)
