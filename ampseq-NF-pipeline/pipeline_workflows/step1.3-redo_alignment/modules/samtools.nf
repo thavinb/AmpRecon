@@ -10,12 +10,12 @@ process samtools_sort {
 
     output:
         val("${output_directory}"), emit: bam_dir
-        path("${bam_name}"), emit: bam
+        tuple val(sample_tag), path("${bam_name}"), emit: bam
 
     script:
         output_directory = "${params.bam_dir}"
         base_name = input_bam.simpleName
-        bam_name="${base_name}.sorted.bam"
+        bam_name="${base_name}.bam"
 
         """
         samtools sort --threads 2 -o "${bam_name}" "${input_bam}"
@@ -25,16 +25,16 @@ process samtools_sort {
 process samtools_index {
     publishDir "${params.bam_dir}", mode: 'copy', overwrite: true
     input:
-        path(input_bam)
+        tuple val(sample_tag), path(input_bam)
 
     output:
         val("${output_directory}"), emit: bam_dir
-        path("${bam_name}.bai"), emit: index
+        tuple val(sample_tag), path(input_bam), path("${bam_name}.bai"), emit: files
 
     script:
         output_directory = "${params.bam_dir}"
         base_name = input_bam.simpleName
-        bam_name="${base_name}.sorted.bam"
+        bam_name="${base_name}.bam"
 
         """
         samtools index -b "${bam_name}"

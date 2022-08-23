@@ -9,7 +9,7 @@ include { align_bam } from './modules/align_bam.nf'
 include { scramble_sam_to_bam } from './modules/scramble.nf'
 include { samtools_sort } from './modules/samtools.nf'
 include { samtools_index } from './modules/samtools.nf'
-include { make_file_list } from './modules/read_count_per_region.nf'
+include { bam_ref_ch_to_csv } from './modules/read_count_per_region.nf'
 include { read_count_per_region } from './modules/read_count_per_region.nf'    
 
 workflow redo_alignment {
@@ -19,7 +19,7 @@ take:
     sample_tag
     bam_file
     run_id
-    sample_ref_ch
+
   main:
 
     // Unmap the bam files (ubam)
@@ -29,10 +29,21 @@ take:
     bam_to_fastq(bam_reset.out.sample_tag,
         bam_reset.out.reset_bam)
 
-    // prepare channels to be used on join for input for other processes
-    sample_ref_ch.map {it -> tuple(it[2],it[3],it[4], it[0])}.set{sample2ref_tuple_ch}
+    // get the relevant sample data from the manifest
 
-    bam_to_fastq.out.join(sample2ref_tuple_ch).set{align_bam_In_ch}
+    ref_tag = Channel.fromPath("${params.results_dir}/*_manifest.csv").splitCsv(header: ["lims_id", "sims_id", "index", "ref", "barcode_sequence", "well", "plate"], skip: 18).map{ row -> tuple(row.lims_id, row.ref, row.index)} //modified
+
+    // group reference files
+    reference_ch = Channel.from(
+                    [file("$projectDir/references/grc1/Pf_GRC1v1.0.fasta"), "PFA_GRC1_v1.0", file("$projectDir/references/grc1/Pf_GRC1v1.0.fasta.*")],
+                    [file("$projectDir/references/grc2/Pf_GRC2v1.0.fasta"), "PFA_GRC2_v1.0", file("$projectDir/references/grc2/Pf_GRC2v1.0.fasta.*")],
+                    [file("$projectDir/references/spec/Spec_v1.0.fasta"), "PFA_Spec", file("$projectDir/references/spec/Spec_v1.0.fasta.*")])
+
+    // assign each sample tag the appropriate set of reference files -> tuple('lims_id#index_', 'path/to/reference/genome, 'path/to/reference/index/files')
+    ref_tag.combine(reference_ch,  by: 1).map{it -> tuple(it[1]+"#${it[2]}_", it[3], it[4])}.set{sample_tag_reference_files_ch}
+
+    // add reference data to the fastq channel
+    bam_to_fastq.out.join(sample_tag_reference_files_ch).combine(run_id).set{align_bam_In_ch}
 
     // do new alignment
     align_bam(align_bam_In_ch)
@@ -42,12 +53,14 @@ take:
 
     // sort and index bam
     samtools_sort(scramble_sam_to_bam.out)
-    samtools_index(samtools_sort.out)
+    samtools_index(samtools_sort.out.bam)
     samtools_index.out.bam_dir.unique().collect().set{bam_dir_ch} // Needed to ensure correct execution order
 
-    // create file list with plexes
-    make_file_list(bam_dir_ch)
-    file_list = make_file_list.out
+    // join references to indexed bam channel
+    samtools_index.out.files.join(sample_tag_reference_files_ch).map {it -> tuple(it[0], it[3])}.set{bam_ref_ch}
+
+    // output channel to csv - used for making read count plex files
+    bam_ref_ch_to_csv(bam_ref_ch)
 
     // get read counts
     qc_run_ids_ch = Channel.from("GRC1", "GRC2", "Spec")
@@ -55,7 +68,7 @@ take:
 
     read_count_per_region(
         run_id,
-        file_list,
+        "${launchDir}/bam_ref_ch.csv",
         bam_dir_ch,
         qc_run_ids_ch,
         qc_run_cnf_files_ch

@@ -89,3 +89,37 @@ process download_test_cram_from_s3 {
 
 
 }
+
+process download_redo_alignment_output_bam_from_s3  {
+
+
+        input:
+        val(file_id)
+
+        output:
+        path("*.step1.3_output.bam")
+
+        script:
+        """
+        curl https://amplicon-test-data.cog.sanger.ac.uk/${file_id}.step1.3_output.bam > test.step1.3_output.bam
+        """
+
+
+}
+	
+process download_zipped_read_counts_from_s3 {
+
+
+        input:
+        val(file_id)
+
+        output:
+        path("*_read_counts.tar.gz")
+
+        script:
+        """
+        curl https://amplicon-test-data.cog.sanger.ac.uk/${file_id}_read_counts.tar.gz > ${file_id}_read_counts.tar.gz
+        """
+
+
+}
