@@ -75,6 +75,24 @@ def printHelp() {
    """.stripIndent()
 }
 
+
+process get_ref_files {
+    /*
+    get the respective pannel files location for a given sample
+    */
+    
+    input:
+        tuple val(primer_panel), val(WG_lane), val(ref_wildcard)
+    
+    output:
+        tuple val(WG_lane), val(primer_panel), path("*.fasta*")
+    
+    script:
+       """
+        cp -ln ${ref_wildcard} ./
+        """
+}
+
 // Main entry-point workflow
 workflow {
   // --- Print help if requested -------------------------------------------
@@ -91,6 +109,13 @@ workflow {
   steps_to_run_tags = load_steps_to_run()
   tag_provided = params.start_from.toString()
   println(steps_to_run_tags)
+  
+  // get pannels/reference files channel
+  reference_ch = Channel.from(
+                  ["${params.reference_dir}/grc1/*.fasta", "PFA_GRC1_v1.0" , "${params.reference_dir}/grc1/*.fasta*"],
+                  ["${params.reference_dir}/grc2/*.fasta", "PFA_GRC2_v1.0", "${params.reference_dir}/grc2/*.fasta*"],
+                  ["${params.reference_dir}/spec/*.fasta", "PFA_Spec", "${params.reference_dir}/spec/*.fasta*"]
+                  )
 
   // -- In Country-------------------------------------------------------------
   if (steps_to_run_tags.contains("0")) {
@@ -139,21 +164,39 @@ workflow {
   }
   // --- iRODS Pulling --------------------------------------------------------
    if (tag_provided=="1.2b"){
-
-     irods_ch =  Channel.fromPath(params.irods_manifest, checkIfExists: true)
+    // load manifest content
+    irods_ch =  Channel.fromPath(params.irods_manifest, checkIfExists: true)
                       | splitCsv(header: true, sep: '\t')
-                      | map { row -> tuple(row.id_run, row.WG_lane) }
+                      | map { row -> tuple(row.id_run, row.primer_panel, row.WG_lane) }
+    
+    // Assign each sample id the appropriate set of reference files
+    irods_ch | combine(reference_ch,  by: 1)
+             | map{ it -> tuple(it[1], it[0], it[2], it[4]) }
+             | set{ sample_id_reference_files_ch }
 
-     // run step1.2b - pull from iRODS
-     pull_from_iRODS(irods_ch)
-     // prepare channel for step 1.3
-     step1_2_Out_ch = pull_from_iRODS.out.multiMap { it -> sample_tag: it[0]
-                                                           bam_file: it[1]
-                                                           run_id:it[2]
+    //sample_id_reference_files_ch.view()
+    // remove run_id for sample ref
+    sample_id_reference_files_ch
+        | map{ it -> tuple(it[0], it[2], it[3]) }
+        | set{ get_ref_In_ch }
+    get_ref_files( get_ref_In_ch)
+    sample_id_ref_ch = get_ref_files.out
+  
+  
+    // remove pannels info from channel (is not used on this subworkflow)
+    irods_ch.map{ it -> tuple (it[0], it[2]) }.set{irods_ch_noRef}
+    // run step1.2b - pull from iRODS
+    pull_from_iRODS(irods_ch_noRef, sample_id_ref_ch)
+    //pull_from_iRODS.out.view()
+    // prepare channel for step 1.3
+    step1_2_Out_ch = pull_from_iRODS.out.bam_files_ch.multiMap {
+                                                   it -> sample_tag: it[0]
+                                                         bam_file: it[1]
+                                                         run_id: it[2]
                                                    }
    }
-
-
+    
+  
   if (steps_to_run_tags.contains("1.3")){
     // if start from this step, use the provided in_csv, if not, use step 1.2x
     // step output
@@ -168,20 +211,19 @@ workflow {
     } else {
         step1_3_In_ch = step1_2_Out_ch
     }
-    /*
+    
     // get index files from redo reference
     //prepare_redoref(params.redo_reference_fasta)
     //new_ref_idx_fls = prepare_redoref.out
-    */
-
+  
     // run step1.3 - BAM to VCF
     redo_alignment(step1_3_In_ch.sample_tag,
                         step1_3_In_ch.bam_file,
                         step1_3_In_ch.run_id,
-                        cram_to_bam.out.sample_ref_ch
+                        sample_id_ref_ch //cram_to_bam.out.sample_ref_ch
                         )
   }
-
+  
 }
 
 // -------------- Check if everything went okay -------------------------------
