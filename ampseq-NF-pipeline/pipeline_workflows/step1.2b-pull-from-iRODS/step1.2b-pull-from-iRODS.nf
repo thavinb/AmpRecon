@@ -47,7 +47,7 @@ out_mnf.close()
 workflow pull_from_iRODS {
   take:
     irods_ch // tuple(id_run, WG_lane)
-    sample_id_ref_ch // tuple(WG_lane, primer_panel, fasta_files) * needed to associate new_ids to pannels
+    sample_id_ref_ch // tuple(WG_lane, run_id, fasta_file, fasta_idx_files) * needed to associate new_ids to pannels
   main:
     // get names and paths 
     irods_manifest_parser(irods_ch)
@@ -61,12 +61,12 @@ workflow pull_from_iRODS {
     irods_manifest_parser.out //  tuple(new_sample_id, iRODS_file_path, id_run, WG_lane)
               | map {it -> tuple( it[3], it[0])}
               | set {newSample_WgLn_ch}  // tuple(WG_lane, new_sample_id)
-
+    
     sample_id_ref_ch
-              | map { it -> tuple( it[0], it[2])} // tuple(WG_lane, fasta_files)
-              | join (newSample_WgLn_ch)  // tuple(WG_lane, fasta_files, new_sample_id)
-              | map { it -> tuple(it[2], it[1])} // tuple( new_sample_id, fasta_files)
-              | set { sample_to_ref_ch }
+              | map { it -> tuple( it[0], it[2], it[3])} // tuple(WG_lane, fasta_file, fasta_idx_files)
+              | join (newSample_WgLn_ch)  // tuple(WG_lane, fasta_file, fasta_idx_files, new_sample_id)
+              | map { it -> tuple(it[3], it[1], it[2])} // tuple( new_sample_id, fasta_file, fasta_idx_files)
+              | set { sample_tag_reference_files_ch }
     
     // Retrieve CRAM files from iRODS
     irods_retrieve(irods_retrieve_In_ch)
@@ -85,7 +85,7 @@ workflow pull_from_iRODS {
 
   emit:
     bam_files_ch  // tuple(new_sample_id, bam_file)
-    sample_to_ref_ch // tuple(new_sample_id, ref_files)
+    sample_tag_reference_files_ch // tuple(new_sample_id, ref_files)
 }
 
 /*
