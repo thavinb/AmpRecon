@@ -3,7 +3,7 @@
 nextflow.enable.dsl=2
 
 process make_samplesheet_manifest {
-    publishDir "${params.results_dir}/${run_id}", mode: 'copy', overwrite: true
+    publishDir "${params.results_dir}/", mode: 'copy', overwrite: true
 
     input:
     // TODO: only get values that are used

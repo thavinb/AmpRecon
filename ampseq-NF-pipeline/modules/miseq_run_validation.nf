@@ -2,7 +2,7 @@
 
 nextflow.enable.dsl=2
 
-process samplesheet_validation {
+process miseq_run_validation {
     /*
     * Checks the following exist for a given MiSeq run: SampleSheet.csv, `Basecalls/L001/ and .bcl files.
     */
