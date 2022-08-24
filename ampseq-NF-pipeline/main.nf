@@ -102,6 +102,7 @@ workflow {
     // process samplesheets manifest (necessary to get barcodes) and validate it
     make_samplesheet_manifest(input_csv_ch)//run_id, input_csv_ch.bcl_dir)
     validate_samplesheet_manifest(make_samplesheet_manifest.out)
+
     // get taglist
     get_taglist_file_In_ch = input_csv_ch.join(validate_samplesheet_manifest.out)
     get_taglist_file(get_taglist_file_In_ch)
@@ -121,6 +122,18 @@ workflow {
   // -- In Country (1.2) ------------------------------------------------------
   if (steps_to_run_tags.contains("1.2a")) {
 
+    // get the relevant sample data from the manifest
+    ref_tag = Channel.fromPath("${params.results_dir}/*_manifest.csv").splitCsv(header: ["lims_id", "sims_id", "index", "ref", "barcode_sequence", "well", "plate"], skip: 18).map{ row -> tuple(row.lims_id, row.ref, row.index)}
+
+    // group reference files
+    reference_ch = Channel.from(
+                    [file("$projectDir/references/grc1/Pf_GRC1v1.0.fasta"), "PFA_GRC1_v1.0", file("$projectDir/references/grc1/Pf_GRC1v1.0.fasta.*")],
+                    [file("$projectDir/references/grc2/Pf_GRC2v1.0.fasta"), "PFA_GRC2_v1.0", file("$projectDir/references/grc2/Pf_GRC2v1.0.fasta.*")],
+                    [file("$projectDir/references/spec/Spec_v1.0.fasta"), "PFA_Spec", file("$projectDir/references/spec/Spec_v1.0.fasta.*")])
+
+    // assign each sample tag the appropriate set of reference files -> tuple('lims_id#index_', 'path/to/reference/genome, 'path/to/reference/index/files')
+    ref_tag.combine(reference_ch,  by: 1).map{it -> tuple(it[1]+"#${it[2]}_", it[3], it[4])}.set{sample_tag_reference_files_ch}
+
     // if start from this step, use the provided in_csv, if not, use previous
     // step output
     if (tag_provided=="1.2a"){
@@ -132,7 +145,7 @@ workflow {
     }
 
     // Stage 1 - Step 2: CRAM to BAM
-    cram_to_bam(csv_ch)
+    cram_to_bam(csv_ch, sample_tag_reference_files_ch)
     step1_2_Out_ch = cram_to_bam.out.bam_ch.multiMap { it -> sample_tag: it[0]
                                                       bam_file: it[1]
                                                       run_id:it[2]}
@@ -173,6 +186,7 @@ workflow {
     redo_alignment(step1_3_In_ch.sample_tag,
                         step1_3_In_ch.bam_file,
                         step1_3_In_ch.run_id,
+                        sample_tag_reference_files_ch,
                         )
   }
 

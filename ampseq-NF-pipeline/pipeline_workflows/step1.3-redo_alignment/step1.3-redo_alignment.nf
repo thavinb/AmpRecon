@@ -19,6 +19,7 @@ take:
     sample_tag
     bam_file
     run_id
+    sample_tag_reference_files_ch
 
   main:
 
@@ -28,18 +29,6 @@ take:
     // convert ubams to fastqs
     bam_to_fastq(bam_reset.out.sample_tag,
         bam_reset.out.reset_bam)
-
-    // get the relevant sample data from the manifest
-    ref_tag = Channel.fromPath("${params.results_dir}/*_manifest.csv").splitCsv(header: ["lims_id", "sims_id", "index", "ref", "barcode_sequence", "well", "plate"], skip: 18).map{ row -> tuple(row.lims_id, row.ref, row.index)}
-
-    // group reference files
-    reference_ch = Channel.from(
-                    [file("$projectDir/references/grc1/Pf_GRC1v1.0.fasta"), "PFA_GRC1_v1.0", file("$projectDir/references/grc1/Pf_GRC1v1.0.fasta.*")],
-                    [file("$projectDir/references/grc2/Pf_GRC2v1.0.fasta"), "PFA_GRC2_v1.0", file("$projectDir/references/grc2/Pf_GRC2v1.0.fasta.*")],
-                    [file("$projectDir/references/spec/Spec_v1.0.fasta"), "PFA_Spec", file("$projectDir/references/spec/Spec_v1.0.fasta.*")])
-
-    // assign each sample tag the appropriate set of reference files -> tuple('lims_id#index_', 'path/to/reference/genome, 'path/to/reference/index/files')
-    ref_tag.combine(reference_ch,  by: 1).map{it -> tuple(it[1]+"#${it[2]}_", it[3], it[4])}.set{sample_tag_reference_files_ch}
 
     // add reference data to the fastq channel
     bam_to_fastq.out.join(sample_tag_reference_files_ch).combine(run_id).unique().set{align_bam_In_ch}
