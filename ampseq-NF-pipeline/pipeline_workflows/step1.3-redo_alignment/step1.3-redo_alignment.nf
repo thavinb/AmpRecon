@@ -17,21 +17,23 @@ take:
     sample_tag
     bam_file
     run_id
-    sample_ref_ch
+    sample_tag_reference_files_ch // tuple (sample_id, fasta_file, [fasta_indx_files])
+    
   main:
-
     // Unmap the bam files (ubam)
     bam_reset(sample_tag, bam_file)
-
+    
     // convert ubams to fastqs
     bam_to_fastq(bam_reset.out.sample_tag,
-        bam_reset.out.reset_bam)
+                 bam_reset.out.reset_bam)
+    // tuple (sample_tag, fastq)
 
     // prepare channels to be used on join for input for other processes
-    sample_ref_ch.map {it -> tuple(it[2],it[3],it[4], it[0])}.set{sample2ref_tuple_ch}
-
-    bam_to_fastq.out.join(sample2ref_tuple_ch).set{align_bam_In_ch}
-
+    
+    bam_to_fastq.out // tuple (sample_id, fastq_file)
+          | join(sample_tag_reference_files_ch) //tuple (sample_id, fastq, fasta_file, fasta_idx_files)
+          | set{align_bam_In_ch}
+    
     // do new alignment
     align_bam(align_bam_In_ch)
 
@@ -51,7 +53,7 @@ take:
         qc_run_ids_ch,
         qc_run_cnf_files_ch
     )
-
+  
   //emit:
 
 }

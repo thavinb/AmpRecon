@@ -85,7 +85,7 @@ process get_ref_files {
         tuple val(primer_panel), val(WG_lane), val(ref_wildcard)
     
     output:
-        tuple val(WG_lane), val(primer_panel), path("*.fasta*")
+        tuple val(WG_lane), val(primer_panel), path("*.fasta"), path("*.fasta.*")
     
     script:
        """
@@ -171,23 +171,24 @@ workflow {
     
     // Assign each sample id the appropriate set of reference files
     irods_ch | combine(reference_ch,  by: 1)
-             | map{ it -> tuple(it[1], it[0], it[2], it[4]) }
+             | map{ it -> tuple(it[1], it[0], it[2], it[4]) } // tuple( id_run, primer_pannel, WG_lane, pannel_wildcard)
              | set{ sample_id_reference_files_ch }
 
-    //sample_id_reference_files_ch.view()
     // remove run_id for sample ref
     sample_id_reference_files_ch
         | map{ it -> tuple(it[0], it[2], it[3]) }
         | set{ get_ref_In_ch }
     get_ref_files( get_ref_In_ch)
-    sample_id_ref_ch = get_ref_files.out
+    sample_id_ref_ch = get_ref_files.out // tuple(WG_lane, primer_panel, "*.fasta", "*.fasta*")
+ 
   
   
     // remove pannels info from channel (is not used on this subworkflow)
     irods_ch.map{ it -> tuple (it[0], it[2]) }.set{irods_ch_noRef}
     // run step1.2b - pull from iRODS
     pull_from_iRODS(irods_ch_noRef, sample_id_ref_ch)
-    //pull_from_iRODS.out.view()
+    sample_tag_reference_files_ch = pull_from_iRODS.out.sample_tag_reference_files_ch
+
     // prepare channel for step 1.3
     step1_2_Out_ch = pull_from_iRODS.out.bam_files_ch.multiMap {
                                                    it -> sample_tag: it[0]
@@ -220,7 +221,7 @@ workflow {
     redo_alignment(step1_3_In_ch.sample_tag,
                         step1_3_In_ch.bam_file,
                         step1_3_In_ch.run_id,
-                        sample_id_ref_ch //cram_to_bam.out.sample_ref_ch
+                        sample_tag_reference_files_ch //cram_to_bam.out.sample_ref_ch
                         )
   }
   
