@@ -7,8 +7,10 @@ include { bam_reset } from './modules/bam_reset.nf'
 include { bam_to_fastq } from './modules/bam_to_fastq.nf'
 include { align_bam } from './modules/align_bam.nf'
 include { scramble_sam_to_bam } from './modules/scramble.nf'
-include { sort_and_index } from './modules/read_count_per_region.nf'
-include { read_count_per_region_qc } from './modules/read_count_per_region.nf'    
+include { samtools_sort } from './modules/samtools.nf'
+include { samtools_index } from './modules/samtools.nf'
+include { bam_ref_ch_to_csv } from './modules/read_count_per_region.nf'
+include { read_count_per_region } from './modules/read_count_per_region.nf'    
 
 workflow redo_alignment {
   //remove alignment from bam - this process proceeds directly after the end of 1.2x
@@ -41,14 +43,23 @@ take:
     scramble_sam_to_bam(align_bam.out.sample_tag, align_bam.out.sam_file)
 
     // sort and index bam
-    sort_and_index(scramble_sam_to_bam.out)
-    sort_and_index.out.bam_dir.unique().collect().set{bam_dir_ch} // Needed to ensure correct execution order
+    samtools_sort(scramble_sam_to_bam.out)
+    samtools_index(samtools_sort.out.bam)
+    samtools_index.out.bam_dir.unique().collect().set{bam_dir_ch} // Needed to ensure correct execution order
 
-    // Get read counts
+    // join references to indexed bam channel
+    samtools_index.out.files.join(sample_tag_reference_files_ch).map {it -> tuple(it[0], it[3])}.set{bam_ref_ch}
+
+    // output channel to csv - used for making read count plex files
+    bam_ref_ch_to_csv(bam_ref_ch)
+
+    // get read counts
     qc_run_ids_ch = Channel.from("GRC1", "GRC2", "Spec")
     qc_run_cnf_files_ch = Channel.from(file(params.grc1_qc_file), file(params.grc2_qc_file), file(params.spec_qc_file))
-    read_count_per_region_qc(
+
+    read_count_per_region(
         run_id,
+        "${launchDir}/bam_ref_ch.csv",
         bam_dir_ch,
         qc_run_ids_ch,
         qc_run_cnf_files_ch

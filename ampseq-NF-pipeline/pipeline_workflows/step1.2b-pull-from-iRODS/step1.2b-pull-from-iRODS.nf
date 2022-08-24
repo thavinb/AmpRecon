@@ -9,13 +9,10 @@ include { scramble_cram_to_bam } from './modules/scramble.nf'
 
 process writeOutputManifest {
 
-  //publishDir "${params.results_dir}/${run_id}", mode: 'copy', overwrite: true
-
   input:
     tuple val(sample_tag), path(bam_file), val(run_id)
 
   output:
-    //tuple val(run_id), path("${params.results_dir}/${run_id}/${run_id}_out1.2_mnf.csv")
 // The $/ ... /$ is necessary to avoid nextflow to read "\n" incorrectly
 $/
 #!/usr/bin/python3
