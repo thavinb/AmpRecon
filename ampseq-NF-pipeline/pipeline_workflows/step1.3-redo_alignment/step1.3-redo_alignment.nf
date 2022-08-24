@@ -42,7 +42,7 @@ take:
     ref_tag.combine(reference_ch,  by: 1).map{it -> tuple(it[1]+"#${it[2]}_", it[3], it[4])}.set{sample_tag_reference_files_ch}
 
     // add reference data to the fastq channel
-    bam_to_fastq.out.join(sample_tag_reference_files_ch).combine(run_id).set{align_bam_In_ch}
+    bam_to_fastq.out.join(sample_tag_reference_files_ch).combine(run_id).unique().set{align_bam_In_ch}
 
     // do new alignment
     align_bam(align_bam_In_ch)
