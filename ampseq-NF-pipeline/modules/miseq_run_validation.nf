@@ -10,7 +10,7 @@ process miseq_run_validation {
     publishDir "${params.results_dir}/${run_id}", mode: 'copy', overwrite: true
 
     input:
-        tuple val(run_id), val(bcl_dir), val(not_used1), val(not_used2), val(not_used3), val(not_used4), val(not_used5)
+        tuple val(run_id), val(bcl_dir), val(not_used1), val(not_used2), val(not_used3), val(not_used4)
 
     script:
         samplesheet = "${bcl_dir}/SampleSheet.csv"

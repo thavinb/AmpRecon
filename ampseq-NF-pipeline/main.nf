@@ -12,7 +12,7 @@ include { redo_alignment } from './pipeline_workflows/step1.3-redo_alignment/ste
 include { pull_from_iRODS } from './pipeline_workflows/step1.2b-pull-from-iRODS/step1.2b-pull-from-iRODS.nf'
 
 // - process to extract and validate information expected based on input params
-include { validate_parameters; load_input_csv_ch; load_steps_to_run } from './pipeline_workflows/inputHandling.nf'
+include { validate_parameters; load_steps_to_run } from './pipeline_workflows/inputHandling.nf'
 include { get_taglist_file } from './modules/manifest2tag.nf'
 include { make_samplesheet_manifest } from './modules/make_samplesheet_manifest.nf'
 include { validate_samplesheet_manifest } from './modules/samplesheet_manifest_validation.nf'
@@ -33,11 +33,15 @@ log.info """
          AMPSEQ_0.0 (dev : prototype)
          Used parameters:
         -------------------------------------------
-         --input_params_csv           : ${params.input_params_csv}
+         --run_id           : ${params.run_id}
+         --bcl_dir           : ${params.bcl_dir}
+         --lane           : ${params.lane}
+         --study_name           : ${params.study_name}
+         --read_group           : ${params.read_group}
+         --library           : ${params.library}
          --start_from                 : ${params.start_from}
          --results_dir                : ${params.results_dir}
          --irods_manifest             : ${params.irods_manifest}
-         --redo_reference_fasta       : ${params.redo_reference_fasta}
          ------------------------------------------
          Runtime data:
         -------------------------------------------
@@ -53,20 +57,19 @@ log.info """
 def printHelp() {
   log.info """
   Usage:
-    nextflow run main.nf --input_params_csv [path/to/my/input.csv]
+    nextflow run main.nf
 
   Description:
     (temporary - honest - description)
     Ampseq amazing brand new pipeline built from the ground up to be awesome.
 
-    A input csv containing my run_id, bcl_dir, study_name, read_group, library,
-    and reference fasta path is necessary to run the ampseq pipeline from step 0
+    A run_id, bcl_dir, lane, study_name, read_group, library, and reference fasta 
+    path are necessary to run the ampseq pipeline from step 0
 
     *for a complete description of input files check [LINK AMPSEQ]
 
   Options:
     Inputs:
-      --input_params_csv (A csv file path)
       --irods_manifest (tab-delimited file containing rows of WG_lane and id_run data for CRAM files on iRODS)
 
     Additional options:
@@ -94,13 +97,20 @@ workflow {
 
   // -- In Country-------------------------------------------------------------
   if (steps_to_run_tags.contains("0")) {
-    // process input_params_csv
-    input_csv_ch = load_input_csv_ch()
+
+    // create input channel
+    input_csv_ch = Channel.of(tuple(params.run_id,
+                                 params.bcl_dir,
+                                 params.lane,
+                                 params.study_name,
+                                 params.read_group,
+                                 params.library))
+
     // validate MiSeq run files and directory structure
     miseq_run_validation(input_csv_ch)
 
     // process samplesheets manifest (necessary to get barcodes) and validate it
-    make_samplesheet_manifest(input_csv_ch)//run_id, input_csv_ch.bcl_dir)
+    make_samplesheet_manifest(input_csv_ch)
     validate_samplesheet_manifest(make_samplesheet_manifest.out)
 
     // get taglist

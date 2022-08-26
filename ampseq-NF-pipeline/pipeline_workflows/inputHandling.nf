@@ -132,24 +132,6 @@ def validate_parameters() {
   }
 }
 
-
-def load_input_csv_ch(){
-
-  input_csv_ch = Channel.fromPath(params.input_params_csv) | splitCsv(header:true) |
-                map {row-> tuple(row.run_id,
-                                 row.bcl_dir_path,
-                                 row.lane,
-                                 row.study_name,
-                                 row.read_group,
-                                 row.library,
-                                 //row.reference_fasta,
-                                 row.redo_reference_fasta
-                                 )
-                    }
-  // TODO: add checks to validade bcl_dir_path and redo_reference_fasta
-  return input_csv_ch
-}
-
 def load_steps_to_run(){
   /*
   this function define which tags / subworkflows should be considered for
@@ -166,7 +148,7 @@ def load_steps_to_run(){
   def steps_to_run_tagsMap = [
           "0":["0","1.2a", "1.3"], // in country by default
           "1.2a":["1.2a","1.3"],
-          "1.2b":["1.2b","1.3"] // from iRODS
+          "1.2b":["1.2b","1.3"], // from iRODS
   ]
   // get the tag provided
   def tag_provided = params.start_from.toString()
