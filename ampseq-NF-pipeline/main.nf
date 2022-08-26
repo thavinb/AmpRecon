@@ -112,9 +112,9 @@ workflow {
   
   // get pannels/reference files channel
   reference_ch = Channel.from(
-                  ["${params.reference_dir}/grc1/*.fasta", "PFA_GRC1_v1.0" , "${params.reference_dir}/grc1/*.fasta*"],
-                  ["${params.reference_dir}/grc2/*.fasta", "PFA_GRC2_v1.0", "${params.reference_dir}/grc2/*.fasta*"],
-                  ["${params.reference_dir}/spec/*.fasta", "PFA_Spec", "${params.reference_dir}/spec/*.fasta*"]
+                  [file("${params.reference_dir}/grc1/*.fasta"), "PFA_GRC1_v1.0" , file("${params.reference_dir}/grc1/*.fasta.*")],
+                  [file("${params.reference_dir}/grc2/*.fasta"), "PFA_GRC2_v1.0", file("${params.reference_dir}/grc2/*.fasta.*")],
+                  [file("${params.reference_dir}/spec/*.fasta"), "PFA_Spec", file("${params.reference_dir}/spec/*.fasta.*")]
                   )
 
   // -- In Country-------------------------------------------------------------
@@ -148,13 +148,17 @@ workflow {
   if (steps_to_run_tags.contains("1.2a")) {
 
     // get the relevant sample data from the manifest
-    ref_tag = Channel.fromPath("${params.results_dir}/*_manifest.csv").splitCsv(header: ["lims_id", "sims_id", "index", "ref", "barcode_sequence", "well", "plate"], skip: 18).map{ row -> tuple(row.lims_id, row.ref, row.index)}
+    ref_tag = Channel.fromPath("${params.results_dir}/*_manifest.csv")
+                | splitCsv(header: ["lims_id", "sims_id", "index", "ref",
+                                    "barcode_sequence", "well", "plate"],
+                                    skip: 18)
+                | map{ row -> tuple(row.lims_id, row.ref, row.index)}
 
     // assign each sample tag the appropriate set of reference files -> tuple('lims_id#index_', 'path/to/reference/genome, 'path/to/reference/index/files')
     ref_tag.combine(reference_ch,  by: 1)
             | map{it -> tuple(it[1]+"#${it[2]}_", it[3], it[4])}
             | set{sample_tag_reference_files_ch}
-    //sample_tag_reference_files_ch.view()
+
     // if start from this step, use the provided in_csv, if not, use previous
     // step output
     if (tag_provided=="1.2a"){
@@ -180,23 +184,14 @@ workflow {
                       | map { row -> tuple(row.id_run, row.primer_panel, row.WG_lane) }
     
     // Assign each sample id the appropriate set of reference files
-    irods_ch | combine(reference_ch,  by: 1)
-             | map{ it -> tuple(it[1], it[0], it[2], it[4]) } // tuple( id_run, primer_pannel, WG_lane, pannel_wildcard)
-             | set{ sample_id_reference_files_ch }
+    irods_ch | combine(reference_ch,  by: 1) // tuple (primer_pannel, id_run, WG_lane, [fasta], [fasta_idx_files])
+             | map { it -> tuple(it[2], it[1], it[3][0],it[4]) }
+             | set{ sample_id_ref_ch } // quero tuple(WG_lane, run_id, fasta_file, fasta_idx)
 
-    // remove run_id for sample ref
-    sample_id_reference_files_ch
-        | map{ it -> tuple(it[0], it[2], it[3]) }
-        | set{ get_ref_In_ch }
-    get_ref_files( get_ref_In_ch)
-    sample_id_ref_ch = get_ref_files.out // tuple(WG_lane, primer_panel, "*.fasta", "*.fasta*")
- 
-  
-  
     // remove pannels info from channel (is not used on this subworkflow)
     irods_ch.map{ it -> tuple (it[0], it[2]) }.set{irods_ch_noRef}
     // run step1.2b - pull from iRODS
-    pull_from_iRODS(irods_ch_noRef, sample_id_ref_ch)
+    pull_from_iRODS(irods_ch_noRef, sample_id_ref_ch)//sample_id_ref_ch)
     sample_tag_reference_files_ch = pull_from_iRODS.out.sample_tag_reference_files_ch
 
     // prepare channel for step 1.3
