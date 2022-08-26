@@ -10,7 +10,7 @@ include { scramble_sam_to_bam } from './modules/scramble.nf'
 include { samtools_sort } from './modules/samtools.nf'
 include { samtools_index } from './modules/samtools.nf'
 include { bam_ref_ch_to_csv } from './modules/read_count_per_region.nf'
-include { read_count_per_region } from './modules/read_count_per_region.nf'    
+include { read_count_per_region } from './modules/read_count_per_region.nf'
 
 workflow redo_alignment {
   //remove alignment from bam - this process proceeds directly after the end of 1.2x
