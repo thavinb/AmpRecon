@@ -17,6 +17,7 @@ include { get_taglist_file } from './modules/manifest2tag.nf'
 include { make_samplesheet_manifest } from './modules/make_samplesheet_manifest.nf'
 include { validate_samplesheet_manifest } from './modules/samplesheet_manifest_validation.nf'
 include { miseq_run_validation } from './modules/miseq_run_validation.nf'
+include { retrieve_miseq_run_from_s3 } from './modules/download_and_unzip_from_s3.nf'
 
 // logging info ----------------------------------------------------------------
 // This part of the code is based on the FASTQC PIPELINE (https://github.com/angelovangel/nxf-fastqc/blob/master/main.nf)
@@ -96,18 +97,29 @@ workflow {
   println(steps_to_run_tags)
 
   // -- In Country-------------------------------------------------------------
-  if (steps_to_run_tags.contains("0")) {
 
-    // create input channel
-    input_csv_ch = Channel.of(tuple(params.run_id,
+  if (steps_to_run_tags.contains("0") | steps_to_run_tags.contains("S3")) {
+
+    if (steps_to_run_tags.contains("S3")) {
+
+      // Retrieve Miseq run / BCL data from S3
+      retrieve_miseq_run_from_s3(params.bcl_id)
+      input_csv_ch = retrieve_miseq_run_from_s3.out.tuple_ch
+
+    }
+    else {
+
+      // create input channel
+      input_csv_ch = Channel.of(tuple(params.run_id,
                                  params.bcl_dir,
                                  params.lane,
                                  params.study_name,
                                  params.read_group,
                                  params.library))
+    }
 
     // validate MiSeq run files and directory structure
-    miseq_run_validation(input_csv_ch)
+//    miseq_run_validation(input_csv_ch)
 
     // process samplesheets manifest (necessary to get barcodes) and validate it
     make_samplesheet_manifest(input_csv_ch)
