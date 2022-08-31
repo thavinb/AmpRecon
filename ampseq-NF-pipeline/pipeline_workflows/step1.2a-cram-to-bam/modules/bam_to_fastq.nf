@@ -6,7 +6,6 @@ process bam_to_fastq {
     //publishDir "${params.results_dir}/${run_id}", overwrite: true
 
     input:
-        //val(run_id) //needed to know where to publish the files
         tuple val(sample_tag), path(clipped_bam)
 
     output:
