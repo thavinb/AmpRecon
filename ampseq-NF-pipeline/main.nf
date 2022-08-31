@@ -126,7 +126,7 @@ workflow {
 
     // process samplesheets manifest (necessary to get barcodes) and validate it
     make_samplesheet_manifest(input_csv_ch)//run_id, input_csv_ch.bcl_dir)
-    validate_samplesheet_manifest(make_samplesheet_manifest.out)
+    validate_samplesheet_manifest(make_samplesheet_manifest.out.tuple)
 
     // get taglist
     get_taglist_file_In_ch = input_csv_ch.join(validate_samplesheet_manifest.out)
@@ -148,7 +148,7 @@ workflow {
   if (steps_to_run_tags.contains("1.2a")) {
 
     // get the relevant sample data from the manifest
-    ref_tag = Channel.fromPath("${params.results_dir}/*_manifest.csv")
+    ref_tag =   make_samplesheet_manifest.out.manifest_file
                 | splitCsv(header: ["lims_id", "sims_id", "index", "ref",
                                     "barcode_sequence", "well", "plate"],
                                     skip: 18)
@@ -168,7 +168,7 @@ workflow {
     else {
       csv_ch = manifest_step1_1_Out_ch.mnf
     }
-
+    sample_tag_reference_files_ch.first().view()
     // Stage 1 - Step 2: CRAM to BAM
     cram_to_bam(csv_ch, sample_tag_reference_files_ch)
     step1_2_Out_ch = cram_to_bam.out.bam_ch.multiMap { it -> sample_tag: it[0]
@@ -193,7 +193,7 @@ workflow {
     // run step1.2b - pull from iRODS
     pull_from_iRODS(irods_ch_noRef, sample_id_ref_ch)//sample_id_ref_ch)
     sample_tag_reference_files_ch = pull_from_iRODS.out.sample_tag_reference_files_ch
-
+    //sample_tag_reference_files_ch.first().view()
     // prepare channel for step 1.3
     step1_2_Out_ch = pull_from_iRODS.out.bam_files_ch.multiMap {
                                                    it -> sample_tag: it[0]
@@ -213,7 +213,7 @@ workflow {
                               row  -> run_id:row.run_id
                                       bam_file:row.bam_fl
                                       sample_tag:row.sample_tag
-                }
+                              }
     } else {
         step1_3_In_ch = step1_2_Out_ch
     }
