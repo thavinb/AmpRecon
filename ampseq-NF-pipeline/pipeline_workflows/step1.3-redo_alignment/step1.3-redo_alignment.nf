@@ -35,27 +35,37 @@ take:
     bam_to_fastq.out // tuple (sample_id, fastq_file)
           | join(sample_tag_reference_files_ch) //tuple (sample_id, fastq, fasta_file, fasta_idx_files)
           | set{align_bam_In_ch}
-    
     // do new alignment
     align_bam(align_bam_In_ch)
 
     // convert sam to bam_dir
     scramble_sam_to_bam(align_bam.out.sample_tag, align_bam.out.sam_file)
-
+    
+    // PREPARATION FOR READ COUNTS 
     // sort and index bam
     samtools_sort(scramble_sam_to_bam.out)
     samtools_index(samtools_sort.out.bam)
-    samtools_index.out.bam_dir.unique().collect().set{bam_dir_ch} // Needed to ensure correct execution order
-
+    
+    // GAMBIARRA ALERT --------------------------------------------
+    // Needed to ensure correct execution order
+    samtools_index.out.bam_dir.unique().collect().set{bam_dir_ch} 
+    // ------------------------------------------------------------
+     
     // join references to indexed bam channel
-    samtools_index.out.files.join(sample_tag_reference_files_ch).map {it -> tuple(it[0], it[3])}.set{bam_ref_ch}
+    samtools_index.out.files // tuple (sample_tag, input_bam, input_bai)
+                | join(sample_tag_reference_files_ch) // (sample_tag, input_bam, input_bai, fasta_file, fasta_idx_file)
+                | map {it -> tuple(it[1].simpleName, it[3])} // (input_bam_name,fasta_file)
+                | set{bam_ref_ch}
 
     // output channel to csv - used for making read count plex files
     bam_ref_ch_to_csv(bam_ref_ch)
 
     // get read counts
     qc_run_ids_ch = Channel.from("GRC1", "GRC2", "Spec")
-    qc_run_cnf_files_ch = Channel.from(file(params.grc1_qc_file), file(params.grc2_qc_file), file(params.spec_qc_file))
+    qc_run_cnf_files_ch = Channel.from(
+                          file(params.grc1_qc_file),
+                          file(params.grc2_qc_file),
+                          file(params.spec_qc_file))
 
     read_count_per_region(
         run_id,
