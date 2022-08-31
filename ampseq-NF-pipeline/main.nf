@@ -17,7 +17,7 @@ include { get_taglist_file } from './modules/manifest2tag.nf'
 include { make_samplesheet_manifest } from './modules/make_samplesheet_manifest.nf'
 include { validate_samplesheet_manifest } from './modules/samplesheet_manifest_validation.nf'
 include { miseq_run_validation } from './modules/miseq_run_validation.nf'
-include { retrieve_miseq_run_from_s3 } from './modules/download_and_unzip_from_s3.nf'
+include { retrieve_miseq_run_from_s3 } from './modules/retrieve_miseq_run_from_s3.nf'
 
 // logging info ----------------------------------------------------------------
 // This part of the code is based on the FASTQC PIPELINE (https://github.com/angelovangel/nxf-fastqc/blob/master/main.nf)

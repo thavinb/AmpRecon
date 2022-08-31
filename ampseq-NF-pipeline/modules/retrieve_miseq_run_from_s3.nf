@@ -13,7 +13,7 @@ process retrieve_miseq_run_from_s3 {
 
     script:
         output_path = "${params.results_dir}/${file_id}"
-        bucket = params.input_s3_bucket
+        bucket = params.s3_bucket
         """
         s3cmd get s3://"${bucket}"/"${file_id}".tar.gz
         tar -xvzf "${file_id}".tar.gz
