@@ -12,8 +12,8 @@ process make_samplesheet_manifest {
     //val(run_id)
     //val(bcl_dir)
     output:
-    tuple val(run_id), path("${run_id}_manifest.csv"), emit: manifest_file
-
+    tuple val(run_id), path("${run_id}_manifest.csv"), emit: tuple
+    path("${run_id}_manifest.csv"), emit: manifest_file
     script:
     samplesheet = "${bcl_dir}/SampleSheet.csv"
     manifest = "${bcl_dir}/${run_id}_manifest.csv"
