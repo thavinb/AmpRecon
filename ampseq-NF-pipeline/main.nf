@@ -168,7 +168,7 @@ workflow {
     else {
       csv_ch = manifest_step1_1_Out_ch.mnf
     }
-    sample_tag_reference_files_ch.first().view()
+    
     // Stage 1 - Step 2: CRAM to BAM
     cram_to_bam(csv_ch, sample_tag_reference_files_ch)
     step1_2_Out_ch = cram_to_bam.out.bam_ch.multiMap { it -> sample_tag: it[0]
