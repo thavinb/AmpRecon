@@ -6,7 +6,7 @@ process align_bam {
     /*
     * Map reads to reference
     */
-    publishDir "${params.results_dir}/${run_id}", overwrite: true
+    publishDir "${params.results_dir}", overwrite: true
 
     input:
         tuple val(sample_tag), path(fastq), path(reference_fasta), path(ref_bwa_index_fls), val(run_id)
