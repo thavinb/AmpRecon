@@ -119,7 +119,7 @@ workflow {
     }
 
     // validate MiSeq run files and directory structure
-//    miseq_run_validation(input_csv_ch)
+    miseq_run_validation(input_csv_ch)
 
     // process samplesheets manifest (necessary to get barcodes) and validate it
     make_samplesheet_manifest(input_csv_ch)
