@@ -5,7 +5,7 @@ include { EXTRACT_PARAMS } from './pipeline-subworkflows/extract_params.nf'
 workflow IN_COUNTRY {
 
     main:
-    EXTRACT_PARAMS_INCOUNTRY()
+    EXTRACT_PARAMS()
     CORE_PIPELINE_REPLICA(EXTRACT_PARAMS.out)
 
 }
