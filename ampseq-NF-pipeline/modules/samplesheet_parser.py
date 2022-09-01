@@ -37,9 +37,9 @@ class SampleSheetParser:
         self.writer = None
         self.well_iterator = self._well_iterator()
         self._fileio = None
-        self._ref_column = None
-        self._first_ref_id = None
-        self._ref_iterator = 0
+        self._assay_column = None
+        self._first_assay_id = None
+        self._assay_iterator = 0
 
     def __repr__(self):
         """Shows how the class gets represented in the Pycharm debugger, for example"""
@@ -64,7 +64,7 @@ class SampleSheetParser:
             "lims_id",
             "sims_id",
             "index",
-            "ref",
+            "assay", #"ref",
             "barcode_sequence",
             "well",
             "plate",
@@ -98,41 +98,41 @@ class SampleSheetParser:
 
         return sims_id
 
-    def _get_ref(self, line: OrderedDict, lims_id: str):
-        ref = None
+    def _get_assay(self, line: OrderedDict, lims_id: str):
+        assay = None
         match = None
-        ref_options = OrderedDict(
+        assay_options = OrderedDict(
             grc1="PFA_GRC1_v1.0", grc2="PFA_GRC2_v1.0", spec="PFA_Spec"
         )
         grc = re.compile(r"(grc[12])|(sp(?:ec)?)", re.IGNORECASE)
 
-        if self._first_ref_id is None:
-            self._first_ref_id = lims_id
-        elif self._first_ref_id == lims_id:
-            self._ref_iterator += 1
+        if self._first_assay_id is None:
+            self._first_assay_id = lims_id
+        elif self._first_assay_id == lims_id:
+            self._assay_iterator += 1
 
-        # ref can be literally everywhere apparently.. so we go search for it in every column until found
+        # assay can be literally everywhere apparently.. so we go search for it in every column until found
         # but once we find it we'll just reuse that column
-        if self._ref_column is None:
+        if self._assay_column is None:
             for header, value in line.items():
                 match = re.search(grc, value)
                 if match:
-                    self._ref_column = header
+                    self._assay_column = header
                     break
 
-            # apparently it's ok if ref isn't given, they always come in order of grc1, grc2, spec
-            ref = ref_options[list(ref_options.keys())[self._ref_iterator]]
+            # apparently it's ok if assay isn't given, they always come in order of grc1, grc2, spec
+            assay = assay_options[list(assay_options.keys())[self._assay_iterator]]
 
         else:
-            match = re.search(grc, line[self._ref_column])
+            match = re.search(grc, line[self._assay_column])
 
         if match:
             group = match.group(0).lower()
             if group.startswith("sp"):
                 group = "spec"
-            ref = ref_options[group]
+            assay = assay_options[group]
 
-        return ref
+        return assay
 
     def _get_barcode_sequence(self, line: OrderedDict):
         index_1 = line.get("index")
@@ -173,7 +173,7 @@ class SampleSheetParser:
             try:
                 lims_id = self._get_lims_id(line)
                 sims_id = self._get_sims_id(line, lims_id)
-                ref = self._get_ref(line, lims_id)
+                assay = self._get_assay(line, lims_id)
                 barcode_sequence = self._get_barcode_sequence(line)
                 well = self._get_well(line)
                 plate = self._get_plate(line)
@@ -185,7 +185,7 @@ class SampleSheetParser:
                 lims_id=lims_id,
                 sims_id=sims_id,
                 index=index,
-                ref=ref,
+                assay=assay,
                 barcode_sequence=barcode_sequence,
                 well=well,
                 plate=plate,

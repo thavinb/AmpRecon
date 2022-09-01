@@ -123,9 +123,13 @@ workflow {
     input_csv_ch = load_input_csv_ch()
     // validate MiSeq run files and directory structure
     miseq_run_validation(input_csv_ch)
-
+    
     // process samplesheets manifest (necessary to get barcodes) and validate it
-    make_samplesheet_manifest(input_csv_ch)//run_id, input_csv_ch.bcl_dir)
+    input_csv_ch
+        | map {it -> tuple (it[0], it[1])} // tuple(run_id, bcl_dir)
+        | set { make_samplesheet_In_ch}
+    make_samplesheet_In_ch.first().view()
+    make_samplesheet_manifest(make_samplesheet_In_ch)
     validate_samplesheet_manifest(make_samplesheet_manifest.out.tuple)
 
     // get taglist
@@ -149,10 +153,10 @@ workflow {
 
     // get the relevant sample data from the manifest
     ref_tag =   make_samplesheet_manifest.out.manifest_file
-                | splitCsv(header: ["lims_id", "sims_id", "index", "ref",
+                | splitCsv(header: ["lims_id", "sims_id", "index", "assay",
                                     "barcode_sequence", "well", "plate"],
                                     skip: 18)
-                | map{ row -> tuple(row.lims_id, row.ref, row.index)}
+                | map{ row -> tuple(row.lims_id, row.assay, row.index)}
 
     // assign each sample tag the appropriate set of reference files -> tuple('lims_id#index_', 'path/to/reference/genome, 'path/to/reference/index/files')
     ref_tag.combine(reference_ch,  by: 1)
@@ -193,7 +197,7 @@ workflow {
     // run step1.2b - pull from iRODS
     pull_from_iRODS(irods_ch_noRef, sample_id_ref_ch)//sample_id_ref_ch)
     sample_tag_reference_files_ch = pull_from_iRODS.out.sample_tag_reference_files_ch
-    //sample_tag_reference_files_ch.first().view()
+
     // prepare channel for step 1.3
     step1_2_Out_ch = pull_from_iRODS.out.bam_files_ch.multiMap {
                                                    it -> sample_tag: it[0]
