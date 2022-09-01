@@ -14,7 +14,7 @@ process download_bcl_from_s3 {
 
 	script:
 	"""
-	s3cmd get s3://amplicon-test-data/${bcl_id}.tar.gz
+	curl https://amplicon-test-data.cog.sanger.ac.uk/${bcl_id}.tar.gz > ${bcl_id}.tar.gz
 	tar -xvzf ${bcl_id}.tar.gz
 	"""
 }
@@ -90,36 +90,167 @@ process download_test_cram_from_s3 {
 
 }
 
-process download_redo_alignment_output_bam_from_s3  {
+process download_test_collated_bam_from_s3 {
 
 
         input:
         val(file_id)
 
         output:
-        path("*.step1.3_output.bam")
+        path("*.bam")
 
         script:
         """
-        curl https://amplicon-test-data.cog.sanger.ac.uk/${file_id}.step1.3_output.bam > test.step1.3_output.bam
+        curl https://amplicon-test-data.cog.sanger.ac.uk/${file_id}.collated.bam > reference_test.collated.bam
         """
 
 
 }
-	
-process download_zipped_read_counts_from_s3 {
+
+process download_test_reset_bam_from_s3 {
 
 
         input:
         val(file_id)
 
         output:
-        path("*_read_counts.tar.gz")
+        path("*.bam")
 
         script:
         """
-        curl https://amplicon-test-data.cog.sanger.ac.uk/${file_id}_read_counts.tar.gz > ${file_id}_read_counts.tar.gz
+        curl https://amplicon-test-data.cog.sanger.ac.uk/${file_id}.reset.bam > test.reset.bam
         """
 
 
+}
+
+process download_test_clipped_bam_from_s3 {
+
+
+        input:
+        val(file_id)
+
+        output:
+        path("*.bam")
+
+        script:
+        """
+        curl https://amplicon-test-data.cog.sanger.ac.uk/${file_id}.clipped.bam > test.clipped.bam
+        """
+
+
+}
+
+process download_test_fastq_from_s3 {
+
+
+        input:
+        val(file_id)
+
+        output:
+        path("*.fastq")
+
+        script:
+        """
+        curl https://amplicon-test-data.cog.sanger.ac.uk/${file_id}.fastq > test.fastq
+        """
+
+
+}
+
+process download_test_aligned_sam_from_s3 {
+
+
+        input:
+        val(file_id)
+
+        output:
+        path("*.sam")
+
+        script:
+        """
+        curl https://amplicon-test-data.cog.sanger.ac.uk/${file_id}.sam > test.aligned.sam
+        """
+
+}
+
+process download_fasta_from_s3{
+
+	input:
+	val(file_id)
+
+	output:
+	tuple path("test.fa"), path("test.dict")
+
+	script:
+	"""
+	curl https://amplicon-test-data.cog.sanger.ac.uk/pf_grc1v1.0/${file_id}.fasta > test.fa
+	curl https://amplicon-test-data.cog.sanger.ac.uk/pf_grc1v1.0/${file_id}.dict > test.dict
+	"""
+
+
+}
+
+process download_idx_from_s3 {
+
+
+	input:
+	val(file_id)
+
+	output:
+	path("test*")
+
+	script:
+	"""
+	curl https://amplicon-test-data.cog.sanger.ac.uk/pf_grc1v1.0/${file_id}.fai > test.fai
+	curl https://amplicon-test-data.cog.sanger.ac.uk/pf_grc1v1.0/${file_id}.dict > test.dict
+	curl https://amplicon-test-data.cog.sanger.ac.uk/pf_grc1v1.0/${file_id}.fasta.sa > test.fa.sa
+	curl https://amplicon-test-data.cog.sanger.ac.uk/pf_grc1v1.0/${file_id}.fasta.amb > test.fa.amb
+	curl https://amplicon-test-data.cog.sanger.ac.uk/pf_grc1v1.0/${file_id}.fasta.bwt > test.fa.bwt
+	curl https://amplicon-test-data.cog.sanger.ac.uk/pf_grc1v1.0/${file_id}.fasta.ann > test.fa.ann
+	curl https://amplicon-test-data.cog.sanger.ac.uk/pf_grc1v1.0/${file_id}.fasta.pac > test.fa.pac
+	"""
+}
+
+
+process download_test_scrambled_bam_from_s3 {
+
+	input:
+	val(file_id)
+
+	output:
+	path("*.staden.scrambled.bam")
+
+	script:
+	"""
+	curl https://amplicon-test-data.cog.sanger.ac.uk/${file_id}.selected.bam > reference.staden.scrambled.bam
+	"""
+}
+
+process download_test_reheadered_bam_from_s3 {
+
+	input:
+	val(file_id)
+
+	output:
+	path("*reheader_ref.bam")
+
+	script:
+	"""
+	curl https://amplicon-test-data.cog.sanger.ac.uk/${file_id}.reheader_ref.bam > reference.reheader_ref.bam
+	"""
+}
+
+process download_test_split_bam_from_s3 {
+
+	input:
+	val(file_id)
+
+	output:
+	path("*.split.bam")
+
+	script:
+	"""
+	curl https://amplicon-test-data.cog.sanger.ac.uk/${file_id}.split.bam > reference.split.bam
+	"""
 }

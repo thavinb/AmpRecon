@@ -5,7 +5,7 @@ nextflow.enable.dsl = 2
 
 process read_count_per_region {
     stageInMode 'copy'
-    publishDir "${params.results_dir}/${run_id}", overwrite: true
+    publishDir "${params.results_dir}/", overwrite: true
 
     input:
         val(run_id)
@@ -36,13 +36,13 @@ process read_count_per_region {
 
 process bam_ref_ch_to_csv {
   input:
-    tuple val(sample_tag), path(reference_files)
+    tuple val(bam_name), path(reference_files)
 $/
 #!/usr/bin/python3
 from pathlib import Path
 
 # setup inputs
-sample_tag = "${sample_tag}"
+bam_name = "${bam_name}"
 reference_files = "${reference_files}"
 publishDir = f"${launchDir}/"
 
@@ -57,7 +57,7 @@ else:
     out_mnf.write("sample_tag,reference_fasta\n")
 
 # write manifest line for the bam file
-out_mnf.write(f"{sample_tag},{reference_files}\n")
+out_mnf.write(f"{bam_name},{reference_files}\n")
 out_mnf.close()
 /$
 }

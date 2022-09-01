@@ -75,6 +75,24 @@ def printHelp() {
    """.stripIndent()
 }
 
+
+process get_ref_files {
+    /*
+    get the respective pannel files location for a given sample
+    */
+    
+    input:
+        tuple val(primer_panel), val(WG_lane), val(ref_wildcard)
+    
+    output:
+        tuple val(WG_lane), val(primer_panel), path("*.fasta"), path("*.fasta.*")
+    
+    script:
+       """
+        cp -ln ${ref_wildcard} ./
+        """
+}
+
 // Main entry-point workflow
 workflow {
   // --- Print help if requested -------------------------------------------
@@ -91,6 +109,13 @@ workflow {
   steps_to_run_tags = load_steps_to_run()
   tag_provided = params.start_from.toString()
   println(steps_to_run_tags)
+  
+  // get pannels/reference files channel
+  reference_ch = Channel.from(
+                  [file("${params.reference_dir}/grc1/*.fasta"), "PFA_GRC1_v1.0" , file("${params.reference_dir}/grc1/*.fasta.*")],
+                  [file("${params.reference_dir}/grc2/*.fasta"), "PFA_GRC2_v1.0", file("${params.reference_dir}/grc2/*.fasta.*")],
+                  [file("${params.reference_dir}/spec/*.fasta"), "PFA_Spec", file("${params.reference_dir}/spec/*.fasta.*")]
+                  )
 
   // -- In Country-------------------------------------------------------------
   if (steps_to_run_tags.contains("0")) {
@@ -101,7 +126,7 @@ workflow {
 
     // process samplesheets manifest (necessary to get barcodes) and validate it
     make_samplesheet_manifest(input_csv_ch)//run_id, input_csv_ch.bcl_dir)
-    validate_samplesheet_manifest(make_samplesheet_manifest.out)
+    validate_samplesheet_manifest(make_samplesheet_manifest.out.tuple)
 
     // get taglist
     get_taglist_file_In_ch = input_csv_ch.join(validate_samplesheet_manifest.out)
@@ -123,16 +148,16 @@ workflow {
   if (steps_to_run_tags.contains("1.2a")) {
 
     // get the relevant sample data from the manifest
-    ref_tag = Channel.fromPath("${params.results_dir}/*_manifest.csv").splitCsv(header: ["lims_id", "sims_id", "index", "ref", "barcode_sequence", "well", "plate"], skip: 18).map{ row -> tuple(row.lims_id, row.ref, row.index)}
-
-    // group reference files
-    reference_ch = Channel.from(
-                    [file("$projectDir/references/grc1/Pf_GRC1v1.0.fasta"), "PFA_GRC1_v1.0", file("$projectDir/references/grc1/Pf_GRC1v1.0.fasta.*")],
-                    [file("$projectDir/references/grc2/Pf_GRC2v1.0.fasta"), "PFA_GRC2_v1.0", file("$projectDir/references/grc2/Pf_GRC2v1.0.fasta.*")],
-                    [file("$projectDir/references/spec/Spec_v1.0.fasta"), "PFA_Spec", file("$projectDir/references/spec/Spec_v1.0.fasta.*")])
+    ref_tag =   make_samplesheet_manifest.out.manifest_file
+                | splitCsv(header: ["lims_id", "sims_id", "index", "ref",
+                                    "barcode_sequence", "well", "plate"],
+                                    skip: 18)
+                | map{ row -> tuple(row.lims_id, row.ref, row.index)}
 
     // assign each sample tag the appropriate set of reference files -> tuple('lims_id#index_', 'path/to/reference/genome, 'path/to/reference/index/files')
-    ref_tag.combine(reference_ch,  by: 1).map{it -> tuple(it[1]+"#${it[2]}_", it[3], it[4])}.set{sample_tag_reference_files_ch}
+    ref_tag.combine(reference_ch,  by: 1)
+            | map{it -> tuple(it[1]+"#${it[2]}_", it[3], it[4])}
+            | set{sample_tag_reference_files_ch}
 
     // if start from this step, use the provided in_csv, if not, use previous
     // step output
@@ -143,30 +168,41 @@ workflow {
     else {
       csv_ch = manifest_step1_1_Out_ch.mnf
     }
-
+    
     // Stage 1 - Step 2: CRAM to BAM
     cram_to_bam(csv_ch, sample_tag_reference_files_ch)
     step1_2_Out_ch = cram_to_bam.out.bam_ch.multiMap { it -> sample_tag: it[0]
                                                       bam_file: it[1]
                                                       run_id:it[2]}
+  //step1_2_Out_ch.out.sample_tag.view()
   }
   // --- iRODS Pulling --------------------------------------------------------
    if (tag_provided=="1.2b"){
-
-     irods_ch =  Channel.fromPath(params.irods_manifest, checkIfExists: true)
+    // load manifest content
+    irods_ch =  Channel.fromPath(params.irods_manifest, checkIfExists: true)
                       | splitCsv(header: true, sep: '\t')
-                      | map { row -> tuple(row.id_run, row.WG_lane) }
+                      | map { row -> tuple(row.id_run, row.primer_panel, row.WG_lane) }
+    
+    // Assign each sample id the appropriate set of reference files
+    irods_ch | combine(reference_ch,  by: 1) // tuple (primer_pannel, id_run, WG_lane, [fasta], [fasta_idx_files])
+             | map { it -> tuple(it[2], it[1], it[3][0],it[4]) }
+             | set{ sample_id_ref_ch } // quero tuple(WG_lane, run_id, fasta_file, fasta_idx)
 
-     // run step1.2b - pull from iRODS
-     pull_from_iRODS(irods_ch)
-     // prepare channel for step 1.3
-     step1_2_Out_ch = pull_from_iRODS.out.multiMap { it -> sample_tag: it[0]
-                                                           bam_file: it[1]
-                                                           run_id:it[2]
+    // remove pannels info from channel (is not used on this subworkflow)
+    irods_ch.map{ it -> tuple (it[0], it[2]) }.set{irods_ch_noRef}
+    // run step1.2b - pull from iRODS
+    pull_from_iRODS(irods_ch_noRef, sample_id_ref_ch)//sample_id_ref_ch)
+    sample_tag_reference_files_ch = pull_from_iRODS.out.sample_tag_reference_files_ch
+    //sample_tag_reference_files_ch.first().view()
+    // prepare channel for step 1.3
+    step1_2_Out_ch = pull_from_iRODS.out.bam_files_ch.multiMap {
+                                                   it -> sample_tag: it[0]
+                                                         bam_file: it[1]
+                                                         run_id: it[2]
                                                    }
    }
-
-
+    
+  
   if (steps_to_run_tags.contains("1.3")){
     // if start from this step, use the provided in_csv, if not, use step 1.2x
     // step output
@@ -177,7 +213,7 @@ workflow {
                               row  -> run_id:row.run_id
                                       bam_file:row.bam_fl
                                       sample_tag:row.sample_tag
-                }
+                              }
     } else {
         step1_3_In_ch = step1_2_Out_ch
     }
@@ -189,7 +225,7 @@ workflow {
                         sample_tag_reference_files_ch,
                         )
   }
-
+  
 }
 
 // -------------- Check if everything went okay -------------------------------

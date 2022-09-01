@@ -12,7 +12,7 @@ include { rename_cram_fls } from './modules/rename_cram_fls.nf'
 
 process writeOutputManifest {
 
-  publishDir "${params.results_dir}/${run_id}", mode: 'copy', overwrite: true
+  publishDir "${params.results_dir}/", mode: 'copy', overwrite: true
 
   input:
     tuple val(run_id), path(cram_files)
@@ -27,7 +27,7 @@ $/
 run_id = "${run_id}"
 cram_files_lst = "${cram_files}".split(" ")
 out_mnf = open("${run_id}_out1.1_mnf.csv", "w")
-cram_dir=f"${params.results_dir}{run_id}/"
+cram_dir=f"${params.results_dir}/"
 
 # get sample tags (nor proper ids yet, but will get the job done for now)
 sample_tag_lst = [f.split("/")[-1].split(".")[0] for f in cram_files_lst]

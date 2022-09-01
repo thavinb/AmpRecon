@@ -2,7 +2,7 @@ process bam_find_adapter {
     /*
     * Searches for sequencing adapter contamination with a BAM  file.
     */
-    publishDir "${params.results_dir}/${run_id}/", overwrite: true
+    publishDir "${params.results_dir}/", overwrite: true
 
     input:
         tuple val(run_id), path(bam_file), path(not_used1)

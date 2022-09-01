@@ -46,8 +46,8 @@ from pathlib import Path
 run_id = "${run_id}"
 bam_fl = "${bam_file}"
 sample_tag = "${sample_tag}"
-publishDir = f"${params.results_dir}/{run_id}/"
-bam_dir=f"${params.results_dir}{run_id}/"
+publishDir = f"${params.results_dir}/"
+bam_dir=f"${params.results_dir}/"
 
 # if manifest already exists, just append new lines
 path_to_mnf = f"{publishDir}/{run_id}_out1.2_mnf.csv"
@@ -69,7 +69,7 @@ workflow cram_to_bam {
     take:
         // manifest from step 1.1
         intermediate_csv
-        sample_tag_reference_files_ch
+        sample_tag_reference_files_ch // tuple (sample_id, ref_fasta, fasta_index)
 
     main:
         // Process manifest
@@ -91,10 +91,13 @@ workflow cram_to_bam {
 
         // Convert BAM to FASTQ
         bam_to_fastq(clip_adapters.out.tuple)
-
-        bam_to_fastq.out.join(sample_tag_reference_files_ch).combine(intCSV_ch.run_id).unique().set{align_bam_In_ch}
-        //align_bam_In_ch = [sample_tag, fastq, ref_fasta, ref_bwa_idx_fls, run_id]
-        //align_bam_In_ch.view()
+        
+        bam_to_fastq.out //tuple (sample_tag, fastq_files)
+              | join(sample_tag_reference_files_ch) //tuple (sample_tag, fastq_files, ref_fasta, fasta_index) 
+              | combine(intCSV_ch.run_id)
+              | unique()
+              | set{align_bam_In_ch} // tuple (sample_tag, fastq, fasta, fasta_idx,// run_id)
+        
         align_bam(align_bam_In_ch)
 
         // Convert SAM to BAM
