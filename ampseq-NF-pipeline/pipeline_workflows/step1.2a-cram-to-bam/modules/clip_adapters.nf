@@ -15,7 +15,7 @@ process clip_adapters {
         tuple val("${sample_tag}"), path("${base_name}.clipped.bam"), emit: tuple
 
     script:
-        base_name=prealigned_bam.baseName
+        base_name=prealigned_bam.simpleName
         """
         bamadapterclip \
             verbose=${params.bamadapterclip_verbose} \

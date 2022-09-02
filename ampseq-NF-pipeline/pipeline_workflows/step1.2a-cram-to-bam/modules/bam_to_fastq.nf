@@ -12,7 +12,7 @@ process bam_to_fastq {
         tuple val(sample_tag), path("${base_name}.fastq")
 
     script:
-        base_name=clipped_bam.baseName
+        base_name=clipped_bam.simpleName
         """
         bamtofastq \
             < "${clipped_bam}" \

@@ -15,7 +15,7 @@ process mapping_reheader {
         tuple val(sample_tag), path("${output_file}")
 
     script:
-        base_name=scrambled_bam.baseName
+        base_name=scrambled_bam.simpleName
         output_file="${base_name}.reheadered.bam"
         """
         set -e
