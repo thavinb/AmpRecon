@@ -10,6 +10,7 @@ include { bcl_to_cram } from './pipeline_workflows/step1.1-bcl-to-cram/step1.1-b
 include { cram_to_bam } from './pipeline_workflows/step1.2a-cram-to-bam/step1.2-cram-to-bam.nf'
 include { redo_alignment } from './pipeline_workflows/step1.3-redo_alignment/step1.3-redo_alignment.nf'
 include { pull_from_iRODS } from './pipeline_workflows/step1.2b-pull-from-iRODS/step1.2b-pull-from-iRODS.nf'
+include { PARSE_PANNEL_SETTINGS } from './pipeline_workflows/parse_pannels_settings.nf'
 
 // - process to extract and validate information expected based on input params
 include { validate_parameters; load_input_csv_ch; load_steps_to_run } from './pipeline_workflows/inputHandling.nf'
@@ -38,6 +39,7 @@ log.info """
          --results_dir                : ${params.results_dir}
          --irods_manifest             : ${params.irods_manifest}
          --redo_reference_fasta       : ${params.redo_reference_fasta}
+         --pannels_settings            : ${params.pannels_settings}
          ------------------------------------------
          Runtime data:
         -------------------------------------------
@@ -75,24 +77,6 @@ def printHelp() {
    """.stripIndent()
 }
 
-
-process get_ref_files {
-    /*
-    get the respective pannel files location for a given sample
-    */
-    
-    input:
-        tuple val(primer_panel), val(WG_lane), val(ref_wildcard)
-    
-    output:
-        tuple val(WG_lane), val(primer_panel), path("*.fasta"), path("*.fasta.*")
-    
-    script:
-       """
-        cp -ln ${ref_wildcard} ./
-        """
-}
-
 // Main entry-point workflow
 workflow {
   // --- Print help if requested -------------------------------------------
@@ -111,11 +95,15 @@ workflow {
   println(steps_to_run_tags)
   
   // get pannels/reference files channel
+  /*
   reference_ch = Channel.from(
                   [file("${params.reference_dir}/grc1/*.fasta"), "PFA_GRC1_v1.0" , file("${params.reference_dir}/grc1/*.fasta.*")],
                   [file("${params.reference_dir}/grc2/*.fasta"), "PFA_GRC2_v1.0", file("${params.reference_dir}/grc2/*.fasta.*")],
                   [file("${params.reference_dir}/spec/*.fasta"), "PFA_Spec", file("${params.reference_dir}/spec/*.fasta.*")]
                   )
+  */
+  PARSE_PANNEL_SETTINGS()
+  reference_ch = PARSE_PANNEL_SETTINGS.out
 
   // -- In Country-------------------------------------------------------------
   if (steps_to_run_tags.contains("0")) {
@@ -178,8 +166,8 @@ workflow {
     step1_2_Out_ch = cram_to_bam.out.bam_ch.multiMap { it -> sample_tag: it[0]
                                                       bam_file: it[1]
                                                       run_id:it[2]}
-  //step1_2_Out_ch.out.sample_tag.view()
-  }
+ 
+   }
   // --- iRODS Pulling --------------------------------------------------------
    if (tag_provided=="1.2b"){
     // load manifest content
