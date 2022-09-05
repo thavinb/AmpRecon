@@ -116,7 +116,7 @@ workflow {
     input_csv_ch
         | map {it -> tuple (it[0], it[1])} // tuple(run_id, bcl_dir)
         | set { make_samplesheet_In_ch}
-    make_samplesheet_In_ch.first().view()
+
     make_samplesheet_manifest(make_samplesheet_In_ch)
     validate_samplesheet_manifest(make_samplesheet_manifest.out.tuple)
 
