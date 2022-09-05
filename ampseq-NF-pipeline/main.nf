@@ -198,8 +198,8 @@ workflow {
     
     // Assign each sample id the appropriate set of reference files
     irods_ch | combine(reference_ch,  by: 1) // tuple (primer_pannel, id_run, WG_lane, [fasta], [fasta_idx_files])
-             | map { it -> tuple(it[2], it[1], it[3][0],it[4]) }
-             | set{ sample_id_ref_ch } // quero tuple(WG_lane, run_id, fasta_file, fasta_idx)
+             | map { it -> tuple(it[2], it[1], it[3][0], it[4], it[0]) }
+             | set{ sample_id_ref_ch } // tuple (WG_lane, run_id, fasta_file, fasta_idx, primer_pannel)
 
     // remove pannels info from channel (is not used on this subworkflow)
     irods_ch.map{ it -> tuple (it[0], it[2]) }.set{irods_ch_noRef}
