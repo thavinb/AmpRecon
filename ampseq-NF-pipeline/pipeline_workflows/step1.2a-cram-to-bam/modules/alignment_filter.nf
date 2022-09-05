@@ -12,7 +12,7 @@ process alignment_filter {
 
     script:
         bambi=params.bambi
-        base_name=merged_bam.getBaseName()
+        base_name=merged_bam.getSimpleName()
         selected_bam="${base_name}.selected.bam"
         output_metrics_file="${base_name}.metrics"
 

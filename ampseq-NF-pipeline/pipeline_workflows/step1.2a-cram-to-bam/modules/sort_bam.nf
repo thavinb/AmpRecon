@@ -7,6 +7,9 @@ params.bamsort_add_markup_support = 1
 
 
 process sort_bam {
+    
+    publishDir "${params.results_dir}", overwrite: true
+
     input:
         val(run_id)
         val(tag)
@@ -17,7 +20,7 @@ process sort_bam {
 
     script:
         bamsort=params.bamsort
-        base_name=input_file.getBaseName()
+        base_name=input_file.getSimpleName()
         tmp_file="${base_name}.tmp"
         output_file="${base_name}.sorted.bam"
 

@@ -2,7 +2,7 @@ process rename_cram_fls {
     /*
     * resets a BAM file to a pre-aligned state
     */
-    publishDir "${params.results_dir}/${run_id}", overwrite: true
+    publishDir "${params.results_dir}", overwrite: true
 
     input:
         //path(manifest_csv)
@@ -17,7 +17,7 @@ process rename_cram_fls {
         // GAMBIARRA ALIERT ---------------------------------------------------
         // this expects the manifest to be at results dir before running this
         // proc
-        manifest_csv = "${params.results_dir}/${run_id}/${run_id}_manifest.csv"
+        manifest_csv = "${params.results_dir}/${run_id}_manifest.csv"
         // ---------------------------------------------------------------------
         """
         python3 ${projectDir}/pipeline_workflows/step1.1-bcl-to-cram/modules/scripts/renameSamplesCram.py \

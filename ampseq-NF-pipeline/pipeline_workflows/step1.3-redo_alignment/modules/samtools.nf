@@ -18,6 +18,7 @@ process samtools_sort {
         bam_name="${base_name}.bam"
 
         """
+        echo ${input_bam}
         samtools sort --threads 2 -o "${bam_name}" "${input_bam}"
         """
 }

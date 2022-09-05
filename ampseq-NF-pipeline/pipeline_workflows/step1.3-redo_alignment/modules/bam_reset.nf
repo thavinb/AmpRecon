@@ -19,7 +19,7 @@ process bam_reset {
 
 
     script:
-        base_name=collated_bam.baseName
+        base_name=collated_bam.simpleName
         """
         bamreset \
             resetaux=${params.bamreset_resetaux} \

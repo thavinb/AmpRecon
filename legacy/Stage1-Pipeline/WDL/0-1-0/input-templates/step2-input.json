@@ -1,5 +1,0 @@
-{
-  "ASPIS_0_1_0_Stage1_Step2.RefPath": "{{ ref_folder }}",
-  "ASPIS_0_1_0_Stage1_Step2.Manifest": "{{ manifest }}",
-  "ASPIS_0_1_0_Stage1_Step2.InputCrams":"{% crams %}"
-}

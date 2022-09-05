@@ -5,7 +5,6 @@ process basecalls_conversion {
     /*
     * Converts Illumina BCL sequencing run data into a BAM file.
     */
-    container ''
 
     input:
         tuple val(run_id), path(base_dir), val(lane), val(study_name), val(read_group), val(library), path(tag_file)
