@@ -7,8 +7,6 @@ process miseq_run_validation {
     * Checks the following exist for a given MiSeq run: SampleSheet.csv, `Basecalls/L001/ and .bcl files.
     */
 
-    publishDir "${params.results_dir}/${run_id}", mode: 'copy', overwrite: true
-
     input:
         tuple val(run_id), val(bcl_dir), val(not_used1), val(not_used2), val(not_used3), val(not_used4)
 

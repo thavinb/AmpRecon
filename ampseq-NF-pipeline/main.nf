@@ -100,7 +100,7 @@ workflow {
 
   if (steps_to_run_tags.contains("0") | steps_to_run_tags.contains("S3")) {
 
-    if (steps_to_run_tags.contains("S3")) {
+    if (steps_to_run_tags.contains("S3") & !file("${params.bcl_dir}").exists()) {
 
       // Retrieve Miseq run / BCL data from S3
       retrieve_miseq_run_from_s3(params.bcl_id)
