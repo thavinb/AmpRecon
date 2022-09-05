@@ -1,7 +1,7 @@
 
 def validate_parameters() {
   def errors = 0
-  def valid_start_from_tags = ["0","1.2a","1.2b","1.3"]
+  def valid_start_from_tags = ["0","1.2a","1.2b","1.3","S3"]
   // be sure that a start from is interpret as a string
   def tag_provided = params.start_from.toString()
 
@@ -40,9 +40,9 @@ def validate_parameters() {
     log.warn("A input_params_csv was provided (${params.input_params_csv}) but ignored (not needed for start_from = ${params.start_from})")
   }
 
-  // a reference fasta is required for starting from 0 or 1.2a
+  // a reference fasta is required for starting from 0, 1.2a or S3
   /*
-  if (tag_provided=="0" || tag_provided=="1.2a") {
+  if (tag_provided=="0" || tag_provided=="1.2a" || tag_provided=="S3") {
        check if reference fasta file exist and if it was set
       if (params.reference_fasta){
         reference_fasta = file(params.reference_fasta)
@@ -132,24 +132,6 @@ def validate_parameters() {
   }
 }
 
-
-def load_input_csv_ch(){
-
-  input_csv_ch = Channel.fromPath(params.input_params_csv) | splitCsv(header:true) |
-                map {row-> tuple(row.run_id,
-                                 row.bcl_dir_path,
-                                 row.lane,
-                                 row.study_name,
-                                 row.read_group,
-                                 row.library,
-                                 //row.reference_fasta,
-                                 row.redo_reference_fasta
-                                 )
-                    }
-  // TODO: add checks to validade bcl_dir_path and redo_reference_fasta
-  return input_csv_ch
-}
-
 def load_steps_to_run(){
   /*
   this function define which tags / subworkflows should be considered for
@@ -166,7 +148,8 @@ def load_steps_to_run(){
   def steps_to_run_tagsMap = [
           "0":["0","1.2a", "1.3"], // in country by default
           "1.2a":["1.2a","1.3"],
-          "1.2b":["1.2b","1.3"] // from iRODS
+          "1.2b":["1.2b","1.3"], // from iRODS
+          "S3":["S3","1.2a", "1.3"], // in country from S3
   ]
   // get the tag provided
   def tag_provided = params.start_from.toString()

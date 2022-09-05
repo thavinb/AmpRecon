@@ -13,11 +13,12 @@ include { pull_from_iRODS } from './pipeline_workflows/step1.2b-pull-from-iRODS/
 include { PARSE_PANNEL_SETTINGS } from './pipeline_workflows/parse_pannels_settings.nf'
 
 // - process to extract and validate information expected based on input params
-include { validate_parameters; load_input_csv_ch; load_steps_to_run } from './pipeline_workflows/inputHandling.nf'
+include { validate_parameters; load_steps_to_run } from './pipeline_workflows/inputHandling.nf'
 include { get_taglist_file } from './modules/manifest2tag.nf'
 include { make_samplesheet_manifest } from './modules/make_samplesheet_manifest.nf'
 include { validate_samplesheet_manifest } from './modules/samplesheet_manifest_validation.nf'
 include { miseq_run_validation } from './modules/miseq_run_validation.nf'
+include { retrieve_miseq_run_from_s3 } from './modules/retrieve_miseq_run_from_s3.nf'
 
 // logging info ----------------------------------------------------------------
 // This part of the code is based on the FASTQC PIPELINE (https://github.com/angelovangel/nxf-fastqc/blob/master/main.nf)
@@ -34,11 +35,15 @@ log.info """
          AMPSEQ_0.0 (dev : prototype)
          Used parameters:
         -------------------------------------------
-         --input_params_csv           : ${params.input_params_csv}
+         --run_id           : ${params.run_id}
+         --bcl_dir           : ${params.bcl_dir}
+         --lane           : ${params.lane}
+         --study_name           : ${params.study_name}
+         --read_group           : ${params.read_group}
+         --library           : ${params.library}
          --start_from                 : ${params.start_from}
          --results_dir                : ${params.results_dir}
          --irods_manifest             : ${params.irods_manifest}
-         --redo_reference_fasta       : ${params.redo_reference_fasta}
          --pannels_settings            : ${params.pannels_settings}
          ------------------------------------------
          Runtime data:
@@ -55,20 +60,19 @@ log.info """
 def printHelp() {
   log.info """
   Usage:
-    nextflow run main.nf --input_params_csv [path/to/my/input.csv]
+    nextflow run main.nf
 
   Description:
     (temporary - honest - description)
     Ampseq amazing brand new pipeline built from the ground up to be awesome.
 
-    A input csv containing my run_id, bcl_dir, study_name, read_group, library,
-    and reference fasta path is necessary to run the ampseq pipeline from step 0
+    A run_id, bcl_dir, lane, study_name, read_group, library, and reference fasta 
+    path are necessary to run the ampseq pipeline from step 0
 
     *for a complete description of input files check [LINK AMPSEQ]
 
   Options:
     Inputs:
-      --input_params_csv (A csv file path)
       --irods_manifest (tab-delimited file containing rows of WG_lane and id_run data for CRAM files on iRODS)
 
     Additional options:
@@ -106,9 +110,27 @@ workflow {
   reference_ch = PARSE_PANNEL_SETTINGS.out
 
   // -- In Country-------------------------------------------------------------
-  if (steps_to_run_tags.contains("0")) {
-    // process input_params_csv
-    input_csv_ch = load_input_csv_ch()
+
+  if (steps_to_run_tags.contains("0") | steps_to_run_tags.contains("S3")) {
+
+    if (steps_to_run_tags.contains("S3") & !file("${params.bcl_dir}").exists()) {
+
+      // Retrieve Miseq run / BCL data from S3
+      retrieve_miseq_run_from_s3(params.bcl_id)
+      input_csv_ch = retrieve_miseq_run_from_s3.out.tuple_ch
+
+    }
+    else {
+
+      // create input channel
+      input_csv_ch = Channel.of(tuple(params.run_id,
+                                 params.bcl_dir,
+                                 params.lane,
+                                 params.study_name,
+                                 params.read_group,
+                                 params.library))
+    }
+
     // validate MiSeq run files and directory structure
     miseq_run_validation(input_csv_ch)
     

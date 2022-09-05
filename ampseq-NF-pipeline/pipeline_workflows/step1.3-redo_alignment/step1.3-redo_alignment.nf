@@ -10,7 +10,8 @@ include { scramble_sam_to_bam } from './modules/scramble.nf'
 include { samtools_sort } from './modules/samtools.nf'
 include { samtools_index } from './modules/samtools.nf'
 include { bam_ref_ch_to_csv } from './modules/read_count_per_region.nf'
-include { read_count_per_region } from './modules/read_count_per_region.nf'
+include { read_count_per_region } from './modules/read_count_per_region.nf'    
+include { upload_pipeline_output_to_s3 } from './modules/upload_pipeline_output_to_s3.nf'
 
 workflow redo_alignment {
   //remove alignment from bam - this process proceeds directly after the end of 1.2x
@@ -75,7 +76,11 @@ take:
         qc_run_ids_ch,
         qc_run_cnf_files_ch
     )
-  
+
+    // upload read counts and BAM files to S3 bucket
+    read_count_per_region.out.qc_csv_file.concat(samtools_index.out.bam_file).set{output_to_s3}
+    upload_pipeline_output_to_s3(output_to_s3)
+
   //emit:
 
 }
