@@ -4,11 +4,11 @@
 nextflow.enable.dsl = 2
 
 // import modules
-include { basecalls_conversion } from './modules/basecalls_conversion.nf'
-include { decode_multiplexed_bam } from './modules/decode_multiplexed_bam.nf'
-include { bam_find_adapter } from './modules/bam_find_adapter.nf'
-include { bam_to_cram } from './modules/bam_to_cram.nf'
-include { rename_cram_fls } from './modules/rename_cram_fls.nf'
+include { basecalls_conversion } from '../../modules/basecalls_conversion.nf'
+include { decode_multiplexed_bam } from '../../modules/decode_multiplexed_bam.nf'
+include { bam_find_adapter } from '../../modules/bam_find_adapter.nf'
+include { bam_to_cram } from '../../modules/bam_to_cram.nf'
+include { rename_cram_fls } from '../../modules/rename_cram_fls.nf'
 
 process writeOutputManifest {
 
