@@ -7,6 +7,11 @@ def validate_parameters() {
 
   // --- SANITY CHECKS ------------------------------------------------------
   // check if output dir exists, if not create the default
+  if (params.run_id == null){
+      log.error("A run_id was not provided")
+      errors += 1
+  }
+
   if (params.results_dir){
        results_path = file(params.results_dir)
        if (!results_path.exists()){
@@ -21,60 +26,61 @@ def validate_parameters() {
   // ------------------------------------------------------------------------
   // Check if everything required was provided for a given entry point
   if (tag_provided == "0"){
-      // check if input_params_csv was set and if the file exists
-      if (params.input_params_csv) {
-        input_csv_file=file(params.input_params_csv)
-        if (!input_csv_file.exists()) {
-            log.error("The manifest file specified does not exist.")
-            errors += 1
-          }
-      }
-      if (params.input_params_csv==''){
-        log.error("A input_params_csv must be specified.")
-        errors +=1
-      }
+      // check if all expected input parameters was set and if the file exists
+    if (params.study_name == null){
+        log.error("A run_id was not provided.")
+        errors += 1
+    }
 
+    if (params.lane == null) {
+      log.error("A value for parameter lane was not provided.")
+      errors +=1
+    }
+
+    if (params.read_group == null){
+      log.error("A value for parameter read_group was not provided.")
+      errors +=1
+    }
+
+    if (params.library == null){
+      log.error("A value for parameter library was not provided.")
+      errors +=1
+    }
+
+    if (params.bcl_dir == null) {
+      log.error("A value for parameter library was not provided.")
+      errors +=1
+    }
+    if (!(params.bcl_dir == null)) {
+      bcl_dir_path = file(params.bcl_dir)
+      if (!bcl_dir_path.exists()){
+        log.error("${bcl_dir_path} does not exists.")
+        errors += 1
+      }
+    }
   }
   // the input csv is only needed if starts from 0, otherwise should be ignored
-  if (params.input_params_csv && !(tag_provided== "0")){
-    log.warn("A input_params_csv was provided (${params.input_params_csv}) but ignored (not needed for start_from = ${params.start_from})")
+  if (!(tag_provided== "0")){
+    if (params.study_name){
+     log.warn("A study_name was provided (${params.study_name}) but ignored (not needed for start_from = ${params.start_from})")
+    }
+
+    if (params.lane){
+     log.warn("A lane was provided (${params.lane}) but ignored (not needed for start_from = ${params.start_from})")
+    }
+    if (params.read_group){
+     log.warn("A read_group was provided (${params.read_group}) but ignored (not needed for start_from = ${params.start_from})")
+    }
+    if (params.library){
+     log.warn("A library was provided (${params.library}) but ignored (not needed for start_from = ${params.start_from})")
+    }
+    if (params.bcl_dir){
+     log.warn("A bcl_dir was provided (${params.bcl_dir}) but ignored (not needed for start_from = ${params.start_from})")
+    }
   }
 
-  // a reference fasta is required for starting from 0, 1.2a or S3
-  /*
-  if (tag_provided=="0" || tag_provided=="1.2a" || tag_provided=="S3") {
-       check if reference fasta file exist and if it was set
-      if (params.reference_fasta){
-        reference_fasta = file(params.reference_fasta)
-        if (!reference_fasta.exists()){
-          log.error("The reference_fasta file specified ${params.reference_fasta} does not exist.")
-          errors += 1
-        }
-      }
-      if (params.reference_fasta==''){
-        log.error("A reference fasta must be specified.")
-        errors +=1
-      }
-  }
-  */
   // --------------------------------------------------------------------------
-  /*
-  // redo_reference_fasta required checks
-  if ((tag_provided=="0") || (tag_provided=="1.2a") ||(tag_provided="1.2b") || (tag_provided =="1.3")){
-      // assert a new_reference is provided and exists
-      if (params.redo_reference_fasta==null){
-        log.error("A redo_reference fasta must be specified if start_from = ${tag_provided}.")
-        errors +=1
-      }
-      if (params.redo_reference_fasta){
-          redo_reference_fasta = file(params.redo_reference_fasta)
-          if (!redo_reference_fasta.exists()){
-            log.error("The redo_reference_fasta (${redo_reference_fasta}) file specified does not exist.")
-            errors += 1
-        }
-      }
-  }
-  */
+
   if (params.irods_manifest && !(tag_provided== "1.2b")){
     log.warn("An iRODS manifest was provided (${params.irods_manifest}) but not needed for start_from = ${params.start_from}")
   }
