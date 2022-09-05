@@ -1,5 +1,16 @@
-include { CORE_PIPELINE_REPLICA } from './pipeline-subworkflows/core_pipeline_replica.nf'
-include { EXTRACT_PARAMS } from './pipeline-subworkflows/extract_params.nf'
+#!/usr/bin/env nextflow
+
+// enable dsl2
+nextflow.enable.dsl = 2
+
+include { bcl_to_cram } from './pipeline-subworkflows/bcl-to-cram.nf'
+include { cram_to_bam } from './pipeline-subworkflows/cram-to-bam.nf'
+
+include { validate_parameters; load_steps_to_run } from './pipeline_workflows/inputHandling.nf'
+include { get_taglist_file } from '../modules/manifest2tag.nf'
+include { make_samplesheet_manifest } from '../modules/make_samplesheet_manifest.nf'
+include { validate_samplesheet_manifest } from '../modules/samplesheet_manifest_validation.nf'
+include { miseq_run_validation } from '../modules/miseq_run_validation.nf'
 
 
 workflow IN_COUNTRY {
@@ -35,7 +46,6 @@ workflow IN_COUNTRY {
      manifest_step1_1_Out_ch = bcl_to_cram.out.multiMap { it -> run_id: it[0]
                                                                    mnf: it[2] }
 
-
      // get the relevant sample data from the manifest
      ref_tag = Channel.fromPath("${params.results_dir}/*_manifest.csv").splitCsv(header: ["lims_id", "sims_id", "index", "ref", "barcode_sequence", "well", "plate"], skip: 18).map{ row -> tuple(row.lims_id, row.ref, row.index)}
 
@@ -50,22 +60,13 @@ workflow IN_COUNTRY {
 
      // if start from this step, use the provided in_csv, if not, use previous
      // step output
-     if (tag_provided=="1.2a"){
-       step1_2_In_mnf = params.step1_2_in_csv
-       csv_ch = Channel.fromPath(params.step1_2_in_csv)
-     }
-     else {
-       csv_ch = manifest_step1_1_Out_ch.mnf
-     }
+     csv_ch = manifest_step1_1_Out_ch.mnf
 
      // Stage 1 - Step 2: CRAM to BAM
      cram_to_bam(csv_ch, sample_tag_reference_files_ch)
      step1_2_Out_ch = cram_to_bam.out.bam_ch.multiMap { it -> sample_tag: it[0]
                                                       bam_file: it[1]
-                                                      run_id:it[2]}
-
-     
-
+                                                      run_id:it[2] }
 
 
 }
