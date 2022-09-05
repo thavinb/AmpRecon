@@ -76,6 +76,10 @@ workflow {
         IN_COUNTRY()
   }
 
+  if (params.execution_mode == "irods") {
+	IRODS()
+  }
+
 }
 
 
