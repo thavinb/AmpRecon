@@ -32,11 +32,11 @@ take:
     // tuple (sample_tag, fastq)
 
     // prepare channels to be used on join for input for other processes
-    
+
     bam_to_fastq.out // tuple (sample_id, fastq_file)
           | join(sample_tag_reference_files_ch) //tuple (sample_id, fastq, fasta_file, fasta_idx_files, panel_name)
           | set{align_bam_In_ch}
- 
+
      // do new alignment
     align_bam(align_bam_In_ch)
 

@@ -36,7 +36,7 @@ process read_count_per_region {
 
 process bam_ref_ch_to_csv {
   input:
-    tuple val(bam_name), path(reference_files)
+    tuple val(bam_name), val(reference_files)
   output:
     val("${launchDir}/bam_ref_ch.csv")
 $/
