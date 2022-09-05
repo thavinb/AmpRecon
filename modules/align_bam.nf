@@ -2,17 +2,26 @@ params.bwa='bwa'
 params.bwa_num_threads = 24
 params.bwa_batch_input_bases = 100000000
 
-process ALIGN_BAM {
+process align_bam {
     /*
     * Map reads to reference
     */
     publishDir "${params.results_dir}/${run_id}", overwrite: true
 
     input:
-    tuple val(run_id), path(fastq), path(reference_fasta) path(ref_bwa_index_fls)
+        val(sample_tag)
+        path(fastq)
+        path(reference_fasta) // fasta file
+        path(ref_bwa_index_fls) // index files for the reference
+        val(run_id)
+        //val(tag)
+        //path(input_fastq)
+        //val(reference)        // reference fasta file
+        //path(ref_files)       // list of ref reference index files
 
     output:
-    tuple val(run_id), path("${basename}.sam")
+        val("${sample_tag}"), emit: sample_tag
+        path("${basename}.sam"), emit: sam_file
 
     script:
         bwa=params.bwa

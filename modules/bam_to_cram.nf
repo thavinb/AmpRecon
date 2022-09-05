@@ -1,4 +1,4 @@
-process SAMTOOLS_SPLIT {
+process bam_to_cram {
     /*
     * split BAM by read group into CRAM.
     */
@@ -6,11 +6,10 @@ process SAMTOOLS_SPLIT {
     publishDir "${params.results_dir}/${run_id}", overwrite: true
 
     input:
-        tuple val(run_id), path(adapters_bam_file), path(metrics_bam_file)
+        tuple val(run_id), path(adapters_bam_file)
 
     output:
-        //tuple val(run_id), path("*.cram")
-        tuple val(run_id), path(metrics_bam_file), path("*.cram")
+        tuple val(run_id), path("*.cram")
 
     script:
         """
