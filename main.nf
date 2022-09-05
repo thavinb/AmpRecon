@@ -8,10 +8,6 @@ nextflow.enable.dsl = 2
 
 include { IN_COUNTRY } from './workflows/in_country.nf'
 
-// - process to extract and validate information expected based on input params
-include { validate_parameters } from './workflows/pipeline-subworkflows/inputHandling.nf'
-
-
 // logging info ----------------------------------------------------------------
 // This part of the code is based on the FASTQC PIPELINE (https://github.com/angelovangel/nxf-fastqc/blob/master/main.nf)
 
@@ -76,7 +72,7 @@ workflow {
 
   // -- MAIN-EXECUTION -------------------------------------------------------------
 
-  if (params.mode == "in-country") {
+  if (params.execution_mode == "in-country") {
         IN_COUNTRY()
   }
 
