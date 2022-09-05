@@ -35,7 +35,8 @@ take:
     bam_to_fastq.out // tuple (sample_id, fastq_file)
           | join(sample_tag_reference_files_ch) //tuple (sample_id, fastq, fasta_file, fasta_idx_files)
           | set{align_bam_In_ch}
-    // do new alignment
+ 
+     // do new alignment
     align_bam(align_bam_In_ch)
 
     // convert sam to bam_dir

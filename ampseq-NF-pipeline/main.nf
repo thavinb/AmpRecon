@@ -138,18 +138,17 @@ workflow {
   }
   // -- In Country (1.2) ------------------------------------------------------
   if (steps_to_run_tags.contains("1.2a")) {
-
     // get the relevant sample data from the manifest
     ref_tag =   make_samplesheet_manifest.out.manifest_file
                 | splitCsv(header: ["lims_id", "sims_id", "index", "assay",
                                     "barcode_sequence", "well", "plate"],
                                     skip: 18)
                 | map{ row -> tuple(row.lims_id, row.assay, row.index)}
-
-    // assign each sample tag the appropriate set of reference files -> tuple('lims_id#index_', 'path/to/reference/genome, 'path/to/reference/index/files')
-    ref_tag.combine(reference_ch,  by: 1)
-            | map{it -> tuple(it[1]+"#${it[2]}_", it[3], it[4])}
-            | set{sample_tag_reference_files_ch}
+  
+    // assign each sample tag the appropriate set of reference files 
+    ref_tag.combine(reference_ch,  by: 1) // tuple (pannel_name, lims_id, idx, fasta, fasta_idx)
+            | map{it -> tuple(it[1]+"#${it[2]}_", it[3], it[4], it[0])}
+            | set{sample_tag_reference_files_ch} // tuple('lims_id#index_', 'path/to/reference/genome, 'path/to/reference/index/files', pannel_name)
 
     // if start from this step, use the provided in_csv, if not, use previous
     // step output
