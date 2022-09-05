@@ -20,7 +20,7 @@ take:
     sample_tag
     bam_file
     run_id
-    sample_tag_reference_files_ch // tuple (sample_id, fasta_file, [fasta_indx_files])
+    sample_tag_reference_files_ch // tuple (sample_id, fasta_file, [fasta_indx_files], panel_name)
     
   main:
     // Unmap the bam files (ubam)
@@ -34,7 +34,7 @@ take:
     // prepare channels to be used on join for input for other processes
     
     bam_to_fastq.out // tuple (sample_id, fastq_file)
-          | join(sample_tag_reference_files_ch) //tuple (sample_id, fastq, fasta_file, fasta_idx_files)
+          | join(sample_tag_reference_files_ch) //tuple (sample_id, fastq, fasta_file, fasta_idx_files, panel_name)
           | set{align_bam_In_ch}
  
      // do new alignment
@@ -56,11 +56,12 @@ take:
     // join references to indexed bam channel
     samtools_index.out.files // tuple (sample_tag, input_bam, input_bai)
                 | join(sample_tag_reference_files_ch) // (sample_tag, input_bam, input_bai, fasta_file, fasta_idx_file)
-                | map {it -> tuple(it[1].simpleName, it[3])} // (input_bam_name,fasta_file)
+                | map {it -> tuple(it[1].simpleName, it[5])} // (input_bam_name,panel_name)
                 | set{bam_ref_ch}
 
     // output channel to csv - used for making read count plex files
     bam_ref_ch_to_csv(bam_ref_ch)
+    bam_ref_ch_to_csv.out.last().set{file_ref_csv}
 
     // get read counts
     qc_run_ids_ch = Channel.from("GRC1", "GRC2", "Spec")
@@ -71,7 +72,7 @@ take:
 
     read_count_per_region(
         run_id,
-        "${launchDir}/bam_ref_ch.csv",
+        file_ref_csv,
         bam_dir_ch,
         qc_run_ids_ch,
         qc_run_cnf_files_ch

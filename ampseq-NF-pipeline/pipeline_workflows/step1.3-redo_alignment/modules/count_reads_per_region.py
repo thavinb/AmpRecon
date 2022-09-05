@@ -69,7 +69,7 @@ class QC:
         self._pool = ThreadPool(processes=5)
         self._out_handle = None
         self._output_hdr = (
-            "Rpt,Region,Total_reads,Total_region_reads,Region_reads,Perc of total reads,"
+            "Rpt,Region,Amplicon_name,Total_reads,Total_region_reads,Region_reads,Perc of total reads,"
             "Perc of mapped to region reads,,Total_region_reads MQ>={qual},Region_reads MQ>={qual},"
             "Region_reads 1 MQ>={qual},Region_reads 2 MQ>={qual},Perc Region_reads 1 MQ>={qual},"
             "Perc of mapped to region reads MQ>={qual},,Region_fragments represented MQ>={default_qual},"
@@ -234,7 +234,8 @@ class QC:
             frc = 0.0
             count = collections.defaultdict()
 
-            for region in region_config:
+            for line in region_config:
+                region = line.split(",")[0]
                 m = self._DESIGN_FILE_REGEX.match(region)
 
                 if m:
@@ -325,13 +326,16 @@ class QC:
 
             # Write results to stdout
 
-            for r in region_config:
+            for line in region_config:
+                r = line.split(",")[0]
+                amplicon_name = line.split(",")[1].replace("\n", "")
                 self._out_handle.write(
                     ",".join(
                         str(field)
                         for field in [
                             rpt,
                             r,
+                            amplicon_name,
                             numa,
                             total0,
                             int(count[r].zero),
@@ -474,13 +478,6 @@ def main():
         sys.stderr.write(
             "ERROR: design file {} does not exist or is zero length\n".format(
                 args.design_file
-            )
-        )
-        return error_status
-    if not os.path.exists(args.plex_file) or os.path.getsize(args.plex_file) == 0:
-        sys.stderr.write(
-            "ERROR: plex file {} does not exist or is zero length\n".format(
-                args.plex_file
             )
         )
         return error_status
