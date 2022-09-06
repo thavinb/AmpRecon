@@ -60,7 +60,7 @@ def validate_parameters() {
     }
   }
   // the input csv is only needed if starts from 0, otherwise should be ignored
-  if (!(tag_provided== "0")){
+  if (!(tag_provided== "0") && !(tag_provided=="S3")){
     if (params.study_name){
      log.warn("A study_name was provided (${params.study_name}) but ignored (not needed for start_from = ${params.start_from})")
     }
