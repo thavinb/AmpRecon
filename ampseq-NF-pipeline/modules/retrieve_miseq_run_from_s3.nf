@@ -4,20 +4,21 @@ process retrieve_miseq_run_from_s3 {
     */
 
     input:
-        val(file_id)
+        val(uuid_id)
 
     output:
-          tuple val("${params.run_id}"), val("${output_path}"), val("${params.lane}"), val("${params.study_name}"), val("${params.read_group}"), val("${params.library}"), emit: tuple_ch
+        tuple val("${params.run_id}"), val("${output_path}"), val("${params.lane}"), val("${params.study_name}"), val("${params.read_group}"), val("${params.library}"), emit: tuple_ch
 
     script:
-        output_path = "${params.results_dir}/${file_id}"
+        output_path = "${params.results_dir}/${uuid_id}"
         bucket = params.s3_bucket_input
 
         """
-        cd "${params.results_dir}"
+        mkdir "${params.results_dir}/${uuid_id}"
+        cd "${params.results_dir}/${uuid_id}"
 
-        s3cmd get s3://"${bucket}"/"${file_id}".tar.gz
-        tar -xvzf "${file_id}".tar.gz
+        s3cmd get s3://"${bucket}"/"${uuid_id}"
+        unzip -d ./ "${uuid_id}"
         """
 }
 
