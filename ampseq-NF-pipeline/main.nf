@@ -10,13 +10,15 @@ include { bcl_to_cram } from './pipeline_workflows/step1.1-bcl-to-cram/step1.1-b
 include { cram_to_bam } from './pipeline_workflows/step1.2a-cram-to-bam/step1.2-cram-to-bam.nf'
 include { redo_alignment } from './pipeline_workflows/step1.3-redo_alignment/step1.3-redo_alignment.nf'
 include { pull_from_iRODS } from './pipeline_workflows/step1.2b-pull-from-iRODS/step1.2b-pull-from-iRODS.nf'
+include { PARSE_PANNEL_SETTINGS } from './pipeline_workflows/parse_pannels_settings.nf'
 
 // - process to extract and validate information expected based on input params
-include { validate_parameters; load_input_csv_ch; load_steps_to_run } from './pipeline_workflows/inputHandling.nf'
+include { validate_parameters; load_steps_to_run } from './pipeline_workflows/inputHandling.nf'
 include { get_taglist_file } from './modules/manifest2tag.nf'
 include { make_samplesheet_manifest } from './modules/make_samplesheet_manifest.nf'
 include { validate_samplesheet_manifest } from './modules/samplesheet_manifest_validation.nf'
 include { miseq_run_validation } from './modules/miseq_run_validation.nf'
+include { retrieve_miseq_run_from_s3 } from './modules/retrieve_miseq_run_from_s3.nf'
 
 // logging info ----------------------------------------------------------------
 // This part of the code is based on the FASTQC PIPELINE (https://github.com/angelovangel/nxf-fastqc/blob/master/main.nf)
@@ -33,11 +35,16 @@ log.info """
          AMPSEQ_0.0 (dev : prototype)
          Used parameters:
         -------------------------------------------
-         --input_params_csv           : ${params.input_params_csv}
+         --run_id           : ${params.run_id}
+         --bcl_dir           : ${params.bcl_dir}
+         --lane           : ${params.lane}
+         --study_name           : ${params.study_name}
+         --read_group           : ${params.read_group}
+         --library           : ${params.library}
          --start_from                 : ${params.start_from}
          --results_dir                : ${params.results_dir}
          --irods_manifest             : ${params.irods_manifest}
-         --redo_reference_fasta       : ${params.redo_reference_fasta}
+         --pannels_settings            : ${params.pannels_settings}
          ------------------------------------------
          Runtime data:
         -------------------------------------------
@@ -53,44 +60,25 @@ log.info """
 def printHelp() {
   log.info """
   Usage:
-    nextflow run main.nf --input_params_csv [path/to/my/input.csv]
+    nextflow run main.nf
 
   Description:
     (temporary - honest - description)
     Ampseq amazing brand new pipeline built from the ground up to be awesome.
 
-    A input csv containing my run_id, bcl_dir, study_name, read_group, library,
-    and reference fasta path is necessary to run the ampseq pipeline from step 0
+    A run_id, bcl_dir, lane, study_name, read_group, library, and reference fasta 
+    path are necessary to run the ampseq pipeline from step 0
 
     *for a complete description of input files check [LINK AMPSEQ]
 
   Options:
     Inputs:
-      --input_params_csv (A csv file path)
       --irods_manifest (tab-delimited file containing rows of WG_lane and id_run data for CRAM files on iRODS)
 
     Additional options:
       --help (Prints this help message. Default: false)
       --results_dir (Results directory. Default: $launchDir/output/)
    """.stripIndent()
-}
-
-
-process get_ref_files {
-    /*
-    get the respective pannel files location for a given sample
-    */
-    
-    input:
-        tuple val(primer_panel), val(WG_lane), val(ref_wildcard)
-    
-    output:
-        tuple val(WG_lane), val(primer_panel), path("*.fasta"), path("*.fasta.*")
-    
-    script:
-       """
-        cp -ln ${ref_wildcard} ./
-        """
 }
 
 // Main entry-point workflow
@@ -111,21 +99,47 @@ workflow {
   println(steps_to_run_tags)
   
   // get pannels/reference files channel
+  /*
   reference_ch = Channel.from(
                   [file("${params.reference_dir}/grc1/*.fasta"), "PFA_GRC1_v1.0" , file("${params.reference_dir}/grc1/*.fasta.*")],
                   [file("${params.reference_dir}/grc2/*.fasta"), "PFA_GRC2_v1.0", file("${params.reference_dir}/grc2/*.fasta.*")],
                   [file("${params.reference_dir}/spec/*.fasta"), "PFA_Spec", file("${params.reference_dir}/spec/*.fasta.*")]
                   )
+  */
+  PARSE_PANNEL_SETTINGS()
+  reference_ch = PARSE_PANNEL_SETTINGS.out
 
   // -- In Country-------------------------------------------------------------
-  if (steps_to_run_tags.contains("0")) {
-    // process input_params_csv
-    input_csv_ch = load_input_csv_ch()
+
+  if (steps_to_run_tags.contains("0") | steps_to_run_tags.contains("S3")) {
+
+    if (steps_to_run_tags.contains("S3") & !file("${params.bcl_dir}").exists()) {
+
+      // Retrieve Miseq run / BCL data from S3
+      retrieve_miseq_run_from_s3(params.bcl_id)
+      input_csv_ch = retrieve_miseq_run_from_s3.out.tuple_ch
+
+    }
+    else {
+
+      // create input channel
+      input_csv_ch = Channel.of(tuple(params.run_id,
+                                 params.bcl_dir,
+                                 params.lane,
+                                 params.study_name,
+                                 params.read_group,
+                                 params.library))
+    }
+
     // validate MiSeq run files and directory structure
     miseq_run_validation(input_csv_ch)
-
+    
     // process samplesheets manifest (necessary to get barcodes) and validate it
-    make_samplesheet_manifest(input_csv_ch)//run_id, input_csv_ch.bcl_dir)
+    input_csv_ch
+        | map {it -> tuple (it[0], it[1])} // tuple(run_id, bcl_dir)
+        | set { make_samplesheet_In_ch}
+
+    make_samplesheet_manifest(make_samplesheet_In_ch)
     validate_samplesheet_manifest(make_samplesheet_manifest.out.tuple)
 
     // get taglist
@@ -146,18 +160,17 @@ workflow {
   }
   // -- In Country (1.2) ------------------------------------------------------
   if (steps_to_run_tags.contains("1.2a")) {
-
     // get the relevant sample data from the manifest
     ref_tag =   make_samplesheet_manifest.out.manifest_file
-                | splitCsv(header: ["lims_id", "sims_id", "index", "ref",
+                | splitCsv(header: ["lims_id", "sims_id", "index", "assay",
                                     "barcode_sequence", "well", "plate"],
                                     skip: 18)
-                | map{ row -> tuple(row.lims_id, row.ref, row.index)}
-
-    // assign each sample tag the appropriate set of reference files -> tuple('lims_id#index_', 'path/to/reference/genome, 'path/to/reference/index/files')
-    ref_tag.combine(reference_ch,  by: 1)
-            | map{it -> tuple(it[1]+"#${it[2]}_", it[3], it[4])}
-            | set{sample_tag_reference_files_ch}
+                | map{ row -> tuple(row.lims_id, row.assay, row.index)}
+  
+    // assign each sample tag the appropriate set of reference files 
+    ref_tag.combine(reference_ch,  by: 1) // tuple (pannel_name, lims_id, idx, fasta, fasta_idx)
+            | map{it -> tuple(it[1]+"#${it[2]}_", it[3], it[4], it[0])}
+            | set{sample_tag_reference_files_ch} // tuple('lims_id#index_', 'path/to/reference/genome, 'path/to/reference/index/files', pannel_name)
 
     // if start from this step, use the provided in_csv, if not, use previous
     // step output
@@ -174,8 +187,8 @@ workflow {
     step1_2_Out_ch = cram_to_bam.out.bam_ch.multiMap { it -> sample_tag: it[0]
                                                       bam_file: it[1]
                                                       run_id:it[2]}
-  //step1_2_Out_ch.out.sample_tag.view()
-  }
+ 
+   }
   // --- iRODS Pulling --------------------------------------------------------
    if (tag_provided=="1.2b"){
     // load manifest content
@@ -185,15 +198,15 @@ workflow {
     
     // Assign each sample id the appropriate set of reference files
     irods_ch | combine(reference_ch,  by: 1) // tuple (primer_pannel, id_run, WG_lane, [fasta], [fasta_idx_files])
-             | map { it -> tuple(it[2], it[1], it[3][0],it[4]) }
-             | set{ sample_id_ref_ch } // quero tuple(WG_lane, run_id, fasta_file, fasta_idx)
+             | map { it -> tuple(it[2], it[1], it[3][0], it[4], it[0]) }
+             | set{ sample_id_ref_ch } // tuple (WG_lane, run_id, fasta_file, fasta_idx, primer_pannel)
 
     // remove pannels info from channel (is not used on this subworkflow)
     irods_ch.map{ it -> tuple (it[0], it[2]) }.set{irods_ch_noRef}
     // run step1.2b - pull from iRODS
     pull_from_iRODS(irods_ch_noRef, sample_id_ref_ch)//sample_id_ref_ch)
     sample_tag_reference_files_ch = pull_from_iRODS.out.sample_tag_reference_files_ch
-    //sample_tag_reference_files_ch.first().view()
+
     // prepare channel for step 1.3
     step1_2_Out_ch = pull_from_iRODS.out.bam_files_ch.multiMap {
                                                    it -> sample_tag: it[0]

@@ -10,7 +10,8 @@ include { scramble_sam_to_bam } from './modules/scramble.nf'
 include { samtools_sort } from './modules/samtools.nf'
 include { samtools_index } from './modules/samtools.nf'
 include { bam_ref_ch_to_csv } from './modules/read_count_per_region.nf'
-include { read_count_per_region } from './modules/read_count_per_region.nf'
+include { read_count_per_region } from './modules/read_count_per_region.nf'    
+include { upload_pipeline_output_to_s3 } from './modules/upload_pipeline_output_to_s3.nf'
 
 workflow redo_alignment {
   //remove alignment from bam - this process proceeds directly after the end of 1.2x
@@ -19,7 +20,7 @@ take:
     sample_tag
     bam_file
     run_id
-    sample_tag_reference_files_ch // tuple (sample_id, fasta_file, [fasta_indx_files])
+    sample_tag_reference_files_ch // tuple (sample_id, fasta_file, [fasta_indx_files], panel_name)
     
   main:
     // Unmap the bam files (ubam)
@@ -31,11 +32,12 @@ take:
     // tuple (sample_tag, fastq)
 
     // prepare channels to be used on join for input for other processes
-    
+
     bam_to_fastq.out // tuple (sample_id, fastq_file)
-          | join(sample_tag_reference_files_ch) //tuple (sample_id, fastq, fasta_file, fasta_idx_files)
+          | join(sample_tag_reference_files_ch) //tuple (sample_id, fastq, fasta_file, fasta_idx_files, panel_name)
           | set{align_bam_In_ch}
-    // do new alignment
+
+     // do new alignment
     align_bam(align_bam_In_ch)
 
     // convert sam to bam_dir
@@ -54,11 +56,12 @@ take:
     // join references to indexed bam channel
     samtools_index.out.files // tuple (sample_tag, input_bam, input_bai)
                 | join(sample_tag_reference_files_ch) // (sample_tag, input_bam, input_bai, fasta_file, fasta_idx_file)
-                | map {it -> tuple(it[1].simpleName, it[3])} // (input_bam_name,fasta_file)
+                | map {it -> tuple(it[1].simpleName, it[5])} // (input_bam_name,panel_name)
                 | set{bam_ref_ch}
 
     // output channel to csv - used for making read count plex files
     bam_ref_ch_to_csv(bam_ref_ch)
+    bam_ref_ch_to_csv.out.last().set{file_ref_csv}
 
     // get read counts
     qc_run_ids_ch = Channel.from("GRC1", "GRC2", "Spec")
@@ -69,12 +72,16 @@ take:
 
     read_count_per_region(
         run_id,
-        "${launchDir}/bam_ref_ch.csv",
+        file_ref_csv,
         bam_dir_ch,
         qc_run_ids_ch,
         qc_run_cnf_files_ch
     )
-  
+
+    // upload read counts and BAM files to S3 bucket
+    read_count_per_region.out.qc_csv_file.concat(samtools_index.out.bam_file).set{output_to_s3}
+    upload_pipeline_output_to_s3(output_to_s3)
+
   //emit:
 
 }

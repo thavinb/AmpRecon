@@ -18,7 +18,7 @@ process bam_reset {
         path("${base_name}.reset.bam"), emit: reset_bam
 
     script:
-        base_name=collated_bam.baseName
+        base_name=collated_bam.simpleName
         """
         bamreset \
             resetaux=${params.bamreset_resetaux} \

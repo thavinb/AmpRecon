@@ -31,7 +31,7 @@ process writeOutputManifest {
   //publishDir "${params.results_dir}/${run_id}", mode: 'copy', overwrite: true
 
   input:
-    tuple val(sample_tag), path(bam_file)
+    tuple val(sample_tag), path(bam_file), val(run_id)
     val(run_id)
     // TODO create a python box container
 
@@ -69,7 +69,7 @@ workflow cram_to_bam {
     take:
         // manifest from step 1.1
         intermediate_csv
-        sample_tag_reference_files_ch // tuple (sample_id, ref_fasta, fasta_index)
+        sample_tag_reference_files_ch // tuple (sample_id, ref_fasta, fasta_index, pannel_name)
 
     main:
         // Process manifest
@@ -93,11 +93,11 @@ workflow cram_to_bam {
         bam_to_fastq(clip_adapters.out.tuple)
         
         bam_to_fastq.out //tuple (sample_tag, fastq_files)
-              | join(sample_tag_reference_files_ch) //tuple (sample_tag, fastq_files, ref_fasta, fasta_index) 
+              | join(sample_tag_reference_files_ch) //tuple (sample_tag, fastq_files, ref_fasta, fasta_index, pannel_name) 
               | combine(intCSV_ch.run_id)
               | unique()
-              | set{align_bam_In_ch} // tuple (sample_tag, fastq, fasta, fasta_idx,// run_id)
-        
+              | set{align_bam_In_ch} // tuple (sample_tag, fastq, fasta, fasta_idx, pannel_name, run_id)
+
         align_bam(align_bam_In_ch)
 
         // Convert SAM to BAM
@@ -111,6 +111,7 @@ workflow cram_to_bam {
         reheader_in_ch = scramble_sam_to_bam.out
                             | join(clip_adapters.out.tuple)
                             | join(sample_tag_reference_files_ch)
+                            | map { it -> tuple(it[0], it[1], it[2],it[3],it[4])} // remove pannel_name from channel
 
         mapping_reheader(reheader_in_ch)
 

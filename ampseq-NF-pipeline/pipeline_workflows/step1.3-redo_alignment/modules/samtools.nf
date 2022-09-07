@@ -31,6 +31,7 @@ process samtools_index {
     output:
         val("${output_directory}"), emit: bam_dir
         tuple val(sample_tag), path(input_bam), path("${bam_name}.bai"), emit: files
+        path(input_bam), emit: bam_file
 
     script:
         output_directory = "${params.bam_dir}"

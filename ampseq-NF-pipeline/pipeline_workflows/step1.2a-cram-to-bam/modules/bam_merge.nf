@@ -19,7 +19,7 @@ process bam_merge {
         path("${merged_bam}"), emit: merged_bam
 
     script:
-        base_name=reheadered_bam.baseName
+        base_name=reheadered_bam.simpleName
         merged_bam="${base_name}.merged.bam"
 
         """

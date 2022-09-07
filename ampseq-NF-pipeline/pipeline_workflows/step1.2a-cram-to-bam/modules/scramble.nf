@@ -42,7 +42,7 @@ process scramble_cram_to_bam {
         tuple val(tag), path("${bam_file}"), val(run_id)
 
     script:
-        base_name=cram_file.getBaseName()
+        base_name=cram_file.getSimpleName()
         bam_file="${base_name}.bam"
 
         scramble=params.scramble

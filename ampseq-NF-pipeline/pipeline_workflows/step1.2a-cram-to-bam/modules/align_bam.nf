@@ -6,18 +6,18 @@ process align_bam {
     /*
     * Map reads to reference
     */
-    publishDir "${params.results_dir}", overwrite: true
+    //publishDir "${params.results_dir}", overwrite: true
 
     input:
-        tuple val(sample_tag), path(fastq), path(reference_fasta), path(ref_bwa_index_fls), val(run_id)
+        tuple val(sample_tag), path(fastq), path(reference_fasta), path(ref_bwa_index_fls), val(pannel_name), val(run_id)
 
     output:
         val("${sample_tag}"), emit: sample_tag
-        path("${basename}.sam"), emit: sam_file
+        path("${basename}_${pannel_name}.sam"), emit: sam_file
 
     script:
         bwa=params.bwa
-        basename=fastq.baseName
+        basename=fastq.simpleName
         """
         bwa mem \
             -p \
@@ -26,7 +26,7 @@ process align_bam {
             -t ${params.bwa_num_threads} \
             "${reference_fasta}" \
             "${fastq}" \
-            > "${basename}.sam"
+            > "${basename}_${pannel_name}.sam"
         """
 }
 // --- | WARNING | ------------------------------------------------------------
