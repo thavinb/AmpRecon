@@ -24,7 +24,7 @@ process read_count_per_region {
         plex_file = "${run_id}_${pannel_name}.plex"
 
         """
-        grep ${pannel_name} "${manifest_file}" | awk 'BEGIN {FS=","; OFS=","} {print \$1}' > "${plex_file}"
+        grep ${pannel_name} "${bam_file_list}" | awk 'BEGIN {FS=","; OFS=","} {print \$1}' > "${plex_file}"
         python3 ${projectDir}/pipeline_workflows/step1.3-redo_alignment/modules/count_reads_per_region.py \
             --design_file "${annotation_file}" \
             --plex_file "${plex_file}" \

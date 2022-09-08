@@ -47,20 +47,13 @@ take:
     samtools_sort(scramble_sam_to_bam.out)
     samtools_index(samtools_sort.out)
 
-    // PREPARATION FOR READ COUNTS
+    // DO READCOUNTS 
 
     // make CSV file of bam file names with associated amplicon panel
     bam_file_names = samtools_index.out.map{it -> it[1].simpleName}.collect() // amplicon panel now part of BAM name
     files_and_panels_to_csv(bam_file_names)
+    bams_and_indices = samtools_index.out.map{it -> tuple(it[1], it[2])}.collect()
 
-    // get read counts
-    //qc_run_ids_ch = Channel.from("GRC1", "GRC2", "Spec")
-    //qc_run_cnf_files_ch = Channel.from(
-    //                      file(params.grc1_qc_file),
-    //                      file(params.grc2_qc_file),
-    //                      file(params.spec_qc_file))
-    pannel_anotations_files.first().view()
-    
     read_count_per_region(
         run_id,
         files_and_panels_to_csv.out,
