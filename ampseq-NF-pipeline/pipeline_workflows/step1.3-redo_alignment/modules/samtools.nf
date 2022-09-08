@@ -12,7 +12,7 @@ process samtools_sort {
         tuple val(sample_tag), path("${bam_name}")
 
     script:
-        base_name = input_bam.simpleName
+        base_name = input_bam.baseName
         bam_name="${base_name}.bam"
 
         """
@@ -29,7 +29,7 @@ process samtools_index {
         tuple val(sample_tag), path(input_bam), path("${bam_name}.bai")
 
     script:
-        base_name = input_bam.simpleName
+        base_name = input_bam.baseName
         bam_name="${base_name}.bam"
 
         """

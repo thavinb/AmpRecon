@@ -50,7 +50,7 @@ take:
     // DO READCOUNTS 
 
     // make CSV file of bam file names with associated amplicon panel
-    bam_file_names = samtools_index.out.map{it -> it[1].simpleName}.collect() // amplicon panel now part of BAM name
+    bam_file_names = samtools_index.out.map{it -> it[1].baseName}.collect() // amplicon panel now part of BAM name
     files_and_panels_to_csv(bam_file_names)
     bams_and_indices = samtools_index.out.map{it -> tuple(it[1], it[2])}.collect()
 
