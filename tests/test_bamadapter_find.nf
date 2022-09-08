@@ -1,10 +1,10 @@
 #!/usr/bin/env nextflow
 
-include { download_bambi_decode_output_from_s3 } from '../ampseq-NF-pipeline/modules/download_test_data.nf'
-include { bam_find_adapter } from '../ampseq-NF-pipeline/modules/bam_find_adapter.nf'
-include { download_bamadapterfind_output_from_s3 } from '../ampseq-NF-pipeline/modules/download_test_data.nf'
-include { download_i2b_output_from_s3 } from '../ampseq-NF-pipeline/modules/download_test_data.nf'
-include { compare_bam_subset } from '../ampseq-NF-pipeline/modules/test_tools.nf'
+include { download_bambi_decode_output_from_s3 } from '../modules/download_test_data.nf'
+include { bam_find_adapter } from '../modules/bam_find_adapter.nf'
+include { download_bamadapterfind_output_from_s3 } from '../modules/download_test_data.nf'
+include { download_i2b_output_from_s3 } from '../modules/download_test_data.nf'
+include { check_md5sum } from '../modules/test_tools.nf'
 
 workflow {
 
@@ -16,9 +16,8 @@ workflow {
 	under_test = bam_find_adapter(test_input_ch)
 	test_bam = under_test.map { it -> it[1] }	
 
-	reference_bam = download_bamadapterfind_output_from_s3("21045")
 
-	compare_bam_subset(test_bam, reference_bam) 	
+	check_md5sum(test_bam, "5153ba386b93425fc1066ef7c66e9b6f") 	
 	 	
 
 

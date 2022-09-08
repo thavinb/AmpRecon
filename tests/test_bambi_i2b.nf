@@ -1,10 +1,10 @@
 #!/usr/bin/env nextflow
 
-include { subset_bam } from '../ampseq-NF-pipeline/modules/test_tools.nf'
-include { compare_bam_subset } from '../ampseq-NF-pipeline/modules/test_tools.nf'
-include { basecalls_conversion } from '../ampseq-NF-pipeline/modules/basecalls_conversion.nf'
-include { download_i2b_output_from_s3 } from '../ampseq-NF-pipeline/modules/download_test_data.nf'
-include { download_bcl_from_s3 } from '../ampseq-NF-pipeline/modules/download_test_data.nf'
+include { subset_bam } from '../modules/test_tools.nf'
+include { compare_bam_subset } from '../modules/test_tools.nf'
+include { basecalls_conversion } from '../modules/basecalls_conversion.nf'
+include { download_i2b_output_from_s3 } from '../modules/download_test_data.nf'
+include { download_bcl_from_s3 } from '../modules/download_test_data.nf'
 
 nextflow.enable.dsl = 2
 

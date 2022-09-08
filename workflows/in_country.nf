@@ -6,7 +6,7 @@ nextflow.enable.dsl = 2
 include { bcl_to_cram } from './pipeline-subworkflows/bcl-to-cram.nf'
 include { cram_to_bam } from './pipeline-subworkflows/cram-to-bam.nf'
 
-include { validate_parameters; load_steps_to_run } from './pipeline_workflows/inputHandling.nf'
+include { validate_parameters; load_steps_to_run } from './pipeline-subworkflows/inputHandling.nf'
 include { get_taglist_file } from '../modules/manifest2tag.nf'
 include { make_samplesheet_manifest } from '../modules/make_samplesheet_manifest.nf'
 include { validate_samplesheet_manifest } from '../modules/samplesheet_manifest_validation.nf'
