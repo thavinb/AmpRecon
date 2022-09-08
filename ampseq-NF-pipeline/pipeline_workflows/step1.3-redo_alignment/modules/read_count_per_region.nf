@@ -11,23 +11,22 @@ process read_count_per_region {
         val(run_id)
         path(manifest_file)
         path(bam_directory)
-        val(qc_run_id)
-        path(qc_cnf_file)
+        tuple val(pannel_name), file(annotation_file)
+        //val(qc_run_id)
+        //path(qc_cnf_file)
 
     output:
         path("${output_file}"), emit: qc_csv_file
         path("${plex_file}"), emit: qc_plex_file
 
     script:
-        output_file = "${run_id}_${qc_run_id}_reads_per_region.csv"
-        plex_file = "${run_id}_${qc_run_id}.plex"
+        output_file = "${run_id}_${pannel_name}_reads_per_region.csv"
+        plex_file = "${run_id}_${pannel_name}.plex"
 
         """
-        set -eo pipefail
-
-        grep ${qc_run_id} "${manifest_file}" | awk 'BEGIN {FS=","; OFS=","} {print \$1}' > "${plex_file}"
+        grep ${pannel_name} "${manifest_file}" | awk 'BEGIN {FS=","; OFS=","} {print \$1}' > "${plex_file}"
         python3 ${projectDir}/pipeline_workflows/step1.3-redo_alignment/modules/count_reads_per_region.py \
-            --design_file "${qc_cnf_file}" \
+            --design_file "${annotation_file}" \
             --plex_file "${plex_file}" \
             --input_dir "${bam_directory}" \
             --output "${output_file}"

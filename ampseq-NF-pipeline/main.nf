@@ -107,7 +107,8 @@ workflow {
                   )
   */
   PARSE_PANNEL_SETTINGS()
-  reference_ch = PARSE_PANNEL_SETTINGS.out
+  reference_ch = PARSE_PANNEL_SETTINGS.out.reference_ch
+  pannel_anotations_files = PARSE_PANNEL_SETTINGS.out.pannel_anotations_files
 
   // -- In Country-------------------------------------------------------------
 
@@ -236,6 +237,7 @@ workflow {
                         step1_3_In_ch.bam_file,
                         step1_3_In_ch.run_id,
                         sample_tag_reference_files_ch,
+                        pannel_anotations_files
                         )
   }
   

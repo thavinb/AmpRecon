@@ -21,7 +21,7 @@ take:
     bam_file
     run_id
     sample_tag_reference_files_ch // tuple (sample_id, fasta_file, [fasta_indx_files], panel_name)
-    
+    pannel_anotations_files // tuple (pannel_name, anotation_file)
   main:
     // Unmap the bam files (ubam)
     bam_reset(sample_tag, bam_file)
@@ -64,24 +64,28 @@ take:
     bam_ref_ch_to_csv.out.last().set{file_ref_csv}
 
     // get read counts
-    qc_run_ids_ch = Channel.from("GRC1", "GRC2", "Spec")
-    qc_run_cnf_files_ch = Channel.from(
-                          file(params.grc1_qc_file),
-                          file(params.grc2_qc_file),
-                          file(params.spec_qc_file))
-
+    //qc_run_ids_ch = Channel.from("GRC1", "GRC2", "Spec")
+    //qc_run_cnf_files_ch = Channel.from(
+    //                      file(params.grc1_qc_file),
+    //                      file(params.grc2_qc_file),
+    //                      file(params.spec_qc_file))
+    pannel_anotations_files.first().view()
+    
     read_count_per_region(
         run_id,
         file_ref_csv,
         bam_dir_ch,
-        qc_run_ids_ch,
-        qc_run_cnf_files_ch
+        pannel_anotations_files,
     )
 
     // upload read counts and BAM files to S3 bucket
-    read_count_per_region.out.qc_csv_file.concat(samtools_index.out.bam_file).set{output_to_s3}
-    upload_pipeline_output_to_s3(output_to_s3)
-
+    if (!(params.s3_bucket_output==null)) {
+      read_count_per_region.out.qc_csv_file
+          | concat(samtools_index.out.bam_file)
+          | set{output_to_s3}
+      
+      upload_pipeline_output_to_s3(output_to_s3)
+    }
   //emit:
 
 }
