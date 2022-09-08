@@ -9,7 +9,7 @@ include { align_bam } from './modules/align_bam.nf'
 include { scramble_sam_to_bam } from './modules/scramble.nf'
 include { samtools_sort } from './modules/samtools.nf'
 include { samtools_index } from './modules/samtools.nf'
-include { bam_ref_ch_to_csv } from './modules/read_count_per_region.nf'
+include { files_and_panels_to_csv } from './modules/read_count_per_region.nf'
 include { read_count_per_region } from './modules/read_count_per_region.nf'    
 include { upload_pipeline_output_to_s3 } from './modules/upload_pipeline_output_to_s3.nf'
 
@@ -40,30 +40,21 @@ take:
      // do new alignment
     align_bam(align_bam_In_ch)
 
-    // convert sam to bam_dir
+    // convert sam to bam
     scramble_sam_to_bam(align_bam.out.sample_tag, align_bam.out.sam_file)
     
-    // PREPARATION FOR READ COUNTS 
     // sort and index bam
     samtools_sort(scramble_sam_to_bam.out)
-    samtools_index(samtools_sort.out.bam)
-    
-    // GAMBIARRA ALERT --------------------------------------------
-    // Needed to ensure correct execution order
-    samtools_index.out.bam_dir.unique().collect().set{bam_dir_ch} 
-    // ------------------------------------------------------------
-     
-    // join references to indexed bam channel
-    samtools_index.out.files // tuple (sample_tag, input_bam, input_bai)
-                | join(sample_tag_reference_files_ch) // (sample_tag, input_bam, input_bai, fasta_file, fasta_idx_file)
-                | map {it -> tuple(it[1].simpleName, it[5])} // (input_bam_name,panel_name)
-                | set{bam_ref_ch}
+    samtools_index(samtools_sort.out)
 
-    // output channel to csv - used for making read count plex files
-    bam_ref_ch_to_csv(bam_ref_ch)
-    bam_ref_ch_to_csv.out.last().set{file_ref_csv}
+    // PREPARATION FOR READ COUNTS
+
+    // make CSV file of bam file names with associated amplicon panel
+    bam_file_names = samtools_index.out.map{it -> it[1].simpleName}.collect() // amplicon panel now part of BAM name
+    files_and_panels_to_csv(bam_file_names)
 
     // get read counts
+    bams_and_indices = samtools_index.out.map{it -> tuple(it[1], it[2])}.collect()
     qc_run_ids_ch = Channel.from("GRC1", "GRC2", "Spec")
     qc_run_cnf_files_ch = Channel.from(
                           file(params.grc1_qc_file),
@@ -72,14 +63,16 @@ take:
 
     read_count_per_region(
         run_id,
-        file_ref_csv,
-        bam_dir_ch,
+        files_and_panels_to_csv.out,
+        bams_and_indices,
         qc_run_ids_ch,
         qc_run_cnf_files_ch
     )
 
     // upload read counts and BAM files to S3 bucket
-    read_count_per_region.out.qc_csv_file.concat(samtools_index.out.bam_file).set{output_to_s3}
+    output_bams_ch = samtools_index.out.map{it -> it[1]}
+
+    read_count_per_region.out.qc_csv_file.concat(output_bams_ch).set{output_to_s3}
     upload_pipeline_output_to_s3(output_to_s3)
 
   //emit:

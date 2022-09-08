@@ -9,8 +9,8 @@ process read_count_per_region {
 
     input:
         val(run_id)
-        path(manifest_file)
-        path(bam_directory)
+        path(bam_file_list)
+        path(bam_files_and_indices)
         val(qc_run_id)
         path(qc_cnf_file)
 
@@ -23,43 +23,34 @@ process read_count_per_region {
         plex_file = "${run_id}_${qc_run_id}.plex"
 
         """
-        set -eo pipefail
 
-        grep ${qc_run_id} "${manifest_file}" | awk 'BEGIN {FS=","; OFS=","} {print \$1}' > "${plex_file}"
+        grep ${qc_run_id} "${bam_file_list}" | awk 'BEGIN {FS=","; OFS=","} {print \$1}' > "${plex_file}"
         python3 ${projectDir}/pipeline_workflows/step1.3-redo_alignment/modules/count_reads_per_region.py \
             --design_file "${qc_cnf_file}" \
             --plex_file "${plex_file}" \
-            --input_dir "${bam_directory}" \
+            --input_dir "." \
             --output "${output_file}"
         """
 }
 
-process bam_ref_ch_to_csv {
+process files_and_panels_to_csv {
   input:
-    tuple val(bam_name), val(reference_files)
+    val(file_names_list)
   output:
-    val("${launchDir}/bam_ref_ch.csv")
+    path("file_names_panel_list.csv")
 $/
 #!/usr/bin/python3
 from pathlib import Path
 
-# setup inputs
-bam_name = "${bam_name}"
-reference_files = "${reference_files}"
-publishDir = f"${launchDir}/"
+path_to_mnf = "file_names_panel_list.csv"
+names_list = list("${file_names_list}".strip("[]").replace(" ", "").split(","))
 
-# if manifest already exists, just append new lines
-path_to_mnf = f"{publishDir}/bam_ref_ch.csv"
-if Path(path_to_mnf).is_file():
-    out_mnf = open(f"{path_to_mnf}", "a")
+out_mnf = open(f"{path_to_mnf}", "w")
+out_mnf.write("file_name\n")
 
-# if manifest does not exist, create file and write header
-else:
-    out_mnf = open(f"{path_to_mnf}", "w")
-    out_mnf.write("sample_tag,reference_fasta\n")
+for file_name in names_list:
 
-# write manifest line for the bam file
-out_mnf.write(f"{bam_name},{reference_files}\n")
+    out_mnf.write(f"{file_name}\n")
 out_mnf.close()
 /$
 }
