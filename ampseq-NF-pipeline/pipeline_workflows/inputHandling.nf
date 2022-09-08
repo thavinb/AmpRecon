@@ -78,7 +78,34 @@ def validate_parameters() {
      log.warn("A bcl_dir was provided (${params.bcl_dir}) but ignored (not needed for start_from = ${params.start_from})")
     }
   }
-
+  // --- S3 specific params checks ----
+  if (tag_provided == "S3"){
+    // if a bcl dir is provided, warn that s3 retriving will be skipped
+    if (!(params.bcl_dir == null) && (!(params.s3_bucket_input==null))) {
+      log.warn("A bcl dir was provided, ignoring retrieving from s3_bucket_input (${params.s3_bucket_input})")
+      bcl_dir_path = file(params.bcl_dir)
+      if (!bcl_dir_path.exists()){
+        log.error("${bcl_dir_path} does not exists.")
+        errors += 1
+      }
+    }
+    
+    // require an s3 bucket input
+    if (params.s3_bucket_input == null){
+      log.error("S3 bucket input was not provided and is required if start_from = ${tag_provided}")
+      errors +=1
+    }
+    
+    // require an s3 bucket output
+    if (params.s3_bucket_output == null){
+      log.error("S3 bucket input was not provided and is required if start_from = ${tag_provided}")
+      errors +=1
+    }
+    // require a bcl_id
+    if (params.bcl_id==null){
+      log.error("A bcl id must was not provieded and is required if start_from = ${tag_provided}")
+    }
+  }
   // --------------------------------------------------------------------------
 
   if (params.irods_manifest && !(tag_provided== "1.2b")){
