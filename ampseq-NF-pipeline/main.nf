@@ -99,15 +99,9 @@ workflow {
   println(steps_to_run_tags)
   
   // get pannels/reference files channel
-  /*
-  reference_ch = Channel.from(
-                  [file("${params.reference_dir}/grc1/*.fasta"), "PFA_GRC1_v1.0" , file("${params.reference_dir}/grc1/*.fasta.*")],
-                  [file("${params.reference_dir}/grc2/*.fasta"), "PFA_GRC2_v1.0", file("${params.reference_dir}/grc2/*.fasta.*")],
-                  [file("${params.reference_dir}/spec/*.fasta"), "PFA_Spec", file("${params.reference_dir}/spec/*.fasta.*")]
-                  )
-  */
   PARSE_PANNEL_SETTINGS()
-  reference_ch = PARSE_PANNEL_SETTINGS.out
+  reference_ch = PARSE_PANNEL_SETTINGS.out.reference_ch
+  pannel_anotations_files = PARSE_PANNEL_SETTINGS.out.pannel_anotations_files
 
   // -- In Country-------------------------------------------------------------
 
@@ -236,6 +230,7 @@ workflow {
                         step1_3_In_ch.bam_file,
                         step1_3_In_ch.run_id,
                         sample_tag_reference_files_ch,
+                        pannel_anotations_files
                         )
   }
   
