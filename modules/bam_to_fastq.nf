@@ -5,16 +5,19 @@ process bam_to_fastq {
     //publishDir "${params.results_dir}/${run_id}", overwrite: true
 
     input:
-        tuple val(sample_tag), path(clipped_bam)
+        //val(run_id) //needed to know where to publish the files
+        val(sample_tag)
+        path(bam_file)
+        //tuple val(sample_tag), path(clipped_bam)
 
     output:
         tuple val(sample_tag), path("${base_name}.fastq")
 
     script:
-        base_name=clipped_bam.baseName
+        base_name=bam_file.baseName
         """
         bamtofastq \
-            < "${clipped_bam}" \
+            < "${bam_file}" \
             > "${base_name}.fastq"
         """
 }
