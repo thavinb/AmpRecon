@@ -2,7 +2,7 @@ process rename_cram_fls {
     /*
     * resets a BAM file to a pre-aligned state
     */
-    publishDir "${params.results_dir}", overwrite: true
+    publishDir "${params.results_dir}/${params.run_id}", overwrite: true
 
     input:
         //path(manifest_csv)
