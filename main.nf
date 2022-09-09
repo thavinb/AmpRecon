@@ -25,8 +25,19 @@ log.info """
          AMPSEQ_0.0 (dev : prototype)
          Used parameters:
         -------------------------------------------
-         --input_params_csv           : ${params.input_params_csv}
-         ------------------------------------------
+         --execution_mode    : ${params.execution_mode}
+         --run_id            : ${params.run_id}
+         --bcl_dir           : ${params.bcl_dir}
+         --lane              : ${params.lane}
+         --study_name        : ${params.study_name}
+         --read_group        : ${params.read_group}
+         --library           : ${params.library}
+         --start_from        : ${params.start_from}
+         --results_dir       : ${params.results_dir}
+         --irods_manifest    : ${params.irods_manifest}
+         --pannels_settings  : ${params.pannels_settings}
+
+        ------------------------------------------
          Runtime data:
         -------------------------------------------
          Running with profile:   ${ANSI_GREEN}${workflow.profile}${ANSI_RESET}
@@ -72,9 +83,14 @@ workflow {
       exit 0
   }
 
+  if (params.execution_mode==null){
+    log.error("No execution mode was provided")
+    exit 1
+  }
+
   // -- MAIN-EXECUTION -------------------------------------------------------------
   // prepare pannel resource channels 
-  PARSE_PANNEL_SETTINGS(params.pannel_settings, params.reference_dir)
+  PARSE_PANNEL_SETTINGS(params.pannels_settings, params.reference_dir)
 
   reference_ch = PARSE_PANNEL_SETTINGS.out.reference_ch
   pannel_anotations_files = PARSE_PANNEL_SETTINGS.out.pannel_anotations_files
@@ -84,9 +100,16 @@ workflow {
   }
 
   if (params.execution_mode == "irods") {
+    // process IRODS entry point
     IRODS(params.irods_manifest, reference_ch)
+    // setup channels for downstream processing
     bam_files_ch = IRODS.out.bam_files_ch
     sample_tag_reference_files_ch = IRODS.out.sample_tag_reference_files_ch
+    
+    irods_Out_ch = bam_files_ch.multiMap {it -> sample_tag: it[0]
+                                                bam_file: it[1]
+                                                run_id: it[2]
+                                        }
   }
 
 }

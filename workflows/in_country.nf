@@ -13,7 +13,7 @@ include { validate_parameters; load_steps_to_run } from './pipeline-subworkflows
 include { get_taglist_file } from '../modules/manifest2tag.nf'
 include { make_samplesheet_manifest } from '../modules/make_samplesheet_manifest.nf'
 include { validate_samplesheet_manifest } from '../modules/samplesheet_manifest_validation.nf'
-include { PARSE_PANNEL_SETTINGS } from './pipeline-subworkflows/parse_pannels_settings.nf'
+include { PARSE_PANNEL_SETTINGS } from './parse_pannels_settings.nf'
 
 
 workflow IN_COUNTRY {

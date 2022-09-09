@@ -4,7 +4,7 @@
 nextflow.enable.dsl = 2
 
 // import subworkflows
-include { pull_from_iRODS } from './pipeline-subworkflows/pull_from_irods.nf'
+include { PULL_FROM_IRODS } from './pipeline-subworkflows/pull_from_irods.nf'
 
 
 workflow IRODS {
@@ -30,15 +30,11 @@ workflow IRODS {
         PULL_FROM_IRODS(irods_ch_noRef, sample_id_ref_ch)//sample_id_ref_ch)
 
         // prepare channel for step 1.3
-        sample_tag_reference_files_ch = pull_from_iRODS.out.sample_tag_reference_files_ch
-        irods_Out_ch = pull_from_iRODS.out.bam_files_ch.multiMap {
-                                                   it -> sample_tag: it[0]
-                                                         bam_file: it[1]
-                                                         run_id: it[2]
-                                                   }
-    
+        sample_tag_reference_files_ch = PULL_FROM_IRODS.out.sample_tag_reference_files_ch
+
+        bam_files_ch = PULL_FROM_IRODS.out.bam_files_ch
     emit:
-        irods_Out_ch
+        bam_files_ch //irods_Out_ch
         sample_tag_reference_files_ch
 }
 

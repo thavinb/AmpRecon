@@ -3,9 +3,9 @@
 nextflow.enable.dsl = 2
 
 // import irods processes
-include { irods_manifest_parser } from './modules/irods_manifest_parser.nf'
-include { irods_retrieve } from './modules/irods_retrieve.nf'
-include { scramble_cram_to_bam } from './modules/scramble.nf'
+include { irods_manifest_parser } from '../../modules/irods_manifest_parser.nf'
+include { irods_retrieve } from '../../modules/irods_retrieve.nf'
+include { scramble_cram_to_bam } from '../../modules/scramble.nf'
 
 process writeOutputManifest {
 

@@ -54,7 +54,7 @@ def validatePannelSettings(row){
 
 workflow PARSE_PANNEL_SETTINGS {
     take:
-        pannel_settings
+        pannels_settings
         reference_dir // temporary
     main:
         // build reference channel from "aligns_to" column
