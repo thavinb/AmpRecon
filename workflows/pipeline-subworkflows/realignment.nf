@@ -12,7 +12,7 @@ include { samtools_index } from './modules/samtools.nf'
 include { bam_ref_ch_to_csv } from './modules/read_count_per_region.nf'
 include { read_count_per_region } from './modules/read_count_per_region.nf'    
 
-workflow redo_alignment {
+workflow realignment {
   //remove alignment from bam - this process proceeds directly after the end of 1.2x
 
 take:
