@@ -1,23 +1,4 @@
-/*
-    | PARSE_PANNEL_SETTINGS |-----------------------------------------
-    
-    This workflow handles the pannel and resource bundle files used on 
-    different steps of the pipeline. 
-
-    Here, channels containing the pannels and its respective resource
-    bundle files are obtained. 
-
-    if a custom pannels settings is provided (as .csv) are 
-    validated and parsed as channels to be emmited.
-
-    if no custom pannels, channels will be created based on resource
-    bundle available at the repo.
-
-    ------------------------------------------------------------------
-*/
-
-// TODO: test if variation on "simple names" before the ."ext" breaks something on the pipeline
-//       my guess is that there is some naming assumptions on some of the processes 
+//params.pannels_settings = "/Users/ad45/Projects/git_stuff/ampseq-pipeline/ampseq-NF-pipeline/sandbox/pannels_settings.csv"
 
 def validatePannelSettings(row){
     
@@ -38,9 +19,11 @@ def validatePannelSettings(row){
 
     // TODO: check if all expected files are present on the resource bundle provided
     
+    // if any errors, kill the pipeline run
+    
     // count errors and kill nextflow if any had been found
     if (errors > 0) {
-        log.error(String.format("%d errors detected at pannel settings csv", errors))
+        log.error(String.format("%d errors detected", errors))
         exit 1
     }
 }
@@ -76,4 +59,3 @@ workflow PARSE_PANNEL_SETTINGS {
     emit:
         reference_ch
 }
-

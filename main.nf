@@ -6,6 +6,8 @@ nextflow.enable.dsl = 2
 // --- import modules ---------------------------------------------------------
 // - workflows
 
+include { PARSE_PANNEL_SETTINGS } from './workflows/parse_pannels_settings.nf'
+include { IRODS } from './workflows/irods.nf'
 include { IN_COUNTRY } from './workflows/in_country.nf'
 
 // logging info ----------------------------------------------------------------
@@ -71,13 +73,20 @@ workflow {
   }
 
   // -- MAIN-EXECUTION -------------------------------------------------------------
+  // prepare pannel resource channels 
+  PARSE_PANNEL_SETTINGS(params.pannel_settings, params.reference_dir)
+
+  reference_ch = PARSE_PANNEL_SETTINGS.out.reference_ch
+  pannel_anotations_files = PARSE_PANNEL_SETTINGS.out.pannel_anotations_files
 
   if (params.execution_mode == "in-country") {
-        IN_COUNTRY()
+    IN_COUNTRY()
   }
 
   if (params.execution_mode == "irods") {
-	IRODS()
+    IRODS(params.irods_manifest, reference_ch)
+    bam_files_ch = IRODS.out.bam_files_ch
+    sample_tag_reference_files_ch = IRODS.out.sample_tag_reference_files_ch
   }
 
 }
