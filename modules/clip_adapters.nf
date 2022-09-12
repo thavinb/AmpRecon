@@ -7,8 +7,7 @@ process clip_adapters {
     */
 
     input:
-        val(sample_tag)
-        path(prealigned_bam)
+        tuple val(sample_tag), path(prealigned_bam)
 
     output:
         //gambiarra alert --- this output is used on step1.2 only
