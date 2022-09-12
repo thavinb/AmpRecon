@@ -7,6 +7,7 @@ nextflow.enable.dsl = 2
 // - workflows
 include { bcl_to_cram } from './pipeline-subworkflows/bcl-to-cram.nf'
 include { cram_to_bam } from './pipeline-subworkflows/cram-to-bam.nf'
+include { realignment } from './pipeline-subworkflows/realignment.nf'
 
 // - process to extract and validate information expected based on input params
 include { validate_parameters; load_steps_to_run } from './pipeline-subworkflows/inputHandling.nf'
@@ -93,10 +94,10 @@ workflow IN_COUNTRY {
 
 
 	realignment(step1_3_In_ch.sample_tag,
-                        step1_3_In_ch.bam_file,
-                        step1_3_In_ch.run_id,
-                        sample_tag_reference_files_ch,
-                        )
+                       step1_3_In_ch.bam_file,
+                       step1_3_In_ch.run_id,
+                       sample_tag_reference_files_ch,
+                      )
 
 
 
