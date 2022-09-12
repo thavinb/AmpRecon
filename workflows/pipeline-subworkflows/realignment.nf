@@ -3,14 +3,14 @@
 // enable dsl2
 nextflow.enable.dsl = 2
 
-include { bam_reset } from './modules/bam_reset.nf'
-include { bam_to_fastq } from './modules/bam_to_fastq.nf'
-include { align_bam } from './modules/align_bam.nf'
-include { scramble_sam_to_bam } from './modules/scramble.nf'
-include { samtools_sort } from './modules/samtools.nf'
-include { samtools_index } from './modules/samtools.nf'
-include { bam_ref_ch_to_csv } from './modules/read_count_per_region.nf'
-include { read_count_per_region } from './modules/read_count_per_region.nf'    
+include { bam_reset } from '../../modules/bam_reset.nf'
+include { bam_to_fastq } from '../../modules/bam_to_fastq.nf'
+include { align_bam } from '../../modules/align_bam.nf'
+include { scramble_sam_to_bam } from '../../modules/scramble.nf'
+include { samtools_sort } from '../../modules/samtools.nf'
+include { samtools_index } from '../../modules/samtools.nf'
+include { bam_ref_ch_to_csv } from '../../modules/read_count_per_region.nf'
+include { read_count_per_region } from '../../modules/read_count_per_region.nf'    
 
 workflow realignment {
   //remove alignment from bam - this process proceeds directly after the end of 1.2x
@@ -27,8 +27,7 @@ take:
     bam_reset(sample_tag, bam_file)
 
     // convert ubams to fastqs
-    bam_to_fastq(bam_reset.out.sample_tag,
-        bam_reset.out.reset_bam)
+    bam_to_fastq(bam_reset.out)
 
     // add reference data to the fastq channel
     bam_to_fastq.out.join(sample_tag_reference_files_ch).combine(run_id).unique().set{align_bam_In_ch}
@@ -61,6 +60,13 @@ take:
         qc_run_ids_ch,
         qc_run_cnf_files_ch
     )
+
+    // upload read counts and BAM files to S3 bucket
+    output_bams_ch = samtools_index.out.map{it -> it[1]}
+
+    read_count_per_region.out.qc_csv_file.concat(output_bams_ch).set{output_to_s3}
+    upload_pipeline_output_to_s3(output_to_s3)
+
 
   //emit:
 
