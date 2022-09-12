@@ -20,7 +20,10 @@ include { PARSE_PANNEL_SETTINGS } from './pipeline-subworkflows/parse_pannels_se
 workflow IN_COUNTRY {
 
 	main:
-
+	
+      
+      retrieve_miseq_run_from_s3(params.bcl_id)
+      input_csv_ch = retrieve_miseq_run_from_s3.out.tuple_ch
 
 
 	  // -- Pre Processing ------------------------------------------------------
