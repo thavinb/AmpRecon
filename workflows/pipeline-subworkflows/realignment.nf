@@ -9,58 +9,59 @@ include { align_bam } from '../../modules/align_bam.nf'
 include { scramble_sam_to_bam } from '../../modules/scramble.nf'
 include { samtools_sort } from '../../modules/samtools.nf'
 include { samtools_index } from '../../modules/samtools.nf'
-include { bam_ref_ch_to_csv } from '../../modules/read_count_per_region.nf'
-include { read_count_per_region } from '../../modules/read_count_per_region.nf'    
+include { bam_ref_ch_to_csv } from '../../modules/read_counts_per_region.nf'
+include { read_count_per_region } from '../../modules/read_counts_per_region.nf'    
+include { files_and_panels_to_csv } from '../../modules/read_counts_per_region.nf'
+include { upload_pipeline_output_to_s3 } from '../../modules/upload_pipeline_output_to_s3.nf'
 
-workflow realignment {
+workflow REALIGNMENT {
   //remove alignment from bam - this process proceeds directly after the end of 1.2x
 
-take:
+  take:
     sample_tag
     bam_file
     run_id
-    sample_tag_reference_files_ch
+    sample_tag_reference_files_ch // tuple (sample_id, fasta_file, [fasta_indx_files], panel_name)
+    pannel_anotations_files // tuple (pannel_name, anotation_file)
 
   main:
-
     // Unmap the bam files (ubam)
     bam_reset(sample_tag, bam_file)
-
+    
     // convert ubams to fastqs
-    bam_to_fastq(bam_reset.out)
+    bam_to_fastq(bam_reset.out.sample_tag,
+                 bam_reset.out.reset_bam)
+    // tuple (sample_tag, fastq)
 
-    // add reference data to the fastq channel
-    bam_to_fastq.out.join(sample_tag_reference_files_ch).combine(run_id).unique().set{align_bam_In_ch}
+    // prepare channels to be used on join for input for other processes
 
-    // do new alignment
+    bam_to_fastq.out // tuple (sample_id, fastq_file)
+          | join(sample_tag_reference_files_ch) //tuple (sample_id, fastq, fasta_file, fasta_idx_files, panel_name)
+          | set{align_bam_In_ch}
+
+     // do new alignment
     align_bam(align_bam_In_ch)
 
-    // convert sam to bam_dir
+    // convert sam to bam
     scramble_sam_to_bam(align_bam.out.sample_tag, align_bam.out.sam_file)
-
+    
     // sort and index bam
     samtools_sort(scramble_sam_to_bam.out)
-    samtools_index(samtools_sort.out.bam)
-    samtools_index.out.bam_dir.unique().collect().set{bam_dir_ch} // Needed to ensure correct execution order
+    samtools_index(samtools_sort.out)
 
-    // join references to indexed bam channel
-    samtools_index.out.files.join(sample_tag_reference_files_ch).map {it -> tuple(it[0], it[3])}.set{bam_ref_ch}
+    // DO READCOUNTS 
 
-    // output channel to csv - used for making read count plex files
-    bam_ref_ch_to_csv(bam_ref_ch)
-
-    // get read counts
-    qc_run_ids_ch = Channel.from("GRC1", "GRC2", "Spec")
-    qc_run_cnf_files_ch = Channel.from(file(params.grc1_qc_file), file(params.grc2_qc_file), file(params.spec_qc_file))
+    // make CSV file of bam file names with associated amplicon panel
+    bam_file_names = samtools_index.out.map{it -> it[1].baseName}.collect() // amplicon panel now part of BAM name
+    files_and_panels_to_csv(bam_file_names)
+    bams_and_indices = samtools_index.out.map{it -> tuple(it[1], it[2])}.collect()
 
     read_count_per_region(
         run_id,
-        "${launchDir}/bam_ref_ch.csv",
-        bam_dir_ch,
-        qc_run_ids_ch,
-        qc_run_cnf_files_ch
+        files_and_panels_to_csv.out,
+        bams_and_indices,
+        pannel_anotations_files,
     )
-
     // upload read counts and BAM files to S3 bucket
     output_bams_ch = samtools_index.out.map{it -> it[1]}
 

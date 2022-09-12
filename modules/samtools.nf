@@ -9,8 +9,7 @@ process samtools_sort {
         tuple val(sample_tag), path(input_bam)
 
     output:
-        val("${output_directory}"), emit: bam_dir
-        tuple val(sample_tag), path("${bam_name}"), emit: bam
+        tuple val(sample_tag), path("${bam_name}")
 
     script:
         output_directory = "${params.bam_dir}"
@@ -28,8 +27,7 @@ process samtools_index {
         tuple val(sample_tag), path(input_bam)
 
     output:
-        val("${output_directory}"), emit: bam_dir
-        tuple val(sample_tag), path(input_bam), path("${bam_name}.bai"), emit: files
+        tuple val(sample_tag), path(input_bam), path("${bam_name}.bai")
 
     script:
         output_directory = "${params.bam_dir}"

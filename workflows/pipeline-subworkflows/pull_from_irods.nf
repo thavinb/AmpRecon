@@ -82,7 +82,7 @@ workflow PULL_FROM_IRODS {
     // --------------------------------------------------------------------
 
   emit:
-    bam_files_ch  // tuple(new_sample_id, bam_file)
+    bam_files_ch  // tuple(new_sample_id, bam_file, run_id)
     sample_tag_reference_files_ch // tuple(new_sample_id, ref_files)
 }
 

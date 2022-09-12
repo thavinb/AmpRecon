@@ -9,6 +9,7 @@ nextflow.enable.dsl = 2
 include { PARSE_PANNEL_SETTINGS } from './workflows/parse_pannels_settings.nf'
 include { IRODS } from './workflows/irods.nf'
 include { IN_COUNTRY } from './workflows/in_country.nf'
+include { COMMON } from './workflows/common.nf'
 
 // logging info ----------------------------------------------------------------
 // This part of the code is based on the FASTQC PIPELINE (https://github.com/angelovangel/nxf-fastqc/blob/master/main.nf)
@@ -52,7 +53,7 @@ log.info """
 def printHelp() {
   log.info """
   Usage:
-    nextflow run main.nf --input_params_csv [path/to/my/input.csv]
+    nextflow run main.nf 
 
   Description:
     (temporary - honest - description)
@@ -65,7 +66,6 @@ def printHelp() {
 
   Options:
     Inputs:
-      --input_params_csv (A csv file path)
       --irods_manifest (tab-delimited file containing rows of WG_lane and id_run data for CRAM files on iRODS)
 
     Additional options:
@@ -96,21 +96,21 @@ workflow {
   pannel_anotations_files = PARSE_PANNEL_SETTINGS.out.pannel_anotations_files
 
   if (params.execution_mode == "in-country") {
+    // process in country entry point
     IN_COUNTRY()
+
   }
 
   if (params.execution_mode == "irods") {
     // process IRODS entry point
     IRODS(params.irods_manifest, reference_ch)
     // setup channels for downstream processing
-    bam_files_ch = IRODS.out.bam_files_ch
+    bam_files_ch = IRODS.out.bam_files_ch // tuple (sample_tag, bam_file, run_id)
     sample_tag_reference_files_ch = IRODS.out.sample_tag_reference_files_ch
-    
-    irods_Out_ch = bam_files_ch.multiMap {it -> sample_tag: it[0]
-                                                bam_file: it[1]
-                                                run_id: it[2]
-                                        }
   }
+
+  COMMON(bam_files_ch, sample_tag_reference_files_ch, pannel_anotations_files)
+
 
 }
 

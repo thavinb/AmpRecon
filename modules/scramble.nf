@@ -4,7 +4,7 @@ process scramble_sam_to_bam {
     /**
     * Converts a sam to bam.
     */
-    publishDir "${params.results_dir}/${run_id}", mode: 'copy', overwrite: true
+    //publishDir "${params.results_dir}/${run_id}", mode: 'copy', overwrite: true
 
 
     input:
@@ -12,7 +12,7 @@ process scramble_sam_to_bam {
         path(sam_file)
 
     output:
-        tuple val(tag), path("${bam_file}")
+        tuple val(tag), path("${bam_file}")//, path(ref_fasta_file), path(ref_fasta_dct)
 
     script:
         base_name=sam_file.getBaseName()
@@ -70,3 +70,4 @@ process scramble_cram_to_bam {
         """
         */
 }
+
