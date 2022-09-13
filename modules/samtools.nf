@@ -36,4 +36,3 @@ process samtools_index {
         samtools index -b "${bam_name}"
         """
 }
-

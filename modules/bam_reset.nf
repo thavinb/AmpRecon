@@ -14,10 +14,12 @@ process bam_reset {
         path(collated_bam)
 
     output:
-      tuple val("${sample_tag}"), path("${base_name}.reset.bam")
+        val("${sample_tag}"), emit: sample_tag
+        path("${base_name}.reset.bam"), emit: reset_bam
+
 
     script:
-        base_name=collated_bam.baseName
+        base_name=collated_bam.simpleName
         """
         bamreset \
             resetaux=${params.bamreset_resetaux} \
@@ -27,3 +29,4 @@ process bam_reset {
             > "${base_name}.reset.bam"
         """
 }
+

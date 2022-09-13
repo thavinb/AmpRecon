@@ -7,16 +7,20 @@ nextflow.enable.dsl = 2
 // - workflows
 include { bcl_to_cram } from './pipeline-subworkflows/bcl-to-cram.nf'
 include { cram_to_bam } from './pipeline-subworkflows/cram-to-bam.nf'
-include { realignment } from './pipeline-subworkflows/realignment.nf'
+include { REALIGNMENT } from './pipeline-subworkflows/realignment.nf'
 
 // - process to extract and validate information expected based on input params
 include { validate_parameters; load_steps_to_run } from './pipeline-subworkflows/inputHandling.nf'
 include { get_taglist_file } from '../modules/manifest2tag.nf'
 include { make_samplesheet_manifest } from '../modules/make_samplesheet_manifest.nf'
 include { validate_samplesheet_manifest } from '../modules/samplesheet_manifest_validation.nf'
+<<<<<<< HEAD
 include { PARSE_PANNEL_SETTINGS } from './pipeline-subworkflows/parse_pannels_settings.nf'
 include { miseq_run_validation } from '../modules/miseq_run_validation.nf'
 include { retrieve_miseq_run_from_s3 } from '../modules/retrieve_miseq_run_from_s3.nf'
+=======
+include { PARSE_PANNEL_SETTINGS } from './parse_pannels_settings.nf'
+>>>>>>> ecf44664ae9377f7ff4a34dcb4206db2d38aaf9e
 
 
 workflow IN_COUNTRY {
@@ -85,6 +89,19 @@ workflow IN_COUNTRY {
                                                                run_id:it[2]  }
 
 
+<<<<<<< HEAD
+=======
+	step1_3_In_ch = step1_2_Out_ch
+
+
+	REALIGNMENT(step1_3_In_ch.sample_tag,
+                       step1_3_In_ch.bam_file,
+                       step1_3_In_ch.run_id,
+                       sample_tag_reference_files_ch,
+                      )
+
+
+>>>>>>> ecf44664ae9377f7ff4a34dcb4206db2d38aaf9e
 
 	emit:
 	step1_2_Out_ch.sample_tag
