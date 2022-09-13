@@ -10,7 +10,7 @@ include { PARSE_PANNEL_SETTINGS } from './workflows/parse_pannels_settings.nf'
 include { IRODS } from './workflows/irods.nf'
 include { IN_COUNTRY } from './workflows/in_country.nf'
 include { COMMON } from './workflows/common.nf'
-
+include { validate_parameters } from './workflows/input_handling.nf'
 // logging info ----------------------------------------------------------------
 // This part of the code is based on the FASTQC PIPELINE (https://github.com/angelovangel/nxf-fastqc/blob/master/main.nf)
 
@@ -26,18 +26,21 @@ log.info """
          AMPSEQ_0.0 (dev : prototype)
          Used parameters:
         -------------------------------------------
-         --execution_mode    : ${params.execution_mode}
-         --run_id            : ${params.run_id}
-         --bcl_dir           : ${params.bcl_dir}
-         --lane              : ${params.lane}
-         --study_name        : ${params.study_name}
-         --read_group        : ${params.read_group}
-         --library           : ${params.library}
-         --start_from        : ${params.start_from}
-         --results_dir       : ${params.results_dir}
-         --irods_manifest    : ${params.irods_manifest}
-         --pannels_settings  : ${params.pannels_settings}
-
+         --execution_mode     : ${params.execution_mode}
+         --run_id             : ${params.run_id}
+         --bcl_dir            : ${params.bcl_dir}
+         --lane               : ${params.lane}
+         --study_name         : ${params.study_name}
+         --read_group         : ${params.read_group}
+         --library            : ${params.library}
+         --results_dir        : ${params.results_dir}
+         --irods_manifest     : ${params.irods_manifest}
+         --pannels_settings   : ${params.pannels_settings}
+         --download_from_s3   : ${params.download_from_s3}
+         --upload_to_s3       : ${params.upload_to_s3}
+         --bcl_id             : ${params.bcl_id}
+         --s3_bucket_input    : ${params.s3_bucket_input}
+         --s3_bucket_output : ${params.s3_bucket_output}
         ------------------------------------------
          Runtime data:
         -------------------------------------------
@@ -78,19 +81,17 @@ def printHelp() {
 workflow {
   // --- Print help if requested -------------------------------------------
   // Show help message
-  if (params.help) {
-      printHelp()
-      exit 0
-  }
+  //if (params.help) {
+  //    printHelp()
+  //    exit 0
+  //}
 
-  if (params.execution_mode==null){
-    log.error("No execution mode was provided")
-    exit 1
-  }
+  // check parameters provided
+  validate_parameters()
 
   // -- MAIN-EXECUTION ------------------------------------------------------
   // prepare pannel resource channels 
-  PARSE_PANNEL_SETTINGS(params.pannels_settings, params.reference_dir)
+  PARSE_PANNEL_SETTINGS(params.pannels_settings)
 
   reference_ch = PARSE_PANNEL_SETTINGS.out.reference_ch
   annotations_ch = PARSE_PANNEL_SETTINGS.out.annotations_ch

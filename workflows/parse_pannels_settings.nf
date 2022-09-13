@@ -57,7 +57,7 @@ def validatePannelSettings(row, source_dir){
 workflow PARSE_PANNEL_SETTINGS {
     take:
         pannels_settings
-        reference_dir // temporary
+    
     main:
         // if a csv was provided, no need to add source_dir to rows
         if (!(pannels_settings==null)){
