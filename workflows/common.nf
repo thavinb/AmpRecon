@@ -16,7 +16,7 @@ workflow COMMON {
     take:
         bam_files_ch // tuple(sample_id, bam_file)
         sample_tag_reference_files_ch // tuple(sample_id, ref_files)
-        pannel_annotation_files_ch // tuple (pannel_name, anotation_file)
+        annotations_ch // tuple (pannel_name, anotation_file)
     main:
         // mapping tuple to multichannel 
         bam_files_ch
@@ -33,7 +33,7 @@ workflow COMMON {
                     realignement_In_ch.bam_file,
                     realignement_In_ch.run_id,
                     sample_tag_reference_files_ch,
-                    pannel_annotation_files_ch
+                    annotations_ch
                 )
         
         // genotyping

@@ -22,7 +22,7 @@ workflow REALIGNMENT {
     bam_file
     run_id
     sample_tag_reference_files_ch // tuple (sample_id, fasta_file, [fasta_indx_files], panel_name)
-    pannel_anotations_files // tuple (pannel_name, anotation_file)
+    annotations_ch // tuple (pannel_name, anotation_file)
 
   main:
     // Unmap the bam files (ubam)
@@ -60,7 +60,7 @@ workflow REALIGNMENT {
         run_id,
         files_and_panels_to_csv.out,
         bams_and_indices,
-        pannel_anotations_files,
+        annotations_ch,
     )
     // upload read counts and BAM files to S3 bucket
     output_bams_ch = samtools_index.out.map{it -> it[1]}

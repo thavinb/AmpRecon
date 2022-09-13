@@ -88,12 +88,12 @@ workflow {
     exit 1
   }
 
-  // -- MAIN-EXECUTION -------------------------------------------------------------
+  // -- MAIN-EXECUTION ------------------------------------------------------
   // prepare pannel resource channels 
   PARSE_PANNEL_SETTINGS(params.pannels_settings, params.reference_dir)
 
   reference_ch = PARSE_PANNEL_SETTINGS.out.reference_ch
-  pannel_anotations_files = PARSE_PANNEL_SETTINGS.out.pannel_anotations_files
+  annotations_ch = PARSE_PANNEL_SETTINGS.out.annotations_ch
 
   if (params.execution_mode == "in-country") {
     // process in country entry point
@@ -109,8 +109,7 @@ workflow {
     sample_tag_reference_files_ch = IRODS.out.sample_tag_reference_files_ch
   }
 
-  COMMON(bam_files_ch, sample_tag_reference_files_ch, pannel_anotations_files)
-
+  COMMON(bam_files_ch, sample_tag_reference_files_ch, annotations_ch)
 
 }
 

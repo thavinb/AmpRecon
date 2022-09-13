@@ -19,7 +19,7 @@
 // TODO: test if variation on "simple names" before the ."ext" breaks something on the pipeline
 //       my guess is that there is some naming assumptions on some of the processes 
 
-def validatePannelSettings(row){
+def validatePannelSettings(row, source_dir){
     def errors = 0 
     
     //valid_pannel_names = ["PFA_GRC1_v1.0","PFA_GRC2_v1.0","PFA_Spec"]
@@ -30,16 +30,18 @@ def validatePannelSettings(row){
     //}
 
     // check if align_to columns is a valid path
-    align_to_path = file(row.aligns_to)
-    if (!align_to_path.exists()){
-        log.error("${row.aligns_to} provided for ${row.pannel_name} does not exist.")
+    aligns_to_path = "${source_dir}/${row.aligns_to}"
+    aligns_to_file = file(aligns_to_path)
+    if (!aligns_to_file.exists()){
+        log.error("${aligns_to_path} provided for ${row.pannel_name} does not exist.")
         errors += 1
     }
 
     // check if maps_to_regions_of is a valid path
-    maps_to_path = file(row.maps_to_regions_of)
-    if (!maps_to_path.exists()){
-        log.error("${row.maps_to_regions_of} provided for ${row.pannel_name} does not exist.")
+    annotation_flpth = "${source_dir}/${row.maps_to_regions_of}"
+    maps_to_file = file(annotation_flpth)
+    if (!maps_to_file.exists()){
+        log.error("${annotation_flpth} provided for ${row.pannel_name} does not exist.")
         errors += 1
     }
     
@@ -57,48 +59,46 @@ workflow PARSE_PANNEL_SETTINGS {
         pannels_settings
         reference_dir // temporary
     main:
-        // build reference channel from "aligns_to" column
-        // if a csv was provided, mount channels for a given resource bundle
+        // if a csv was provided, no need to add source_dir to rows
         if (!(pannels_settings==null)){
-    
-            Channel.fromPath(pannels_settings, checkIfExists: true)
-                | splitCsv(header: true, sep: ',')
-                | map { row ->
-                        // validate row settings
-                        validatePannelSettings(row)
-                        // TODO: validate if expected files were provided
-                        tuple(
-                            file("${row.aligns_to}/*.fasta"),
-                            row.pannel_name,
-                            file("${row.aligns_to}/*.fasta.*")
-                            )
-                    }
-                | set { reference_ch }
+            source_dir = ""
         }
-        // if pannels settings csv is not provided, just use the files on the repo
-        // TODO set a default behaviour based on a default pannel_settings.csv
+        // if no pannels_settings csv is provided, use the one at the repo
         else {
-            reference_ch = Channel.from(
-                [file("${reference_dir}/grc1/*.fasta"), "PFA_GRC1_v1.0" , file("${reference_dir}/grc1/*.fasta.*")],
-                [file("${reference_dir}/grc2/*.fasta"), "PFA_GRC2_v1.0", file("${reference_dir}/grc2/*.fasta.*")],
-                [file("${reference_dir}/spec/*.fasta"), "PFA_Spec", file("${reference_dir}/spec/*.fasta.*")]
-            )
+            source_dir = "${projectDir}" // required to get the right path of resources at repo
+            pannels_settings = "${source_dir}/pannels_resources/pannels_settings.csv"
         }
+        
+        // build reference channel from "aligns_to"
+        reference_ch = Channel.fromPath(pannels_settings, checkIfExists: true)
+                        | splitCsv(header: true, sep: ',')
+                        | map { row ->
+                            // validate row settings
+                    
+                            validatePannelSettings(row, source_dir)
+                            // TODO: validate if expected files were provided
+                            tuple(
+                                file("${source_dir}/${row.aligns_to}/*.fasta"),
+                                row.pannel_name,
+                                file("${source_dir}/${row.aligns_to}/*.fasta.*")
+                            )
+                            }
+    
 
         // build pannel_anotations_files from "maps_to_regions_of"
-        Channel.fromPath(pannels_settings, checkIfExists: true)
-            | splitCsv(header: true, sep: ',')
-            | map { row ->
-                        // validate row settings
-                        validatePannelSettings(row)
-                        tuple(
-                            row.pannel_name,
-                            file("${row.maps_to_regions_of}")
-                            )
-                }
-            | set { pannel_anotations_files }
+        annotations_ch = Channel.fromPath(pannels_settings, checkIfExists: true)
+                          | splitCsv(header: true, sep: ',')
+                          | map { row ->
+                                // validate row settings
+                                validatePannelSettings(row, source_dir)
+                                tuple(
+                                    row.pannel_name,
+                                    file("${source_dir}/${row.maps_to_regions_of}")
+                                )
+                           }
+
 
     emit:
         reference_ch
-        pannel_anotations_files
+        annotations_ch
 }
