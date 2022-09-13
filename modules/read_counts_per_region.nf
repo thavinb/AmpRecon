@@ -23,11 +23,7 @@ process read_count_per_region {
 
         """
         grep ${pannel_name} "${bam_file_list}" | awk 'BEGIN {FS=","; OFS=","} {print \$1}' > "${plex_file}"
-<<<<<<< HEAD
-        python3 ${projectDir}/pipeline_workflows/step1.3-redo_alignment/modules/count_reads_per_region.py \
-=======
-        python3 ${projectDir}/modules/count_reads_per_region.py \
->>>>>>> ecf44664ae9377f7ff4a34dcb4206db2d38aaf9e
+        python3 ${projectDir}/modules/count_reads_per_region.py  \
             --design_file "${annotation_file}" \
             --plex_file "${plex_file}" \
             --input_dir "." \
@@ -36,12 +32,6 @@ process read_count_per_region {
 }
 
 process files_and_panels_to_csv {
-<<<<<<< HEAD
-  input:
-    val(file_names_list)
-  output:
-    path("file_names_panel_list.csv")
-=======
   input:
     val(file_names_list)
   output:
@@ -59,40 +49,6 @@ out_mnf.write("file_name\n")
 for file_name in names_list:
 
     out_mnf.write(f"{file_name}\n")
-out_mnf.close()
-/$
-}
-
-
-process bam_ref_ch_to_csv {
-  input:
-    tuple val(sample_tag), path(reference_files)
->>>>>>> ecf44664ae9377f7ff4a34dcb4206db2d38aaf9e
-$/
-#!/usr/bin/python3
-from pathlib import Path
-
-<<<<<<< HEAD
-path_to_mnf = "file_names_panel_list.csv"
-names_list = list("${file_names_list}".strip("[]").replace(" ", "").split(","))
-=======
-# setup inputs
-sample_tag = "${sample_tag}"
-reference_files = "${reference_files}"
-publishDir = f"${launchDir}/"
->>>>>>> ecf44664ae9377f7ff4a34dcb4206db2d38aaf9e
-
-out_mnf = open(f"{path_to_mnf}", "w")
-out_mnf.write("file_name\n")
-
-for file_name in names_list:
-
-<<<<<<< HEAD
-    out_mnf.write(f"{file_name}\n")
-=======
-# write manifest line for the bam file
-out_mnf.write(f"{sample_tag},{reference_files}\n")
->>>>>>> ecf44664ae9377f7ff4a34dcb4206db2d38aaf9e
 out_mnf.close()
 /$
 }
