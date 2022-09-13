@@ -45,7 +45,7 @@ out_mnf.close()
 /$
 }
 
-workflow bcl_to_cram {
+workflow BCL_TO_CRAM {
     take:
         pre_process_input_ch
     main:

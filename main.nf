@@ -40,7 +40,7 @@ log.info """
          --upload_to_s3       : ${params.upload_to_s3}
          --bcl_id             : ${params.bcl_id}
          --s3_bucket_input    : ${params.s3_bucket_input}
-         --s3_bucket_output : ${params.s3_bucket_output}
+         --s3_bucket_output   : ${params.s3_bucket_output}
         ------------------------------------------
          Runtime data:
         -------------------------------------------
@@ -98,8 +98,9 @@ workflow {
 
   if (params.execution_mode == "in-country") {
     // process in country entry point
-    IN_COUNTRY()
-
+    IN_COUNTRY(reference_ch)
+    bam_files_ch = IN_COUNTRY.out.bam_files_ch
+    sample_tag_reference_files_ch = IN_COUNTRY.out.sample_tag_reference_files_ch
   }
 
   if (params.execution_mode == "irods") {

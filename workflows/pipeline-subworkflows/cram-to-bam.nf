@@ -65,7 +65,7 @@ out_mnf.close()
 /$
 }
 
-workflow cram_to_bam {
+workflow CRAM_TO_BAM {
     take:
         // manifest from step 1.1
         intermediate_csv
