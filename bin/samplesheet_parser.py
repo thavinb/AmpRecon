@@ -215,4 +215,3 @@ if __name__ == "__main__":
     args = parse_args()
     with SampleSheetParser(args.samplesheet_path, args.run) as s:
         s.process()
-

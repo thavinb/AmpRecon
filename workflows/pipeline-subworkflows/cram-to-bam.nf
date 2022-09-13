@@ -85,9 +85,7 @@ workflow cram_to_bam {
                   collate_alignments.out.collated_bam)
 
         // Remove adapters
-        clip_adapters(
-                  bam_reset.out.sample_tag,
-                  bam_reset.out.reset_bam)
+        clip_adapters(bam_reset.out)
 
         // Convert BAM to FASTQ
         bam_to_fastq(clip_adapters.out.tuple)

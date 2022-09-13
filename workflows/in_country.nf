@@ -15,42 +15,34 @@ include { get_taglist_file } from '../modules/manifest2tag.nf'
 include { make_samplesheet_manifest } from '../modules/make_samplesheet_manifest.nf'
 include { validate_samplesheet_manifest } from '../modules/samplesheet_manifest_validation.nf'
 include { PARSE_PANNEL_SETTINGS } from './pipeline-subworkflows/parse_pannels_settings.nf'
+include { miseq_run_validation } from '../modules/miseq_run_validation.nf'
+include { retrieve_miseq_run_from_s3 } from '../modules/retrieve_miseq_run_from_s3.nf'
 
 
 workflow IN_COUNTRY {
 
 	main:
-	
-      
-      retrieve_miseq_run_from_s3(params.bcl_id)
-      input_csv_ch = retrieve_miseq_run_from_s3.out.tuple_ch
+        PARSE_PANNEL_SETTINGS()
+        reference_ch = PARSE_PANNEL_SETTINGS.out.reference_ch
+        pannel_anotations_files = PARSE_PANNEL_SETTINGS.out.pannel_anotations_files	
+	validate_parameters() 
+     
+	if ( params.s3 == true & !file("${params.bcl_dir}").exists() ) {
+        	retrieve_miseq_run_from_s3(params.bcl_id)
+        	input_csv_ch = retrieve_miseq_run_from_s3.out.tuple_ch
+        }
 
+	else {
 
-	  // -- Pre Processing ------------------------------------------------------
-	  // validate input
- 	  validate_parameters()
-  
-	/*
-  	  reference_ch = Channel.from(
-                  [file("${params.reference_dir}/grc1/*.fasta"), "PFA_GRC1_v1.0" , file("${params.reference_dir}/grc1/*.fasta.*")],
-                  [file("${params.reference_dir}/grc2/*.fasta"), "PFA_GRC2_v1.0", file("${params.reference_dir}/grc2/*.fasta.*")],
-                  [file("${params.reference_dir}/spec/*.fasta"), "PFA_Spec", file("${params.reference_dir}/spec/*.fasta.*")]
-                  )
-  */
-
-      PARSE_PANNEL_SETTINGS()
-      reference_ch = PARSE_PANNEL_SETTINGS.out
-
-      // create input channel
-      input_csv_ch = Channel.of(tuple(params.run_id,
+         // create input channel
+         input_csv_ch = Channel.of(tuple(params.run_id,
                                  params.bcl_dir,
                                  params.lane,
                                  params.study_name,
                                  params.read_group,
                                  params.library))
-    
+	}    
 
-       // validate MiSeq run files and directory structure
     
        // process samplesheets manifest (necessary to get barcodes) and validate it
        input_csv_ch
@@ -93,16 +85,10 @@ workflow IN_COUNTRY {
                                                                run_id:it[2]  }
 
 
-	step1_3_In_ch = step1_2_Out_ch
 
-
-	realignment(step1_3_In_ch.sample_tag,
-                       step1_3_In_ch.bam_file,
-                       step1_3_In_ch.run_id,
-                       sample_tag_reference_files_ch,
-                      )
-
-
-
+	emit:
+	step1_2_Out_ch.sample_tag
+	step1_2_Out_ch.bam_file
+	step1_2_Out_ch.run_id
 
 }
