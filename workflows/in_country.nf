@@ -50,8 +50,8 @@ workflow IN_COUNTRY {
       step1_Input_ch = input_csv_ch.join(get_taglist_file.out)
 
       // Stage 1 - Step 1: BCL to CRAM
-      bcl_to_cram(step1_Input_ch)
-      manifest_step1_1_Out_ch = bcl_to_cram.out.multiMap { it -> run_id: it[0]
+      BCL_TO_CRAM(step1_Input_ch)
+      manifest_step1_1_Out_ch = BCL_TO_CRAM.out.multiMap { it -> run_id: it[0]
                                                                  mnf: it[1]}
  	
       // get the relevant sample data from the manifest
@@ -69,13 +69,14 @@ workflow IN_COUNTRY {
       csv_ch = manifest_step1_1_Out_ch.mnf
     
       // Stage 1 - Step 2: CRAM to BAM
-      cram_to_bam(csv_ch, sample_tag_reference_files_ch)
+      CRAM_TO_BAM(csv_ch, sample_tag_reference_files_ch)
       
-      bam_files_ch = cram_to_bam.out.bam_ch //.multiMap { it -> sample_tag: it[0]
+      bam_files_ch = CRAM_TO_BAM.out.bam_ch //.multiMap { it -> sample_tag: it[0]
                                             //                    bam_file: it[1]
                                             //                   run_id:it[2]  }
 
 
    emit:
       bam_files_ch // tuple (sample_tag, bam_file)
+      sample_tag_reference_files_ch // tuple('lims_id#index_', 'path/to/reference/genome, 'path/to/reference/index/files')
 }

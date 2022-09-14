@@ -88,7 +88,12 @@ workflow CRAM_TO_BAM {
         clip_adapters(bam_reset.out)
 
         // Convert BAM to FASTQ
-        bam_to_fastq(clip_adapters.out.tuple)
+        bam_to_fasq_In_ch = clip_adapters.out
+                              | multiMap {it -> sample_tag: it[0]
+                                                bam_cliped_file: it[1]
+                                        }
+        bam_to_fastq(bam_to_fasq_In_ch.sample_tag,
+                    bam_to_fasq_In_ch.bam_cliped_file)
         
         bam_to_fastq.out //tuple (sample_tag, fastq_files)
               | join(sample_tag_reference_files_ch) //tuple (sample_tag, fastq_files, ref_fasta, fasta_index, pannel_name) 
@@ -107,7 +112,7 @@ workflow CRAM_TO_BAM {
         // Merges the current headers with the old ones.
         // Keeping @SQ.*\tSN:([^\t]+) matching lines from the new header.
         reheader_in_ch = scramble_sam_to_bam.out
-                            | join(clip_adapters.out.tuple)
+                            | join(clip_adapters.out)
                             | join(sample_tag_reference_files_ch)
                             | map { it -> tuple(it[0], it[1], it[2],it[3],it[4]) } // remove pannel_name from channel
 
@@ -117,7 +122,7 @@ workflow CRAM_TO_BAM {
         bam_split(mapping_reheader.out)
 
         // Merge BAM files with same reads
-        bam_merge_In_ch = bam_split.out.join(clip_adapters.out.tuple)
+        bam_merge_In_ch = bam_split.out.join(clip_adapters.out)
 
         bam_merge(bam_merge_In_ch)
 

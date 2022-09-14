@@ -7,14 +7,15 @@ process clip_adapters {
     */
 
     input:
-        tuple val(sample_tag), path(prealigned_bam)
+        val(sample_tag)
+        path(prealigned_bam)
 
     output:
         //gambiarra alert --- this output is used on step1.2 only
-        tuple val("${sample_tag}"), path("${base_name}.clipped.bam"), emit: tuple
+        tuple val("${sample_tag}"), path("${base_name}.clipped.bam")
 
     script:
-        base_name=prealigned_bam.baseName
+        base_name=prealigned_bam.simpleName
         """
         bamadapterclip \
             verbose=${params.bamadapterclip_verbose} \

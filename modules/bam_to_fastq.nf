@@ -21,4 +21,3 @@ process bam_to_fastq {
             > "${base_name}.fastq"
         """
 }
-
