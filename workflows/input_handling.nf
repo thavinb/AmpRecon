@@ -29,6 +29,13 @@ def validate_parameters() {
     if (params.bcl_dir == null){
       log.error("A bcl_dir parameter must be provided for execution mode '${params.execution_mode}'.")
       errors += 1
+    } 
+    else {
+      bcl_dir__path = file(params.bcl_dir)
+      if (!results_path.exists()){
+        log.warn("${results_path} does not exists, the dir will be created")
+        results_path.mkdir()
+      }
     }
 
     if (params.lane == null){

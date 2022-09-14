@@ -7,39 +7,6 @@ include { irods_manifest_parser } from '../../modules/irods_manifest_parser.nf'
 include { irods_retrieve } from '../../modules/irods_retrieve.nf'
 include { scramble_cram_to_bam } from '../../modules/scramble.nf'
 
-process writeOutputManifest {
-
-  input:
-    tuple val(sample_tag), path(bam_file), val(run_id)
-
-  output:
-// The $/ ... /$ is necessary to avoid nextflow to read "\n" incorrectly
-$/
-#!/usr/bin/python3
-from pathlib import Path
-
-# setup inputs
-run_id = "${run_id}"
-bam_fl = "${bam_file}"
-sample_tag = "${sample_tag}"
-publishDir = f"${params.results_dir}/{run_id}/"
-bam_dir=f"${params.results_dir}{run_id}/"
-
-# if manifest already exists, just append new lines
-path_to_mnf = f"{publishDir}/iRODS_out_mnf.csv"
-if Path(path_to_mnf).is_file():
-    out_mnf = open(f"{path_to_mnf}", "a")
-
-# if manifest does not exist, create file and write header
-else:
-    out_mnf = open(f"{path_to_mnf}", "w")
-    out_mnf.write("run_id,bam_fl,sample_tag\n")
-
-# write manifest line for the bam file
-out_mnf.write(f"{run_id},{bam_dir}{bam_fl},{sample_tag}\n")
-out_mnf.close()
-/$
-}
 
 workflow PULL_FROM_IRODS {
   
@@ -75,9 +42,6 @@ workflow PULL_FROM_IRODS {
 
     // Concatenate in-country BAM channel with iRODS BAM channel
     bam_files_ch = scramble_cram_to_bam.out
- 
-    // Write manifest irods_out.csv
-    writeOutputManifest(bam_files_ch)
 
     // --------------------------------------------------------------------
 
