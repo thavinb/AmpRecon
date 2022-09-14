@@ -21,13 +21,6 @@
 
 def validatePannelSettings(row, source_dir){
     def errors = 0 
-    
-    //valid_pannel_names = ["PFA_GRC1_v1.0","PFA_GRC2_v1.0","PFA_Spec"]
-    // check if pannel name is valid
-    //if (!valid_pannel_names.contains(row.pannel_name)){
-    //    log.error("${row.pannel_name} is not valid. Valid pannel names:\n ${valid_pannel_names}")
-    //    errors += 1
-    //}
 
     // check if align_to columns is a valid path
     aligns_to_path = "${source_dir}/${row.aligns_to}"
@@ -96,7 +89,6 @@ workflow PARSE_PANNEL_SETTINGS {
                                     file("${source_dir}/${row.maps_to_regions_of}")
                                 )
                            }
-
 
     emit:
         reference_ch

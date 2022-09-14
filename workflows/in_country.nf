@@ -9,7 +9,7 @@ include { BCL_TO_CRAM } from './pipeline-subworkflows/bcl-to-cram.nf'
 include { CRAM_TO_BAM } from './pipeline-subworkflows/cram-to-bam.nf'
 
 // - process to extract and validate information expected based on input params
-include { validate_parameters; load_steps_to_run } from './pipeline-subworkflows/inputHandling.nf'
+include { validate_parameters } from './input_handling.nf'
 include { get_taglist_file } from '../modules/manifest2tag.nf'
 include { make_samplesheet_manifest } from '../modules/make_samplesheet_manifest.nf'
 include { validate_samplesheet_manifest } from '../modules/samplesheet_manifest_validation.nf'
@@ -70,11 +70,7 @@ workflow IN_COUNTRY {
     
       // Stage 1 - Step 2: CRAM to BAM
       CRAM_TO_BAM(csv_ch, sample_tag_reference_files_ch)
-      
-      bam_files_ch = CRAM_TO_BAM.out.bam_ch //.multiMap { it -> sample_tag: it[0]
-                                            //                    bam_file: it[1]
-                                            //                   run_id:it[2]  }
-
+      bam_files_ch = CRAM_TO_BAM.out.bam_ch 
 
    emit:
       bam_files_ch // tuple (sample_tag, bam_file)

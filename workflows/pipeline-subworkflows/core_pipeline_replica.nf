@@ -52,15 +52,8 @@ workflow CORE_PIPELINE_REPLICA {
         pre_alignment_ch = fastq_ch.join(reference_information)
         pre_alignment_ch = pre_alignment_ch.join(reference_idx)
 
-      /*   ALIGNMENT(pre_alignment_ch)
-
-        SCRAMBLE_SAM_TO_BAM(ALIGNMENT.out)
-
-        clipped_scrambled_merge = SCRAMBLE_SAM_TO_BAM.out.join(CLIP_ADAPTERS.out)
-        mapping_reheader_in_ch = clipped_scrambled_merge.join(reference_information)
- */
-        emit:
-        cram_ch
+    emit:
+      cram_ch
 
 
 

@@ -26,45 +26,6 @@ def load_intermediate_ch(csv_ch){
   return intermediateCSV_ch
 }
 
-process writeOutputManifest {
-
-  //publishDir "${params.results_dir}/${run_id}", mode: 'copy', overwrite: true
-
-  input:
-    tuple val(sample_tag), path(bam_file), val(run_id)
-    val(run_id)
-    // TODO create a python box container
-
-  //output:
-  //  tuple val(run_id), path("${run_id}_out1.2_mnf.csv")
-// The $/ ... /$ is necessary to avoid nextflow to read "\n" incorrectly
-$/
-#!/usr/bin/python3
-from pathlib import Path
-
-# setup inputs
-run_id = "${run_id}"
-bam_fl = "${bam_file}"
-sample_tag = "${sample_tag}"
-publishDir = f"${params.results_dir}/"
-bam_dir=f"${params.results_dir}/"
-
-# if manifest already exists, just append new lines
-path_to_mnf = f"{publishDir}/{run_id}_out1.2_mnf.csv"
-if Path(path_to_mnf).is_file():
-    out_mnf = open(f"{path_to_mnf}", "a")
-
-# if manifest does not exist, create file and write header
-else:
-    out_mnf = open(f"{path_to_mnf}", "w")
-    out_mnf.write("run_id,bam_fl,sample_tag\n")
-
-# write manifest line for the bam file
-out_mnf.write(f"{run_id},{bam_dir}{bam_fl},{sample_tag}\n")
-out_mnf.close()
-/$
-}
-
 workflow CRAM_TO_BAM {
     take:
         // manifest from step 1.1
@@ -135,10 +96,6 @@ workflow CRAM_TO_BAM {
                  alignment_filter.out.sample_tag,
                  alignment_filter.out.selected_bam)
         bam_ch = sort_bam.out
-
-        // --------------------------------------------------------------------
-        // write manifest out
-        writeOutputManifest(bam_ch, intCSV_ch.run_id)
 
     emit:
         bam_ch
