@@ -16,8 +16,7 @@ process make_samplesheet_manifest {
         samplesheet = "${bcl_dir}/SampleSheet.csv"
         manifest = "${bcl_dir}/${run_id}_manifest.csv"
         """
-        
-        python3 ${workflow.projectDir}/bin/samplesheet_parser.py ${samplesheet} -r ${run_id}
+        samplesheet_parser.py ${samplesheet} -r ${run_id}
         ln ${manifest} ./
         """
 }

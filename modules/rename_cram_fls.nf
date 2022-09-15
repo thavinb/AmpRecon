@@ -21,7 +21,7 @@ process rename_cram_fls {
         manifest_csv = "${params.results_dir}/${run_id}_manifest.csv"
         // ---------------------------------------------------------------------
         """
-        python3 ${projectDir}/bin/renameSamplesCram.py \
+        renameSamplesCram.py \
                 --manifest ${manifest_csv} \
                 --bam_metrics ${bam_metrics} \
                 --cram_file ${cram_fls}

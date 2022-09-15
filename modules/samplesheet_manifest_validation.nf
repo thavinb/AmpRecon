@@ -7,6 +7,6 @@ process validate_samplesheet_manifest {
 
     script:
     """
-    python3 ${workflow.projectDir}/bin/manifest_validation.py -m ${manifest}
+    manifest_validation.py -m ${manifest}
     """
     }

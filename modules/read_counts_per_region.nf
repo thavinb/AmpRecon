@@ -4,6 +4,7 @@ nextflow.enable.dsl = 2
 process read_count_per_region {
     stageInMode 'copy'
     publishDir "${params.results_dir}/", overwrite: true
+    label 'python_plus_samtools'
 
     input:
         val(run_id)
@@ -23,7 +24,7 @@ process read_count_per_region {
 
         """
         grep ${pannel_name} "${bam_file_list}" | awk 'BEGIN {FS=","; OFS=","} {print \$1}' > "${plex_file}"
-        python3 ${projectDir}/modules/count_reads_per_region.py  \
+        count_reads_per_region.py  \
             --design_file "${annotation_file}" \
             --plex_file "${plex_file}" \
             --input_dir "." \
