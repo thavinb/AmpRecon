@@ -26,8 +26,8 @@ class AmpliconManifestValidator:
         self.path = manifest_path
         self.base = os.path.basename(self.path)
         self.reader = None
-        self.ref_set = set()
-        self.valid_ref_values = ["PFA_GRC1_v1.0", "PFA_GRC2_v1.0", "PFA_Spec"]
+        self.assay_set = set()
+        self.valid_assay_values = ["PFA_GRC1_v1.0", "PFA_GRC2_v1.0", "PFA_Spec"]
         self._fileio = None
 
     def __repr__(self):
@@ -44,13 +44,13 @@ class AmpliconManifestValidator:
                     if line[key] is not None:
                         line[key] = line[key].strip()
                 self._check_empty_or_na(line)
-                self._validate_ref_column(line)
+                self._validate_assay_column(line)
                 self._validate_index_column(line)
                 self._validate_barcode(line)
 
-            if len(self.ref_set) < 3:
+            if len(self.assay_set) < 3:
                 raise self.InvalidValueError(
-                    f"Ref column does not contain all references: {', '.join(self.valid_ref_values)}"
+                    f"assay column does not contain all assayerences: {', '.join(self.valid_assay_values)}"
                 )
         except (
             self.InvalidValueError,
@@ -92,7 +92,7 @@ class AmpliconManifestValidator:
             "lims_id",
             "sims_id",
             "index",
-            "ref",
+            "assay",
             "barcode_sequence",
             "well",
             "plate",
@@ -116,22 +116,22 @@ class AmpliconManifestValidator:
                     f"{self.base} has NA values: {key, value} - {line}"
                 )
 
-    def _validate_ref_column(self, line: OrderedDict):
-        """Checks whether the value in the ref column matches expected values"""
+    def _validate_assay_column(self, line: OrderedDict):
+        """Checks whether the value in the assay column matches expected values"""
         try:
-            test = line["ref"]
+            test = line["assay"]
         except KeyError:
             # Something is wrong with the file, should be picked up by other method
             # This simply assumes that validate_integrity hasn't been called yet
             self._validate_integrity()
         else:
-            if test not in self.valid_ref_values:
+            if test not in self.valid_assay_values:
                 raise self.InvalidValueError(
-                    f"{self.base} - Invalid value in ref column. "
-                    f"Expected one of: {', '.join(self.valid_ref_values)} - got {test}"
+                    f"{self.base} - Invalid value in assay column. "
+                    f"Expected one of: {', '.join(self.valid_assay_values)} - got {test}"
                 )
             else:
-                self.ref_set.add(test)
+                self.assay_set.add(test)
 
     def _validate_index_column(self, line: OrderedDict):
         """Checks whether the index is a number"""
