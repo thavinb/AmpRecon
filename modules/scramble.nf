@@ -33,7 +33,7 @@ process scramble_cram_to_bam {
     /**
     * Converts a cram to bam.
     */
-    publishDir "${params.results_dir}", mode: 'copy', overwrite: true
+//    publishDir "${params.results_dir}", mode: 'copy', overwrite: true
     label 'staden'
 
     input:

@@ -17,7 +17,7 @@ process bam_reset {
     output:
         val("${sample_tag}"), emit: sample_tag
         path("${base_name}.reset.bam"), emit: reset_bam
-
+        tuple val("${sample_tag}"), path("${base_name}.reset.bam"), emit: bam_reset_tuple_ch
 
     script:
         base_name=collated_bam.simpleName
