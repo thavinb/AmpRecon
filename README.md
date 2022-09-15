@@ -26,7 +26,7 @@ WARN: Currently, containers must be built by the user and the pipeline assume th
 
 Load nextflow module
 ```
-module load nextflow/21.04.1-5556
+module load nextflow/22.04.0-5697
 ```
 
 To run from the **in-country** entry point:
