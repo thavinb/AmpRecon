@@ -7,3 +7,8 @@ ampseq-NF-pipeline/work
 *LOCK*
 *.log
 *history*
+__init*
+.DS_Store
+.idea*
+sandbox/*
+ampseq-NF-pipeline/*
