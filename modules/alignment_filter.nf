@@ -1,6 +1,7 @@
 params.bambi_select_compression_level = 0
 params.bambi = "bambi"
 process alignment_filter {
+    label 'bambi'
     input:
         val(sample_tag)
         path(merged_bam) // e.g. bam

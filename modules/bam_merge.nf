@@ -9,7 +9,7 @@ process bam_merge {
     /*
     * Merges BAM files containing same set of reads
     */
-    container ''
+    label 'biobambam2'
 
     input:
         tuple val(sample_tag), path(reheadered_bam), path(split_bam)

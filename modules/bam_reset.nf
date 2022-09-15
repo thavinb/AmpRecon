@@ -8,6 +8,7 @@ process bam_reset {
     * resets a BAM file to a pre-aligned state
     */
     errorStrategy 'ignore'
+    label 'biobambam2'
 
     input:
         val(sample_tag)

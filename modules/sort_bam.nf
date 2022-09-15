@@ -7,8 +7,9 @@ params.bamsort_add_markup_support = 1
 
 
 process sort_bam {
-    
-    publishDir "${params.results_dir}", overwrite: true
+
+    //publishDir "${params.results_dir}", overwrite: true
+    label 'biobambam2'
 
     input:
         val(run_id)

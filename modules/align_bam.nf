@@ -7,9 +7,10 @@ process align_bam {
     * Map reads to reference
     */
     //publishDir "${params.results_dir}", overwrite: true
+    label 'bwa'
 
     input:
-        tuple val(sample_tag), path(fastq), path(reference_fasta), path(ref_bwa_index_fls), val(pannel_name), val(run_id)
+        tuple val(sample_tag), path(fastq), path(reference_fasta), path(ref_bwa_index_fls), val(pannel_name)
 
     output:
         val("${sample_tag}"), emit: sample_tag

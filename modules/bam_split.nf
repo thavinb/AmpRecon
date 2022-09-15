@@ -5,6 +5,8 @@ process bam_split {
     /*
     * Splits BAM rank pairs to single ranks per read
     */
+    label 'biobambam2'
+
 
     input:
         tuple val(sample_tag), path(reheadered_bam)

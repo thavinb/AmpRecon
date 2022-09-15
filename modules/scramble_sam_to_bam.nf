@@ -5,6 +5,8 @@ process bambi_select {
     /**
     *
     */
+    label 'bambi'
+
     input:
         val(sample_tag)
         path(input_file) // e.g. bam
