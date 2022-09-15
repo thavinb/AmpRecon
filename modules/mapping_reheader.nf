@@ -3,7 +3,7 @@ process mapping_reheader {
      Run a Python script to copy across specific
      headers from the input bam file to the mapped bam file.
      */
-
+    label 'python_plus_samtools'
     input:
         tuple val(sample_tag), path(scrambled_bam),  path(clipped_bam), path(reference_fasta), path(ref_dict)
         //path(clipped_bam) // original cram with clipped adapters

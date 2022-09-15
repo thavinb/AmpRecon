@@ -4,8 +4,8 @@ process decode_multiplexed_bam {
     /*
     * Decodes a multiplexed BAM file.
     */
-    publishDir "${params.results_dir}/", overwrite: true
-
+    //publishDir "${params.results_dir}/", overwrite: true
+    label 'bambi'
     input:
         tuple val(run_id), path(base_dir), val(lane), val(study_name), val(read_group), val(library), path(barcode_file), path(i2b_output)
         //path(input_file) // ex. bambi_i2b.bam
