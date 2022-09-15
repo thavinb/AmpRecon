@@ -1,11 +1,11 @@
 #!/usr/bin/env nextflow
 
-include { download_bambi_decode_output_from_s3 } from '../ampseq-NF-pipeline/modules/download_test_data.nf'
-include { bam_find_adapter } from '../ampseq-NF-pipeline/modules/bam_find_adapter.nf'
-include { download_bamadapterfind_output_from_s3 } from '../ampseq-NF-pipeline/modules/download_test_data.nf'
-include { download_test_cram_from_s3 } from '../ampseq-NF-pipeline/modules/download_test_data.nf'
-include { bam_to_cram } from '../ampseq-NF-pipeline/modules/bam_to_cram.nf'
-include { compare_bam_subset } from '../ampseq-NF-pipeline/modules/test_tools.nf'
+include { download_bambi_decode_output_from_s3 } from '../modules/download_test_data.nf'
+include { bam_find_adapter } from '../modules/bam_find_adapter.nf'
+include { download_bamadapterfind_output_from_s3 } from '../modules/download_test_data.nf'
+include { download_test_cram_from_s3 } from '../modules/download_test_data.nf'
+include { bam_to_cram } from '../modules/bam_to_cram.nf'
+include { compare_bam_subset } from '../modules/test_tools.nf'
 
 
 workflow {
@@ -35,3 +35,4 @@ process generate_test_channel {
 	echo
 	"""
 }
+

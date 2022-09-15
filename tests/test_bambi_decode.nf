@@ -1,11 +1,11 @@
 #!/usr/bin/env nextflow
 
 
-include { download_i2b_output_from_s3 } from '../ampseq-NF-pipeline/modules/download_test_data.nf'
-include { download_bambi_decode_output_from_s3 } from '../ampseq-NF-pipeline/modules/download_test_data.nf'
-include { decode_multiplexed_bam } from '../ampseq-NF-pipeline/modules/decode_multiplexed_bam.nf'
-include { compare_bam_subset } from '../ampseq-NF-pipeline/modules/test_tools.nf'
-include { compare_text_file_differences } from '../ampseq-NF-pipeline/modules/test_tools.nf'
+include { download_i2b_output_from_s3 } from '../modules/download_test_data.nf'
+include { download_bambi_decode_output_from_s3 } from '../modules/download_test_data.nf'
+include { decode_multiplexed_bam } from '../modules/decode_multiplexed_bam.nf'
+include { check_md5sum } from '../modules/test_tools.nf'
+include { check_md5sum as check_md5sum_metrics } from '../modules/test_tools.nf'
 
 workflow {
 	
@@ -27,8 +27,8 @@ workflow {
 	reference_metrics = test_preprocessing.map { it -> it[0] }
 	test_metrics = test_preprocessing.map { it -> it[1] }
 
-	compare_bam_subset(reference_bam, test_bam)
-	compare_text_file_differences(reference_metrics, test_metrics)
+	check_md5sum(test_bam, "e3f44394583b51fdefd0d8e90c0a2d09")
+	check_md5sum_metrics(test_metrics, "0852211f9d8e476dabf4772a3ba51306")
 	 
 
 
