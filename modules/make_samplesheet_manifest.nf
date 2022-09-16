@@ -17,7 +17,6 @@ process make_samplesheet_manifest {
         manifest = "${bcl_dir}/${run_id}_manifest.csv"
         """
         samplesheet_parser.py ${samplesheet} -r ${run_id}
-        ln ${manifest} /lustre/scratch118/infgen/gsu/prod/nextflow-tower-amplicon/output/
         """
 }
 
