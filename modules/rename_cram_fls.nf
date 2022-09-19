@@ -12,7 +12,7 @@ process rename_cram_fls {
         path(cram_fls)
 
     output:
-        tuple val(run_id), path("*_.cram")
+        path("*_.cram")
 
     script:
         // GAMBIARRA ALIERT ---------------------------------------------------

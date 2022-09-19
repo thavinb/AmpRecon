@@ -4,15 +4,13 @@ nextflow.enable.dsl = 2
 process read_count_per_region {
     stageInMode 'copy'
     publishDir "${params.results_dir}/", overwrite: true
-    label 'python_plus_samtools'
+    label 'pythonBox'
 
     input:
         val(run_id)
         path(bam_file_list)
         path(bam_files_and_indices)
         tuple val(pannel_name), file(annotation_file)
-        //val(qc_run_id)
-        //path(qc_cnf_file)
 
     output:
         path("${output_file}"), emit: qc_csv_file

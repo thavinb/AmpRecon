@@ -11,11 +11,7 @@ process collate_alignments {
     //publishDir "${params.results_dir}/${run_id}", overwrite: true
 
     input:
-        val(run_id)
-        path(sample_cram)
-        val(sample_tag)
-        //val(tag) // be sure what tag supose to mean here (not run id a supose)
-        //path(input_file)
+        tuple val(sample_tag), path(sample_cram), val(run_id)
 
     output:
         val("${sample_tag}"), emit: sample_tag
