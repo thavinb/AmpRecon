@@ -70,14 +70,16 @@ workflow BCL_TO_CRAM {
                         bam_to_cram.out.metrics_bam_file,
                         bam_to_cram.out.cram_fls
                         )
-        cram_ch = rename_cram_fls.out
-
-        // generate an output manifest
-        writeOutputManifest(cram_ch)//cram_ch.run_id, cram_ch.cram_fls)
-        manifest_out = writeOutputManifest.out
+        cram_ch = rename_cram_fls.out // tuple (run_id, cram_file)
+        // add new sample tag to cram_ch
+        cram_ch
+          | flatten()
+          | map { it -> tuple(it.simpleName, it, params.run_id) } 
+          | set {final_cram_ch} // tuple(sample_tag, cram_fl, run_id)
 
     emit:
-        manifest_out
+        final_cram_ch // tuple( sample_tag, cram_fl, run_id)
+        //manifest_out
 }
 /*
 // -------------------------- DOCUMENTATION -----------------------------------

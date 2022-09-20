@@ -51,9 +51,11 @@ workflow IN_COUNTRY {
 
       // Stage 1 - Step 1: BCL to CRAM
       BCL_TO_CRAM(step1_Input_ch)
-      manifest_step1_1_Out_ch = BCL_TO_CRAM.out.multiMap { it -> run_id: it[0]
-                                                                 mnf: it[1]}
- 	
+      cram_ch = BCL_TO_CRAM.out // tuple (sample_tag, cram_fl, run_id)
+      
+      //manifest_step1_1_Out_ch = BCL_TO_CRAM.out.multiMap { it -> run_id: it[0]
+      //                                                           mnf: it[1]}
+
       // get the relevant sample data from the manifest
       ref_tag = Channel.fromPath("${params.results_dir}/*_manifest.csv")
                   | splitCsv(header: ["lims_id", "sims_id", "index", "ref",
@@ -66,11 +68,11 @@ workflow IN_COUNTRY {
               | map{it -> tuple(it[1]+"#${it[2]}_", it[3], it[4])}
               | set{sample_tag_reference_files_ch}
  
-      csv_ch = manifest_step1_1_Out_ch.mnf
-    
+      //csv_ch = manifest_step1_1_Out_ch.mnf
+
       // Stage 1 - Step 2: CRAM to BAM
-      CRAM_TO_BAM(csv_ch, sample_tag_reference_files_ch)
-      bam_files_ch = CRAM_TO_BAM.out.bam_ch 
+      CRAM_TO_BAM(cram_ch, sample_tag_reference_files_ch)
+      bam_files_ch = CRAM_TO_BAM.out.bam_ch
 
    emit:
       bam_files_ch // tuple (sample_tag, bam_file)

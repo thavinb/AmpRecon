@@ -29,17 +29,16 @@ def load_intermediate_ch(csv_ch){
 workflow CRAM_TO_BAM {
     take:
         // manifest from step 1.1
-        intermediate_csv
+        //intermediate_csv
+        cram_ch // tuple(sample_tag, cram_fl, run_id)
         sample_tag_reference_files_ch // tuple (sample_id, ref_fasta, fasta_index, pannel_name)
 
     main:
         // Process manifest
-        intCSV_ch = load_intermediate_ch(intermediate_csv)
+        //intCSV_ch = load_intermediate_ch(intermediate_csv)
 
         // Collate cram files by name
-        collate_alignments(intCSV_ch.run_id,
-                          intCSV_ch.cram_fl,
-                          intCSV_ch.sample_tag)
+        collate_alignments(cram_ch)
 
         // Transform BAM file to pre-aligned state
         bam_reset(collate_alignments.out.sample_tag,
@@ -58,7 +57,7 @@ workflow CRAM_TO_BAM {
         
         bam_to_fastq.out //tuple (sample_tag, fastq_files)
               | join(sample_tag_reference_files_ch) //tuple (sample_tag, fastq_files, ref_fasta, fasta_index, pannel_name) 
-              | combine(intCSV_ch.run_id)
+              | combine(Channel.of(params.run_id))
               | unique()
               | set{align_bam_In_ch} // tuple (sample_tag, fastq, fasta, fasta_idx, pannel_name, run_id)
 
@@ -92,7 +91,7 @@ workflow CRAM_TO_BAM {
                          bam_merge.out.merged_bam)
 
         // BAM sort by coordinate
-        sort_bam(intCSV_ch.run_id,
+        sort_bam(params.run_id,
                  alignment_filter.out.sample_tag,
                  alignment_filter.out.selected_bam)
         bam_ch = sort_bam.out
