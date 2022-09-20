@@ -32,10 +32,7 @@ workflow REALIGNMENT {
     bam_to_fastq(bam_reset.out.sample_tag,
                  bam_reset.out.reset_bam)
 
-    // tuple (sample_tag, fastq)
-
     // prepare channels to be used on join for input for other processes
-
     bam_to_fastq.out // tuple (sample_id, fastq_file)
           | join(sample_tag_reference_files_ch) //tuple (sample_id, fastq, fasta_file, fasta_idx_files, panel_name)
           | set{align_bam_In_ch}
@@ -67,11 +64,11 @@ workflow REALIGNMENT {
         bams_and_indices,
         annotations_ch,
     )
-    // upload read counts and BAM files to S3 bucket
-    output_bams_ch = samtools_index.out.map{it -> it[1]}
 
+    // upload read counts and BAM files / indices to S3 bucket
     if (params.upload_to_s3){
-      read_count_per_region.out.qc_csv_file.concat(output_bams_ch).set{output_to_s3}
+      output_bams_and_indices_ch = samtools_index.out.map{it -> tuple(it[1], it[2])}.flatten()
+      read_count_per_region.out.qc_csv_file.concat(output_bams_and_indices_ch).set{output_to_s3}
       upload_pipeline_output_to_s3(output_to_s3)
     }
 
