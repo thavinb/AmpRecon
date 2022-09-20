@@ -4,7 +4,7 @@ nextflow.enable.dsl=2
 
 process make_samplesheet_manifest {
     publishDir "${params.results_dir}/", mode: 'copy', overwrite: true
-
+    label 'pythonBox'
     input:
         tuple val(run_id), path(bcl_dir)
 
