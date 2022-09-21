@@ -9,18 +9,22 @@ process add_read_group {
         tuple val(sample_tag), path("${new_bam_file}")
 
     script:
-        simple_name = remapped_bam_file.simpleName
+        simple_name = remapped_bam_file.baseName
         new_bam_file = "${simple_name}.bam"
+        temp_bam_name = "temp.${simple_name}.bam"
         """
-            samtools view -H ${bam_file} | grep '^@RG' | head -1 >> ${bam_file}.header.sam.tmp
+        # Change remapped bam file name so that its not same as output name
+        mv ${remapped_bam_file} ${temp_bam_name}
 
-            # Fix sample name in header
-            cat ${bam_file}.header.sam.tmp | \
-            sed "s/\\tSM:[^[:space:]]*\\t/\\tSM:${sample_tag}\\t/" | \
-            sed "s/\\tLB:[^[:space:]]*\\t/\\tLB:${sample_tag}\\t/" \
-                > ${bam_file}.header.sam
+        samtools view -H ${bam_file} | grep '^@RG' | head -1 >> ${bam_file}.header.sam.tmp
 
-            # Replace header
-            samtools addreplacerg -r "\$(< ${bam_file}.header.sam)" -o ${new_bam_file} --threads 8 ${remapped_bam_file}
+        # Fix sample name in header
+        cat ${bam_file}.header.sam.tmp | \
+        sed "s/\\tSM:[^[:space:]]*\\t/\\tSM:${sample_tag}\\t/" | \
+        sed "s/\\tLB:[^[:space:]]*\\t/\\tLB:${sample_tag}\\t/" \
+        > ${bam_file}.header.sam
+
+        # Replace header
+        samtools addreplacerg -r "\$(< ${bam_file}.header.sam)" -o ${new_bam_file} --threads 8 ${temp_bam_name}
         """
 }

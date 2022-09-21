@@ -39,8 +39,6 @@ workflow PULL_FROM_IRODS {
 
     // Convert iRODS CRAM files to BAM format
     scramble_cram_to_bam(irods_retrieve.out)
-
-    // Concatenate in-country BAM channel with iRODS BAM channel
     bam_files_ch = scramble_cram_to_bam.out
 
     // --------------------------------------------------------------------

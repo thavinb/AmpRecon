@@ -16,7 +16,7 @@ process scramble_sam_to_bam {
 
     script:
         base_name=sam_file.getBaseName()
-        bam_file="${base_name}.scrambled.bam"
+        bam_file="${base_name}.bam"
 
         scramble=params.scramble
 

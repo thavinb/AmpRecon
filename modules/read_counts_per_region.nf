@@ -4,7 +4,7 @@ nextflow.enable.dsl = 2
 process read_count_per_region {
     stageInMode 'copy'
     publishDir "${params.results_dir}/", overwrite: true
-    label 'pythonBox'
+    label 'python_plus_samtools'
 
     input:
         val(run_id)
