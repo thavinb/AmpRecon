@@ -16,18 +16,18 @@ workflow PULL_FROM_IRODS {
   
   main:
     // get names and paths 
-    irods_manifest_parser(irods_ch)
-    //remove WG_lane (not needed on other processes), but must be associated with "new" sample id
-    //    tuple new_sample_id, ${iRODS_file_path}, id_run, WG_lane
-
-    irods_manifest_parser.out.map{it -> tuple( it[0], it[1], it[2] ) }.set {irods_retrieve_In_ch}
-
-    // get new_sample_ids pannels
-
-    irods_manifest_parser.out //  tuple(new_sample_id, iRODS_file_path, id_run, WG_lane)
-              | map {it -> tuple( it[3], it[0])}
-              | set {newSample_WgLn_ch}  // tuple(WG_lane, new_sample_id)
+    irods_manifest_parser(irods_ch) // tuple(irods_sample_id, irods_flpath, id_run, WG_lane)
     
+    //add new id key [WGlane]_[sample_id]
+    irods_manifest_parser.out
+        | map {it -> tuple("${it[3]}_${it[0]}", it[1], it[2])} // change sample id from WG_lane to [WG_lane]_[irods_sample_id]
+        | set {irods_retrieve_In_ch}
+
+    // get new_sample_ids relationship with pannels resources
+    irods_manifest_parser.out // tuple(new_sample_id, iRODS_file_path, id_run, WG_lane)
+              | map {it -> tuple( it[3], "${it[3]}_${it[0]}")}
+              | set {newSample_WgLn_ch} // tuple(WG_lane, new_sample_id)
+
     sample_id_ref_ch
               | map { it -> tuple( it[0], it[2], it[3], it[4])} // tuple(WG_lane, fasta_file, fasta_idx_files)
               | join (newSample_WgLn_ch)  // tuple(WG_lane, fasta_file, fasta_idx_files, pannel_name, new_sample_id)
