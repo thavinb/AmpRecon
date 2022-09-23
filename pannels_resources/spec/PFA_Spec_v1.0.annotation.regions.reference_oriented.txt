@@ -1,2 +1,2 @@
-Pf_M76611:89-315,Spec_1_falciparum
-Pf_M76611:1638-1893,Spec_2_falciparum
+Pf3D7_MIT_v3:89-315,Spec_1_falciparum
+Pf3D7_MIT_v3:1638-1893,Spec_2_falciparum
