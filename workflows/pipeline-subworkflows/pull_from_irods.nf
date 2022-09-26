@@ -16,16 +16,16 @@ workflow PULL_FROM_IRODS {
   
   main:
     // get names and paths 
-    irods_manifest_parser(irods_ch) // tuple(irods_sample_id, irods_flpath, id_run, WG_lane)
+    irods_manifest_parser(irods_ch) // tuple(irods_sample_id, irods_flpath, WG_lane)
     
     //add new id key [WGlane]_[sample_id]
     irods_manifest_parser.out
-        | map {it -> tuple("${it[3]}_${it[0]}", it[1], it[2])} // change sample id from WG_lane to [WG_lane]_[irods_sample_id]
+        | map {it -> tuple("${it[2]}_${it[0]}", it[1])} // change sample id from WG_lane to [WG_lane]_[irods_sample_id]
         | set {irods_retrieve_In_ch}
 
     // get new_sample_ids relationship with pannels resources
-    irods_manifest_parser.out // tuple(new_sample_id, iRODS_file_path, id_run, WG_lane)
-              | map {it -> tuple( it[3], "${it[3]}_${it[0]}")}
+    irods_manifest_parser.out // tuple(new_sample_id, iRODS_file_path, WG_lane)
+              | map {it -> tuple( it[2], "${it[2]}_${it[0]}")}
               | set {newSample_WgLn_ch} // tuple(WG_lane, new_sample_id)
 
     sample_id_ref_ch
@@ -44,7 +44,7 @@ workflow PULL_FROM_IRODS {
     // --------------------------------------------------------------------
 
   emit:
-    bam_files_ch  // tuple(new_sample_id, bam_file, run_id)
+    bam_files_ch  // tuple(new_sample_id, bam_file)
     sample_tag_reference_files_ch // tuple(new_sample_id, ref_files)
 }
 

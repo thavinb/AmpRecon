@@ -7,7 +7,6 @@ process read_count_per_region {
     label 'python_plus_samtools'
 
     input:
-        val(run_id)
         path(bam_file_list)
         path(bam_files_and_indices)
         tuple val(pannel_name), file(annotation_file)

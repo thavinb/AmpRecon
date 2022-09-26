@@ -8,7 +8,7 @@ process irods_manifest_parser {
          tuple val(id_run), val(WG_lane)
 
     output:
-        tuple env(sample_id), val("${iRODS_file_path}"), val(id_run), val(WG_lane)
+        tuple env(sample_id), val("${iRODS_file_path}"), val(WG_lane)
 
     script:
         iRODS_file_path = "/seq/${id_run}/${WG_lane}.cram"

@@ -23,15 +23,13 @@ workflow COMMON {
             | multiMap {
                 sample_tag: it[0]
                 bam_file: it[1]
-                run_id: it[2]
                 }
-            | set { realignement_In_ch }
+            | set { realignment_In_ch }
         
-        // do realignement and read counts
+        // do realignment and read counts
         REALIGNMENT(
-                    realignement_In_ch.sample_tag,
-                    realignement_In_ch.bam_file,
-                    realignement_In_ch.run_id,
+                    realignment_In_ch.sample_tag,
+                    realignment_In_ch.bam_file,
                     sample_tag_reference_files_ch,
                     annotations_ch
                 )

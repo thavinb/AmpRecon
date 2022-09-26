@@ -19,7 +19,6 @@ workflow REALIGNMENT {
   take:
     sample_tag
     bam_file
-    run_id
     sample_tag_reference_files_ch // tuple (sample_id, fasta_file, [fasta_indx_files], panel_name)
     annotations_ch // tuple (pannel_name, anotation_file)
 
@@ -57,7 +56,6 @@ workflow REALIGNMENT {
     bams_and_indices = samtools_index.out.map{it -> tuple(it[1], it[2])}.collect()
 
     read_count_per_region(
-        run_id,
         files_and_panels_to_csv.out,
         bams_and_indices,
         annotations_ch,
