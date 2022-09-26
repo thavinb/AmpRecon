@@ -17,8 +17,8 @@ process read_count_per_region {
         path("${plex_file}"), emit: qc_plex_file
 
     script:
-        output_file = "${run_id}_${pannel_name}_reads_per_region.csv"
-        plex_file = "${run_id}_${pannel_name}.plex"
+        output_file = "${pannel_name}_reads_per_region.csv"
+        plex_file = "${pannel_name}.plex"
 
         """
         grep ${pannel_name} "${bam_file_list}" | awk 'BEGIN {FS=","; OFS=","} {print \$1}' > "${plex_file}"
