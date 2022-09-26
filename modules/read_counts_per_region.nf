@@ -14,7 +14,6 @@ process read_count_per_region {
 
     output:
         path("${output_file}"), emit: qc_csv_file
-        path("${plex_file}"), emit: qc_plex_file
 
     script:
         output_file = "${pannel_name}_reads_per_region.csv"
