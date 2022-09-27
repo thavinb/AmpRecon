@@ -20,7 +20,7 @@ process retrieve_miseq_run_from_s3 {
 	mkdir -p "${params.results_dir}${uuid_id}"
         cd "${params.results_dir}/${uuid_id}"
 
-        s3cmd get s3://${bucket}/${uuid_id}
+        s3cmd get --force s3://${bucket}/${uuid_id}
         unzip -d -q ./ "${uuid_id}"
         """
 }
