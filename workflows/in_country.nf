@@ -57,17 +57,21 @@ workflow IN_COUNTRY {
       //                                                           mnf: it[1]}
 
       // get the relevant sample data from the manifest
-      ref_tag = Channel.fromPath("${params.results_dir}/*_manifest.csv")
-                  | splitCsv(header: ["lims_id", "sims_id", "index", "ref",
+      ref_tag = Channel.fromPath("${params.results_dir}/*_manifest.csv") // WARN: this need to be removed, we should no rely on results dir
+                  | splitCsv(header: ["lims_id", "sims_id", "index", "assay",
                                      "barcode_sequence", "well", "plate"],
                                     skip: 18)
-                  | map { row -> tuple(row.lims_id, row.ref, row.index) }
+                  | map { row -> tuple(row.lims_id, row.assay, row.index) }
 
       // assign each sample tag the appropriate set of reference files -> tuple('lims_id#index_', 'path/to/reference/genome, 'path/to/reference/index/files')
+      
       ref_tag | combine(reference_ch,  by: 1)
-              | map{it -> tuple(it[1]+"#${it[2]}_", it[3], it[4])}
+              //| map{it -> tuple("${it[1]}#${it[2]}-${it[4]}", it[3], it[4])}
+              | map{it -> tuple("${params.run_id}_${params.lane}#${it[2]}_${it[1]}-", it[3], it[4])}
               | set{sample_tag_reference_files_ch}
- 
+      
+      sample_tag_reference_files_ch.first().view()
+
       //csv_ch = manifest_step1_1_Out_ch.mnf
 
       // Stage 1 - Step 2: CRAM to BAM

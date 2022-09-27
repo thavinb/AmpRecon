@@ -30,7 +30,7 @@ workflow CRAM_TO_BAM {
     take:
         // manifest from step 1.1
         //intermediate_csv
-        cram_ch // tuple(sample_tag, cram_fl, run_id)
+        cram_ch // tuple(sample_tag, cram_fl, run_id) | sample_tag = [run_id]_[lane]#[index]_[sample_name]-
         sample_tag_reference_files_ch // tuple (sample_id, ref_fasta, fasta_index, pannel_name)
 
     main:
@@ -54,12 +54,19 @@ workflow CRAM_TO_BAM {
                                         }
         bam_to_fastq(bam_to_fasq_In_ch.sample_tag,
                     bam_to_fasq_In_ch.bam_cliped_file)
-        
-        bam_to_fastq.out //tuple (sample_tag, fastq_files)
-              | join(sample_tag_reference_files_ch) //tuple (sample_tag, fastq_files, ref_fasta, fasta_index, pannel_name) 
+        // --- DEBUG -------------------------------
+        //sample_tag_reference_files_ch.first().view()
+        //bam_to_fastq.out.first().view()
+        // -----------------------------------------
+        bam_to_fastq.out //tuple (old_sample_tag, fastq_files)
+              // get pannel resource files
+              | join(sample_tag_reference_files_ch) //tuple (old_sample_tag, fastq_files, ref_fasta, fasta_index, pannel_name) 
+              // add run id
               | combine(Channel.of(params.run_id))
-              | unique()
-              | set{align_bam_In_ch} // tuple (sample_tag, fastq, fasta, fasta_idx, pannel_name, run_id)
+              | unique() // tuple (old_sample_tag, fastq, fasta, fasta_idx, pannel_name, run_id)
+              // add pannel names to sample_tag
+              | map { it -> tuple("${it[0]}${pannel_name}", it[1], it[2], it[3], it[4], it[5])}
+              | set{align_bam_In_ch} // tuple (new_sample_tag, fastq, fasta, fasta_idx, pannel_name, run_id)
 
         align_bam(align_bam_In_ch)
 
@@ -95,7 +102,9 @@ workflow CRAM_TO_BAM {
                  alignment_filter.out.sample_tag,
                  alignment_filter.out.selected_bam)
         bam_ch = sort_bam.out
-
+        // --- DEBUG ----------
+        //bam_ch.first().view()
+        // --------------------
     emit:
         bam_ch
 }

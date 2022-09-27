@@ -10,9 +10,10 @@ process rename_cram_fls {
         val(run_id)
         path(bam_metrics)
         path(cram_fls)
+        val(lane)
 
     output:
-        path("*_.cram")
+        path("*-.cram")
 
     script:
         // GAMBIARRA ALIERT ---------------------------------------------------
@@ -24,7 +25,9 @@ process rename_cram_fls {
         renameSamplesCram.py \
                 --manifest ${manifest_csv} \
                 --bam_metrics ${bam_metrics} \
-                --cram_file ${cram_fls}
+                --cram_file ${cram_fls} \
+                --run_id ${run_id} \
+                --lane ${lane}
         """
 }
 

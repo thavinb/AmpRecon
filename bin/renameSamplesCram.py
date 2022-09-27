@@ -31,6 +31,8 @@ def parse_args():
     parser.add_argument("--bam_metrics", "-bm",
                         help="path to bam_metrics file")
     parser.add_argument('--cram_files', '-cfs', nargs='+', default=[])
+    parser.add_argument('--run_id', default=None)
+    parser.add_argument('--lane', default=None)
     return parser.parse_args()
 
 def loadManifestDf(mnf_path):
@@ -87,7 +89,7 @@ def parseBamMetrics(bam_metrics_path):
     metrics_df["BARCODE_NAME"] = metrics_df["BARCODE_NAME"].apply(__intfy)
     return metrics_df
 
-def getNewName(cram_fl, mnf_df, metrics_df):
+def getNewName(cram_fl, mnf_df, run_id, lane):
     basename = cram_fl.split('/')[-1].split('.')[0]
     cram_idx = int(basename.split('#')[-1])
     # if no idx is found, give a warning and
@@ -96,7 +98,7 @@ def getNewName(cram_fl, mnf_df, metrics_df):
     except(IndexError):
         print(f"WARN: no sample name for ${cram_fl}, it will be ignored")
         return None
-    new_name = f"{sample_name}#{cram_idx}_.cram"
+    new_name = f"{run_id}_{lane}#{cram_idx}_{sample_name}-.cram"
     return new_name
 
 # -----------------------------------------------------------------------------
@@ -131,7 +133,7 @@ if __name__ == "__main__":
 
     # rename files
     for cram_fl in args.cram_files:
-        new_name = getNewName(cram_fl, mnf_df, metrics_df)
+        new_name = getNewName(cram_fl, mnf_df, args.run_id, args.lane)
         # ignore cram file with no index found
         if new_name==None:
             continue

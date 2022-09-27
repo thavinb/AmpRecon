@@ -10,15 +10,15 @@ process align_bam {
     label 'bwa'
 
     input:
-        tuple val(new_sample_tag), path(fastq), path(reference_fasta), path(ref_bwa_index_fls), val(pannel_name)
+        tuple val(sample_tag), path(fastq), path(reference_fasta), path(ref_bwa_index_fls), val(pannel_name)
 
     output:
-        val("${new_sample_tag}"), emit: sample_tag
-        path("${new_sample_tag}.sam"), emit: sam_file
+        val("${sample_tag}"), emit: sample_tag
+        path("${sample_tag}_${ref_simplename}.sam"), emit: sam_file
 
     script:
         bwa=params.bwa
-        //basename=fastq.simpleName
+        ref_simplename=reference_fasta.simpleName
         """
         bwa mem \
             -p \
@@ -27,7 +27,7 @@ process align_bam {
             -t ${params.bwa_num_threads} \
             "${reference_fasta}" \
             "${fastq}" \
-            > "${new_sample_tag}.sam"
+            > "${sample_tag}_${ref_simplename}.sam"
         """
 }
 // --- | WARNING | ------------------------------------------------------------
