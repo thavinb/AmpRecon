@@ -45,7 +45,8 @@ workflow CRAM_TO_BAM {
                   collate_alignments.out.collated_bam)
 
         // Remove adapters
-        clip_adapters(bam_reset.out)
+        clip_adapters(bam_reset.out.sample_tag,
+                 bam_reset.out.reset_bam)
 
         // Convert BAM to FASTQ
         bam_to_fasq_In_ch = clip_adapters.out
