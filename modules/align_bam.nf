@@ -13,8 +13,10 @@ process align_bam {
         tuple val(sample_tag), path(fastq), path(reference_fasta), path(ref_bwa_index_fls), val(pannel_name)
 
     output:
-        val("${sample_tag}"), emit: sample_tag
-        path("${sample_tag}_${ref_simplename}.sam"), emit: sam_file
+        // WARNING: this process adds the reference to the sample_tag, if this output is gonna be use 
+        //          for join channels, take this into account.
+        val("${sample_tag}-${ref_simplename}"), emit: sample_tag
+        path("${sample_tag}-${ref_simplename}.sam"), emit: sam_file
 
     script:
         bwa=params.bwa
@@ -27,7 +29,7 @@ process align_bam {
             -t ${params.bwa_num_threads} \
             "${reference_fasta}" \
             "${fastq}" \
-            > "${sample_tag}_${ref_simplename}.sam"
+            > "${sample_tag}-${ref_simplename}.sam"
         """
 }
 // --- | WARNING | ------------------------------------------------------------
