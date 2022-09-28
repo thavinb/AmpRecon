@@ -9,9 +9,6 @@ process retrieve_miseq_run_from_s3 {
     output:
         tuple val("${params.run_id}"), val("${output_path}"), val("${params.lane}"), val("${params.study_name}"), val("${params.read_group}"), val("${params.library}"), emit: tuple_ch
 
-    when:
-	params.bcl_id != "-1"
-
     script:
         output_path = "${params.results_dir}/${uuid_id}"
         bucket = params.s3_bucket_input
