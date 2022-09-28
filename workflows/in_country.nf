@@ -24,10 +24,12 @@ workflow IN_COUNTRY {
    
    main:
       
-      retrieve_miseq_run_from_s3(params.bcl_id)
-
-      input_csv_ch = retrieve_miseq_run_from_s3.out.tuple_ch
-
+      if (params.bcl_id != null){
+         retrieve_miseq_run_from_s3(params.bcl_id)
+         input_csv_ch = retrieve_miseq_run_from_s3.out.tuple_ch
+      }
+      
+      else{
 	 //create input channel if not running s3 entrypoint
       input_csv_ch.ifEmpty(Channel.of(tuple(params.run_id,
                                          params.bcl_dir,
@@ -35,7 +37,7 @@ workflow IN_COUNTRY {
                                          params.study_name,
                                          params.read_group,
                                          params.library)))
-        
+      }  
       // process samplesheets manifest (necessary to get barcodes) and validate it
       input_csv_ch
          | map {it -> tuple (it[0], it[1])} // tuple(run_id, bcl_dir)
