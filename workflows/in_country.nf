@@ -30,13 +30,13 @@ workflow IN_COUNTRY {
       }
       
       else{
-	 //create input channel if not running s3 entrypoint
-      input_csv_ch.ifEmpty(Channel.of(tuple(params.run_id,
+	   //create input channel if not running s3 entrypoint
+      input_csv_ch = Channel.of(tuple(params.run_id,
                                          params.bcl_dir,
                                          params.lane,
                                          params.study_name,
                                          params.read_group,
-                                         params.library)))
+                                         params.library))
       }  
       // process samplesheets manifest (necessary to get barcodes) and validate it
       input_csv_ch
