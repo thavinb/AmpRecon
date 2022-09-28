@@ -34,11 +34,14 @@ workflow CRAM_TO_BAM {
         sample_tag_reference_files_ch // tuple (sample_id, ref_fasta, fasta_index, pannel_name)
 
     main:
-        // Process manifest
-        //intCSV_ch = load_intermediate_ch(intermediate_csv)
-
-        // Collate cram files by name
-        collate_alignments(cram_ch)
+        // --| DEBUG |--------------------------------------------------
+        if (!(params.DEBUG_takes_n_bams == null)){
+            collate_alignments(cram_ch.take(params.DEBUG_takes_n_bams))
+        }
+        // -------------------------------------------------------------
+        else {
+            collate_alignments(cram_ch)
+        }
 
         // Transform BAM file to pre-aligned state
         bam_reset(collate_alignments.out.sample_tag,
