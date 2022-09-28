@@ -48,6 +48,7 @@ out_mnf.close()
 workflow BCL_TO_CRAM {
     take:
         pre_process_input_ch
+        manifest
     main:
         // convert basecalls
         basecalls_conversion(pre_process_input_ch)
@@ -72,7 +73,8 @@ workflow BCL_TO_CRAM {
         rename_cram_fls(bam_to_cram.out.run_id,
                         bam_to_cram.out.metrics_bam_file,
                         bam_to_cram.out.cram_fls,
-                        params.lane
+                        params.lane,
+                        manifest
                         )
         cram_ch = rename_cram_fls.out // tuple (run_id, cram_file)
 

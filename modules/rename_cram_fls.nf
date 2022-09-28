@@ -6,12 +6,11 @@ process rename_cram_fls {
     label 'pythonBox'
     
     input:
-        //path(manifest_csv)
         val(run_id)
         path(bam_metrics)
         path(cram_fls)
         val(lane)
-
+        path(manifest_file)
     output:
         path("*-.cram")
 
@@ -19,11 +18,10 @@ process rename_cram_fls {
         // GAMBIARRA ALIERT ---------------------------------------------------
         // this expects the manifest to be at results dir before running this
         // proc
-        manifest_csv = "${params.results_dir}/${run_id}_manifest.csv"
         // ---------------------------------------------------------------------
         """
         renameSamplesCram.py \
-                --manifest ${manifest_csv} \
+                --manifest ${manifest_file} \
                 --bam_metrics ${bam_metrics} \
                 --cram_file ${cram_fls} \
                 --run_id ${run_id} \
