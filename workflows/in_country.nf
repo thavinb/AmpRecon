@@ -50,24 +50,26 @@ workflow IN_COUNTRY {
       step1_Input_ch = input_csv_ch.join(get_taglist_file.out)
 
       // Stage 1 - Step 1: BCL to CRAM
-      BCL_TO_CRAM(step1_Input_ch)
+      BCL_TO_CRAM(step1_Input_ch, make_samplesheet_manifest.out.manifest_file)
       cram_ch = BCL_TO_CRAM.out // tuple (sample_tag, cram_fl, run_id)
       
       //manifest_step1_1_Out_ch = BCL_TO_CRAM.out.multiMap { it -> run_id: it[0]
       //                                                           mnf: it[1]}
 
       // get the relevant sample data from the manifest
-      ref_tag = Channel.fromPath("${params.results_dir}/*_manifest.csv")
-                  | splitCsv(header: ["lims_id", "sims_id", "index", "ref",
+      ref_tag = make_samplesheet_manifest.out.manifest_file // WARN: this need to be removed, we should no rely on results dir
+                  | splitCsv(header: ["lims_id", "sims_id", "index", "assay",
                                      "barcode_sequence", "well", "plate"],
                                     skip: 18)
-                  | map { row -> tuple(row.lims_id, row.ref, row.index) }
+                  | map { row -> tuple(row.lims_id, row.assay, row.index) }
 
       // assign each sample tag the appropriate set of reference files -> tuple('lims_id#index_', 'path/to/reference/genome, 'path/to/reference/index/files')
+      
       ref_tag | combine(reference_ch,  by: 1)
-              | map{it -> tuple(it[1]+"#${it[2]}_", it[3], it[4])}
+              //| map{it -> tuple("${it[1]}#${it[2]}-${it[4]}", it[3], it[4])}
+              | map{it -> tuple("${params.run_id}_${params.lane}#${it[2]}_${it[1]}", it[3], it[4], it[0])}
               | set{sample_tag_reference_files_ch}
- 
+
       //csv_ch = manifest_step1_1_Out_ch.mnf
 
       // Stage 1 - Step 2: CRAM to BAM

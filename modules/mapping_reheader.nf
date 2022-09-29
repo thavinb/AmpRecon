@@ -16,7 +16,7 @@ process mapping_reheader {
 
     script:
         base_name=scrambled_bam.simpleName
-        output_file="${base_name}.reheadered.bam"
+        output_file="${sample_tag}.reheadered.bam"
         """
         set -e
         set -o pipefail

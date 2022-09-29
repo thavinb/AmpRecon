@@ -24,7 +24,6 @@ workflow COMMON {
             | multiMap {
                 sample_tag: it[0]
                 bam_file: it[1]
-                run_id: it[2]
                 }
             | set { realignment_In_ch }
         
@@ -32,7 +31,6 @@ workflow COMMON {
         REALIGNMENT(
                     realignment_In_ch.sample_tag,
                     realignment_In_ch.bam_file,
-                    realignment_In_ch.run_id,
                     sample_tag_reference_files_ch,
                     annotations_ch
                 )

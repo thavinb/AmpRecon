@@ -21,6 +21,11 @@ process basecalls_conversion {
         threads="${params.bambi_threads}"
         compression_level="${params.bambi_compression_level}"
         output_file="${run_id}_bambi_i2b.bam"
+        if (!(params.DEBUG_tile_limit == null)){
+            tile_limit_arg="--tile-limit=${params.DEBUG_tile_limit}"
+        } else {
+            tile_limit_arg=""
+        }
 
         """
         bambi i2b \
@@ -32,6 +37,6 @@ process basecalls_conversion {
             --threads=${threads} \
             --output-file=${output_file} \
             --output-fmt="bam" \
-            --compression-level=${compression_level}
+            --compression-level=${compression_level} ${tile_limit_arg}
         """
 }

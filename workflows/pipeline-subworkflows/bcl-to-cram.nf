@@ -48,6 +48,7 @@ out_mnf.close()
 workflow BCL_TO_CRAM {
     take:
         pre_process_input_ch
+        manifest
     main:
         // convert basecalls
         basecalls_conversion(pre_process_input_ch)
@@ -66,17 +67,23 @@ workflow BCL_TO_CRAM {
         //cram_ch = bam_to_cram.out
 
         // rename samples to samplesheet provided names
+        // on this step the pattern for file names are set as
+        // [run_id]_[lane]#[index]_[sample_name]
+        // pannels names should be added at CRAM_TO_BAM 
         rename_cram_fls(bam_to_cram.out.run_id,
                         bam_to_cram.out.metrics_bam_file,
-                        bam_to_cram.out.cram_fls
+                        bam_to_cram.out.cram_fls,
+                        params.lane,
+                        manifest
                         )
         cram_ch = rename_cram_fls.out // tuple (run_id, cram_file)
+
         // add new sample tag to cram_ch
         cram_ch
           | flatten()
-          | map { it -> tuple(it.simpleName, it, params.run_id) } 
+          | map { it -> tuple(it.simpleName, it, params.run_id) }
           | set {final_cram_ch} // tuple(sample_tag, cram_fl, run_id)
-
+        //final_cram_ch.first().view()
     emit:
         final_cram_ch // tuple( sample_tag, cram_fl, run_id)
         //manifest_out

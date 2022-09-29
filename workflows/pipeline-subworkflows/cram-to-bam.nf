@@ -30,15 +30,18 @@ workflow CRAM_TO_BAM {
     take:
         // manifest from step 1.1
         //intermediate_csv
-        cram_ch // tuple(sample_tag, cram_fl, run_id)
+        cram_ch // tuple(sample_tag, cram_fl, run_id) | sample_tag = [run_id]_[lane]#[index]_[sample_name]-
         sample_tag_reference_files_ch // tuple (sample_id, ref_fasta, fasta_index, pannel_name)
 
     main:
-        // Process manifest
-        //intCSV_ch = load_intermediate_ch(intermediate_csv)
-
-        // Collate cram files by name
-        collate_alignments(cram_ch)
+        // --| DEBUG |--------------------------------------------------
+        if (!(params.DEBUG_takes_n_bams == null)){
+            collate_alignments(cram_ch.take(params.DEBUG_takes_n_bams))
+        }
+        // -------------------------------------------------------------
+        else {
+            collate_alignments(cram_ch)
+        }
 
         // Transform BAM file to pre-aligned state
         bam_reset(collate_alignments.out.sample_tag,
@@ -55,12 +58,15 @@ workflow CRAM_TO_BAM {
                                         }
         bam_to_fastq(bam_to_fasq_In_ch.sample_tag,
                     bam_to_fasq_In_ch.bam_cliped_file)
-        
-        bam_to_fastq.out //tuple (sample_tag, fastq_files)
-              | join(sample_tag_reference_files_ch) //tuple (sample_tag, fastq_files, ref_fasta, fasta_index, pannel_name) 
-              | combine(Channel.of(params.run_id))
-              | unique()
-              | set{align_bam_In_ch} // tuple (sample_tag, fastq, fasta, fasta_idx, pannel_name, run_id)
+
+        // --- DEBUG -------------------------------
+        //sample_tag_reference_files_ch.first().view()
+        //bam_to_fastq.out.first().view()
+        // -----------------------------------------
+        bam_to_fastq.out //tuple (old_sample_tag, fastq_files)
+              // get pannel resource files
+              | join(sample_tag_reference_files_ch) //tuple (old_sample_tag, fastq_files, ref_fasta, fasta_index, pannel_name) 
+              | set{align_bam_In_ch} // tuple (new_sample_tag, fastq, fasta, fasta_idx, pannel_name, run_id)
 
         align_bam(align_bam_In_ch)
 
@@ -69,20 +75,26 @@ workflow CRAM_TO_BAM {
         scramble_sam_to_bam(align_bam.out.sample_tag,
                             align_bam.out.sam_file,
         )
-
+        
         // Merges the current headers with the old ones.
         // Keeping @SQ.*\tSN:([^\t]+) matching lines from the new header.
-        reheader_in_ch = scramble_sam_to_bam.out
+        reheader_in_ch = scramble_sam_to_bam.out 
                             | join(clip_adapters.out)
                             | join(sample_tag_reference_files_ch)
                             | map { it -> tuple(it[0], it[1], it[2],it[3],it[4]) } // remove pannel_name from channel
-
+        // --- DEBUG ------------------------
+        //scramble_sam_to_bam.out.first().view()
+        //clip_adapters.out.first().view()
+        //sample_tag_reference_files_ch.first().view()
+        // ----------------------------------
+        
         mapping_reheader(reheader_in_ch)
 
         // Split BAM rank pairs to single ranks per read
         bam_split(mapping_reheader.out)
 
         // Merge BAM files with same reads
+
         bam_merge_In_ch = bam_split.out.join(clip_adapters.out)
 
         bam_merge(bam_merge_In_ch)
@@ -96,7 +108,9 @@ workflow CRAM_TO_BAM {
                  alignment_filter.out.sample_tag,
                  alignment_filter.out.selected_bam)
         bam_ch = sort_bam.out
-
+        // --- DEBUG ----------
+        //bam_ch.first().view()
+        // --------------------
     emit:
         bam_ch
 }

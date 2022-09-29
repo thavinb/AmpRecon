@@ -14,11 +14,11 @@ process align_bam {
 
     output:
         val("${sample_tag}"), emit: sample_tag
-        path("${basename}_${pannel_name}.sam"), emit: sam_file
+        path("${sample_tag}_${pannel_name}-${ref_simplename}.sam"), emit: sam_file
 
     script:
         bwa=params.bwa
-        basename=fastq.simpleName
+        ref_simplename=reference_fasta.simpleName
         """
         bwa mem \
             -p \
@@ -27,7 +27,7 @@ process align_bam {
             -t ${params.bwa_num_threads} \
             "${reference_fasta}" \
             "${fastq}" \
-            > "${basename}_${pannel_name}.sam"
+            > "${sample_tag}_${pannel_name}-${ref_simplename}.sam"
         """
 }
 // --- | WARNING | ------------------------------------------------------------

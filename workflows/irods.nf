@@ -27,7 +27,7 @@ workflow IRODS {
         irods_ch.map{ it -> tuple (it[0], it[2]) }.set{irods_ch_noRef}
 
         // run step1.2b - pull from iRODS
-        PULL_FROM_IRODS(irods_ch_noRef, sample_id_ref_ch)//sample_id_ref_ch)
+        PULL_FROM_IRODS(irods_ch_noRef, sample_id_ref_ch)
 
         // prepare channel for step 1.3
         sample_tag_reference_files_ch = PULL_FROM_IRODS.out.sample_tag_reference_files_ch
