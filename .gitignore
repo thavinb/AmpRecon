@@ -6,6 +6,7 @@ ampseq-NF-pipeline/work
 *index*
 *LOCK*
 *.log
+*.sif
 *history*
 __init*
 .DS_Store
