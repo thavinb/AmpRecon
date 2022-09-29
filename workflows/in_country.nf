@@ -67,7 +67,7 @@ workflow IN_COUNTRY {
       
       ref_tag | combine(reference_ch,  by: 1)
               //| map{it -> tuple("${it[1]}#${it[2]}-${it[4]}", it[3], it[4])}
-              | map{it -> tuple("${params.run_id}_${params.lane}#${it[2]}_${it[1]}-", it[3], it[4], it[0])}
+              | map{it -> tuple("${params.run_id}_${params.lane}#${it[2]}_${it[1]}", it[3], it[4], it[0])}
               | set{sample_tag_reference_files_ch}
 
       //csv_ch = manifest_step1_1_Out_ch.mnf

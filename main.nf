@@ -41,6 +41,8 @@ log.info """
          --uuid             : ${params.uuid}
          --s3_bucket_input    : ${params.s3_bucket_input}
          --s3_bucket_output   : ${params.s3_bucket_output}
+         --DEBUG_tile_limit   : ${params.DEBUG_tile_limit}
+         --DEBUG_takes_n_bams : ${params.DEBUG_takes_n_bams}
         ------------------------------------------
          Runtime data:
         -------------------------------------------

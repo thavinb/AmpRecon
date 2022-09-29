@@ -98,7 +98,7 @@ def getNewName(cram_fl, mnf_df, run_id, lane):
     except(IndexError):
         print(f"WARN: no sample name for ${cram_fl}, it will be ignored")
         return None
-    new_name = f"{run_id}_{lane}#{cram_idx}_{sample_name}-.cram"
+    new_name = f"{run_id}_{lane}#{cram_idx}_{sample_name}.cram"
     return new_name
 
 # -----------------------------------------------------------------------------

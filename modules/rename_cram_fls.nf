@@ -12,13 +12,9 @@ process rename_cram_fls {
         val(lane)
         path(manifest_file)
     output:
-        path("*-.cram")
+        path("*_*#*_*.cram")
 
     script:
-        // GAMBIARRA ALIERT ---------------------------------------------------
-        // this expects the manifest to be at results dir before running this
-        // proc
-        // ---------------------------------------------------------------------
         """
         renameSamplesCram.py \
                 --manifest ${manifest_file} \
