@@ -5,6 +5,7 @@ nextflow.enable.dsl = 2
 
 // import subworkflows
 include { REALIGNMENT } from './pipeline-subworkflows/realignment.nf'
+include { GENOTYPING } from './pipeline-subworkflows/genotyping.nf'
 
 /*
 Here all workflows which are used regardless of the entry point (iRODS or inCountry)
@@ -35,5 +36,8 @@ workflow COMMON {
                 )
         
         // genotyping
-        // GENOTYPING()
+        GENOTYPING(
+                   REALIGNMENT.out,
+                   sample_tag_reference_files_ch
+                )
 }
