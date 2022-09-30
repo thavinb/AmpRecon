@@ -58,7 +58,7 @@ workflow PULL_FROM_IRODS {
 
   emit:
     bam_files_ch  // tuple(new_sample_id, bam_file)
-    sample_tag_reference_files_ch // tuple(new_sample_id, ref_files)
+    sample_tag_reference_files_ch // tuple(new_sample_id, fasta_file, ref_files, fasta_index, pannel_names )
 }
 
 /*
