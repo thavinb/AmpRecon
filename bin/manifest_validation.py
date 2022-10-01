@@ -50,7 +50,7 @@ class AmpliconManifestValidator:
                 self._validate_index_column(line)
                 self._validate_barcode(line)
 
-            if len(self.assay_set) < len(self.valid_assay_values):
+            if set(self.assay_set) != set(self.valid_assay_values):
                 raise self.InvalidValueError(
                     f"assay column does not contain all assay names: {', '.join(self.valid_assay_values)}"
                 )
