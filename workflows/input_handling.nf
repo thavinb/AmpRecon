@@ -27,7 +27,7 @@ def validate_parameters() {
     }
 
     if (params.bcl_dir == null && params.bcl_id == null){
-      log.error("Either a bcl directory or a uuid corresponding to a run directory in s3 must be specified.)
+      log.error("Either a bcl directory or a uuid corresponding to a run directory in s3 must be specified.")
       errors += 1
     } 
     else {
