@@ -20,7 +20,7 @@ workflow {
 	
 	test_ch = create_tuple(index, fastq, fasta)
 	align_bam(test_ch)
-	check_md5sum(align_bam.out.sam_file, "6b85be31d45052fd57ec8f4147b045e9")
+	check_md5sum(align_bam.out.sam_file, "632278662f857f3aff77bc76719d22d2")
 }
 
 

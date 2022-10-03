@@ -26,9 +26,10 @@ default:
     - sleep 10
 
 
-test_samtools_bam2cram:
+test_nextflow_modules:
   stage: test
   <<: *set_environment
   script:
    - tests/run_samtoolsbam2cram.sh
+   - tests/run_bwa_alignment.sh
 

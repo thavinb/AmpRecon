@@ -154,7 +154,7 @@ process download_test_fastq_from_s3 {
 
         script:
         """
-        curl https://amplicon-test-data.cog.sanger.ac.uk/${file_id}.fastq > test.fastq
+        curl https://amplicon-test-data.cog.sanger.ac.uk/${file_id}.test.fastq > test.fastq
         """
 
 
