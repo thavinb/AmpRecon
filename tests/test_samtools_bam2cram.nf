@@ -5,34 +5,23 @@ include { bam_find_adapter } from '../modules/bam_find_adapter.nf'
 include { download_bamadapterfind_output_from_s3 } from '../modules/download_test_data.nf'
 include { download_test_cram_from_s3 } from '../modules/download_test_data.nf'
 include { bam_to_cram } from '../modules/bam_to_cram.nf'
-include { compare_bam_subset } from '../modules/test_tools.nf'
+include { check_cram_md5sum } from '../modules/test_tools.nf'
 
 
 workflow {
 
-	input_bam = download_bamadapterfind_output_from_s3("21045")
-	test_ch = generate_test_channel(input_bam)
+	run_id = "21045"
+	download_bamadapterfind_output_from_s3("21045")
+	test_bam = download_bamadapterfind_output_from_s3.out.test_bam
+	test_metrics = download_bamadapterfind_output_from_s3.out.metrics	
 
-	under_test = bam_to_cram(test_ch)
-	test_bam = under_test.map { it -> it[1] }
-	reference_bam = download_test_cram_from_s3("21045_1_ref")
+	under_test = bam_to_cram(run_id, test_bam, test_metrics)
+	cram = under_test.cram_fls
 	
-	compare_bam_subset(test_bam, reference_bam)
+	check_cram_md5sum(cram, "06ffc3ed4974a1a34c39485bbef1381f") 
+		
 }
 
 
-process generate_test_channel {
 
-
-	input:
-	path(input_bam)
-
-	output:
-	tuple val(21045), path(input_bam)
-
-	script:
-	"""
-	echo
-	"""
-}
 
