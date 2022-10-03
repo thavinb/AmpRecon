@@ -70,8 +70,8 @@ def validate_parameters() {
 
   // check if all s3 required parameters were provided
   if (params.download_from_s3==true){
-    if (params.bcl_id == null){
-      log.error("A bcl_id parameter must be provided if download_from_s3 is set to '${params.download_from_s3}'.")
+    if (params.uuid == null){
+      log.error("A uuid parameter must be provided if download_from_s3 is set to '${params.download_from_s3}'.")
       errors += 1
     }
 
@@ -93,4 +93,3 @@ def validate_parameters() {
         exit 1
   }
 }
-
