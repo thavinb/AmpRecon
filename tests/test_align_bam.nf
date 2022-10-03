@@ -15,19 +15,31 @@ workflow {
 	ref = download_fasta_from_s3("Pf_GRC1v1.0")
 	fasta = ref.map { it -> it[0] }
 	fastq = download_test_fastq_from_s3("21045_1_ref")
-	sample_tag = "1"
-	run_id = "21045"
-
-	align_bam(sample_tag, fastq, fasta, index, run_id)
+	sample_tag = Channel.of("1")
+	panel_name = Channel.of("panel")
 	
-	test_sam= align_bam.out.sam_file
+	test_ch = create_tuple(index, fastq, fasta)
+	align_bam(test_ch)
+	check_md5sum(align_bam.out.sam_file, "6b85be31d45052fd57ec8f4147b045e9")
+}
 
-	check_md5sum(test_sam, "6b85be31d45052fd57ec8f4147b045e9") 
-		
 
-	
+process create_tuple {
 
+    input:
+    path(index)
+    path(fastq)
+    path(ref)
+
+    output:
+    tuple val("1"), path(fastq), path(ref), path(index), val("panel_name")
+
+    script:
+    """
+    echo 
+    """
 
 
 }
+ 
 
