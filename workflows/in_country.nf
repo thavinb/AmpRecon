@@ -24,8 +24,8 @@ workflow IN_COUNTRY {
    
    main:
       
-      if (params.uuid != null){
-         retrieve_miseq_run_from_s3(params.uuid)
+      if (params.s3_launch_uuid != null){
+         retrieve_miseq_run_from_s3(params.s3_launch_uuid)
          input_csv_ch = retrieve_miseq_run_from_s3.out.tuple_ch
       }
       
