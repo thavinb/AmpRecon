@@ -42,7 +42,8 @@ workflow IN_COUNTRY {
          | set { make_samplesheet_In_ch}
 
       make_samplesheet_manifest(make_samplesheet_In_ch)
-      validate_samplesheet_manifest(make_samplesheet_manifest.out.tuple)
+      panel_names_list = reference_ch.map{it -> it[1].toString()}.collect()
+      validate_samplesheet_manifest(make_samplesheet_manifest.out.tuple, panel_names_list)
 
       get_taglist_file_In_ch = input_csv_ch.join(validate_samplesheet_manifest.out)
       get_taglist_file(get_taglist_file_In_ch)
