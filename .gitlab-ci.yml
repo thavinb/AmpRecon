@@ -1,5 +1,6 @@
 stages:
   - test
+  - tag_on_merges
 
 default:
   image:
