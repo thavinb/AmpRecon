@@ -33,3 +33,18 @@ test_nextflow_modules:
    - tests/run_samtoolsbam2cram.sh
    - tests/run_bwa_alignment.sh
 
+run python unit tests:
+  stage: test
+  only:
+    - branches
+  <<: *set_environment
+  script:
+    - export DOCKER_IMAGE=gitlab-registry.internal.sanger.ac.uk/malariagen1/ampseq-pipeline/python-tasks:0.1
+    - echo "Running python unit tests in image ${DOCKER_IMAGE}..."
+    - docker run -v ${PWD}:/ampseq-pipeline "${DOCKER_IMAGE}" bash -c "pip3 install coverage; cd /ampseq-pipeline/tests; ./run_ci_python_test.sh"
+  coverage: /^TOTAL.+?(\d+\%)$/
+  artifacts:
+    when: always
+    paths:
+      - tests/htmlcov
+
