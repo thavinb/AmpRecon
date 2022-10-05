@@ -11,10 +11,8 @@ workflow {
 	test_sample_tag="123_1"
 
 	under_test = bam_to_fastq(test_sample_tag, test_bam)
-	test_fastq = under_test.fastq	
+	test_fastq = under_test.map { it -> it[1] }
 
-	reference_fastq = download_test_fastq_from_s3("21045_1_ref")
-	
 	check_md5sum(test_fastq, "869cb8be189b0a4b57f2ba634ff575a6") 
 
 }

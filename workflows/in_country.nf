@@ -23,19 +23,21 @@ workflow IN_COUNTRY {
       reference_ch // tuple ([fasta_file], pannel_name, [fasta_idxs])
    
    main:
-      if ( params.download_from_s3 == true & !file("${params.bcl_dir}").exists() ) {
-         retrieve_miseq_run_from_s3(params.bcl_id)
+      
+      if (params.s3_launch_uuid != null){
+         retrieve_miseq_run_from_s3(params.s3_launch_uuid)
          input_csv_ch = retrieve_miseq_run_from_s3.out.tuple_ch
-      } else {
-         // create input channel
-         input_csv_ch = Channel.of(tuple(params.run_id,
-                                 params.bcl_dir,
-                                 params.lane,
-                                 params.study_name,
-                                 params.read_group,
-                                 params.library))
       }
-
+      
+      else{
+	   //create input channel if not running s3 entrypoint
+      input_csv_ch = Channel.of(tuple(params.run_id,
+                                         params.bcl_dir,
+                                         params.lane,
+                                         params.study_name,
+                                         params.read_group,
+                                         params.library))
+      }  
       // process samplesheets manifest (necessary to get barcodes) and validate it
       input_csv_ch
          | map {it -> tuple (it[0], it[1])} // tuple(run_id, bcl_dir)
