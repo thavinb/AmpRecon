@@ -16,9 +16,9 @@ Using the default run options, ampseq performs the following tasks:
 - Alignment to full reference / amplicon panel ([realignment](https://gitlab.internal.sanger.ac.uk/malariagen1/ampseq-pipeline/-/blob/develop/workflows/pipeline-subworkflows/realignment.nf))
 - SNP calling using GATK4 tools haplotypecaller and genotypegvcf joint genotyping protocol ([genotyping](https://gatk.broadinstitute.org/hc/en-us/articles/360036194592-Getting-started-with-GATK4))
 
-# How to run? (quick and dirty)
+# Quick-start guide to Ampseq
 
-Assuming it is running on the farm
+Ampseq v0.0.1 is currently only available on Sanger's internal high performance compute (HPC) clusters with access to nfs storage.
 
 **1. Setup**
 
@@ -26,15 +26,7 @@ clone the repository
 ```
 git clone https://gitlab.internal.sanger.ac.uk/malariagen1/ampseq-pipeline.git
 cd ./ampseq-pipeine/
-
-```
-build the containers
-```
-cd containers/
-bash ./buildContainers.sh
-```
-
-WARN: Currently, containers must be built by the user and the pipeline assume the sif files are present at a specific location. Unfortunately, is not possible to build it on the farm, but it can be build on a local machine and copy the .sif files to the farm. The containers will be pull from a registry in the future, but for now that's what we have.  
+``` 
 
 **2. Run**
 
