@@ -1,6 +1,12 @@
 # AmpSeq-pipeline
 
-The AmpSeq pipeline is a new pipeline developed from scratch to be used by the Amplicon team ([add link]()). [add some background information of the Amplicon project]
+Ampseq is a bioinformatics analysis pipeline for amplicon sequencing data. Currently supporting alignment and SNP variant calling on paired-end Illumina sequencing data.
+
+The pipeline has capabilities to generate variant call format (VCF) files directly from a bcl directory, as well as starting from aligned CRAM formatted files stored in Sanger's internal file storage system (iRODS).  
+
+# Pipeline summary
+Using the default run options, ampseq performs the following tasks:
+- Converts a .bcl directory into a BAM formatted file ([bambi i2b](https://wtsi-npg.github.io/bambi/#i2b))
 
 # How to run? (quick and dirty)
 
