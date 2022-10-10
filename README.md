@@ -10,6 +10,9 @@ Using the default run options, ampseq performs the following tasks:
 - Decodes multiplexed BAM file ([bambi decode](https://wtsi-npg.github.io/bambi/#decode))
 - Sequencing adapter contamination removal ([biobambam2 bamadapterfind](https://manpages.ubuntu.com/manpages/focal/en/man1/bamadapterfind.1.html))
 - BAM to CRAM conversion ([samtools split](http://www.htslib.org/doc/samtools-split.html))
+- Data cleaning and QC processes prior to alignment and SNP calling ([cram to bam](https://gitlab.internal.sanger.ac.uk/malariagen1/ampseq-pipeline/-/blob/develop/workflows/pipeline-subworkflows/cram-to-bam.nf))
+- Alignment to full reference / amplicon panel ([realignment](https://gitlab.internal.sanger.ac.uk/malariagen1/ampseq-pipeline/-/blob/develop/workflows/pipeline-subworkflows/realignment.nf))
+- SNP calling using GATK4 tools haplotypecaller and genotypegvcf joint genotyping protocol ([genotyping](https://gatk.broadinstitute.org/hc/en-us/articles/360036194592-Getting-started-with-GATK4))
 
 # How to run? (quick and dirty)
 
