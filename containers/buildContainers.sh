@@ -38,5 +38,6 @@ singularity build --fakeroot bwa.sif SingularityFile_bwa
 echo "@ building pythonBox.sif"
 singularity build --fakeroot pythonBox.sif SingularityFile_pythonBox
 
-
+echo "@ building genotyping.sif"
+singularity build --fakeroot genotyping.sif SingularityFile_genotyping
 echo ":: DONE ::"
