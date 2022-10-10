@@ -18,8 +18,9 @@ process genotype_vcf_at_given_alleles {
     --overwrite
 
     */
-    label 'pf7_container'
-
+    //label 'pf7_container'
+    label 'genotyping'
+    
     container 'gitlab-registry.internal.sanger.ac.uk/sanger-pathogens/docker-images/genotype_vcf_at_given_alleles:0.0.3'
 
     input:

@@ -38,9 +38,10 @@ log.info """
          --pannels_settings   : ${params.pannels_settings}
          --download_from_s3   : ${params.download_from_s3}
          --upload_to_s3       : ${params.upload_to_s3}
-         --uuid             : ${params.uuid}
+         --s3_launch_uuid     : ${params.s3_launch_uuid}
          --s3_bucket_input    : ${params.s3_bucket_input}
          --s3_bucket_output   : ${params.s3_bucket_output}
+         --containers_dir     : ${params.containers_dir}
          --DEBUG_tile_limit   : ${params.DEBUG_tile_limit}
          --DEBUG_takes_n_bams : ${params.DEBUG_takes_n_bams}
         ------------------------------------------

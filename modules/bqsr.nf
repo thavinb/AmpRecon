@@ -6,8 +6,8 @@ params.gatk_print_reads_options=''
 params.gatk_base_recalibrator_options=''
 
 process bqsr {
-    label 'pf7_container'
-
+    //label 'pf7_container'
+    label 'genotyping'
     input:
         tuple val(sample_tag), path(bam_file), path(bam_index_file), path(reference_file), path(reference_index_file), path(reference_dict_file)
 
