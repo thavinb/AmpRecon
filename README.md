@@ -7,6 +7,9 @@ The pipeline has capabilities to generate variant call format (VCF) files direct
 # Pipeline summary
 Using the default run options, ampseq performs the following tasks:
 - Converts a .bcl directory into a BAM formatted file ([bambi i2b](https://wtsi-npg.github.io/bambi/#i2b))
+- Decodes multiplexed BAM file ([bambi decode](https://wtsi-npg.github.io/bambi/#decode))
+- Sequencing adapter contamination removal ([biobambam2 bamadapterfind](https://manpages.ubuntu.com/manpages/focal/en/man1/bamadapterfind.1.html))
+- BAM to CRAM conversion ([samtools split](http://www.htslib.org/doc/samtools-split.html))
 
 # How to run? (quick and dirty)
 
