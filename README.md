@@ -104,6 +104,17 @@ PFA_Spec,/path/to/pannels_resources/spec/,/path/to/PFA_Spec_v1.0.annotation.regi
 
 This pannel settings system aims to detach the experimental design from the inner works of the pipeline and make it easier to experiment with its key steps. A custom `.csv` can be set to the pipeline by using the flag `--pannels_settings`. If the user does not provide a `--pannels_settings`, the pipeline default behaviour is to rely on files available at the repo (check `pannels_resources` dir).
 
+### Containers
+
+By default, the pipeline will look for the containers at `/nfs/gsu/team335/ampseq-containers/`. Another directory to look for the containers can be set using the `--containers_dir` flag at the nextflow command line.
+All recipes for the ampseq containers can be found at the `containers/` directory of this repository. Use the following command to build it:
+
+```
+cd /path/to/ampseq-pipeline/containers/
+bash buildContainers.sh
+```
+
+The buildig process take a few minutes to finish and all necessary `.sif` files to run the pipeline will be generated.
 
 ## Current To Do [1]
 - [x] Core replica pipeline
@@ -112,7 +123,6 @@ This pannel settings system aims to detach the experimental design from the inne
 - [x] read counts
 - [x] Genotyping
 
-## Usage
 
 ## Support
 [who should someone talk to regarding the maintenance and usage of the pipeline]
