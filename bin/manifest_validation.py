@@ -10,6 +10,7 @@ from csv import DictReader
 def parse_args():
     parser = ArgumentParser()
     parser.add_argument("--manifest", "-m", help="path to manifest to validate")
+    parser.add_argument("--panel_names", "-p", type=str, nargs="*", help="list of panel names to check for")
     return parser.parse_args()
 
 
@@ -28,7 +29,7 @@ class AmpliconManifestValidator:
         self.base = os.path.basename(self.path)
         self.reader = None
         self.assay_set = set()
-        self.valid_assay_values = ["PFA_GRC1_v1.0", "PFA_GRC2_v1.0", "PFA_Spec"]
+        self.valid_assay_values = args.panel_names
         self._fileio = None
 
     def __repr__(self):
@@ -49,9 +50,9 @@ class AmpliconManifestValidator:
                 self._validate_index_column(line)
                 self._validate_barcode(line)
 
-            if len(self.assay_set) < 3:
+            if self.assay_set != set(self.valid_assay_values):
                 raise self.InvalidValueError(
-                    f"assay column does not contain all assayerences: {', '.join(self.valid_assay_values)}"
+                    f"assay column does not contain all assay names: {', '.join(self.valid_assay_values)}"
                 )
         except (
             self.InvalidValueError,

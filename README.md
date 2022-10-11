@@ -1,10 +1,24 @@
 # AmpSeq-pipeline
 
-The AmpSeq pipeline is a new pipeline developed from scratch to be used by the Amplicon team ([add link]()). [add some background information of the Amplicon project]
+Ampseq is a bioinformatics analysis pipeline for amplicon sequencing data. Currently supporting alignment and SNP variant calling on paired-end Illumina sequencing data.
 
-# How to run? (quick and dirty)
+The pipeline has capabilities to generate variant call format (VCF) files directly from a bcl directory, as well as starting from aligned CRAM formatted files stored in Sanger's internal file storage system (iRODS). Our pipeline allows configurable reference handling, allowing high-throughput processing of data against multiple amplicon panels in a single pipeline run.
 
-Assuming it is running on the farm
+We opted for industry standard Burrows-Wheeler Aligner (BWA) coupled to GATK4's haplotypecaller and genotypegvcf to call variants.  
+
+# Pipeline summary
+Using the default run options, ampseq performs the following tasks:
+- Converts a .bcl directory into a BAM formatted file ([bambi i2b](https://wtsi-npg.github.io/bambi/#i2b))
+- Decodes multiplexed BAM file ([bambi decode](https://wtsi-npg.github.io/bambi/#decode))
+- Sequencing adapter contamination removal ([biobambam2 bamadapterfind](https://manpages.ubuntu.com/manpages/focal/en/man1/bamadapterfind.1.html))
+- BAM to CRAM conversion ([samtools split](http://www.htslib.org/doc/samtools-split.html))
+- Data cleaning and QC processes prior to alignment and SNP calling ([cram to bam](https://gitlab.internal.sanger.ac.uk/malariagen1/ampseq-pipeline/-/blob/develop/workflows/pipeline-subworkflows/cram-to-bam.nf))
+- Alignment to full reference / amplicon panel ([realignment](https://gitlab.internal.sanger.ac.uk/malariagen1/ampseq-pipeline/-/blob/develop/workflows/pipeline-subworkflows/realignment.nf))
+- SNP calling using GATK4 tools haplotypecaller and genotypegvcf joint genotyping protocol ([genotyping](https://gatk.broadinstitute.org/hc/en-us/articles/360036194592-Getting-started-with-GATK4))
+
+# Quick-start guide to Ampseq
+
+Ampseq v0.0.1 is currently only available on Sanger's internal high performance compute (HPC) clusters with access to nfs storage.
 
 **1. Setup**
 
@@ -12,15 +26,7 @@ clone the repository
 ```
 git clone https://gitlab.internal.sanger.ac.uk/malariagen1/ampseq-pipeline.git
 cd ./ampseq-pipeine/
-
-```
-build the containers
-```
-cd containers/
-bash ./buildContainers.sh
-```
-
-WARN: Currently, containers must be built by the user and the pipeline assume the sif files are present at a specific location. Unfortunately, is not possible to build it on the farm, but it can be build on a local machine and copy the .sif files to the farm. The containers will be pull from a registry in the future, but for now that's what we have.  
+``` 
 
 **2. Run**
 
@@ -72,22 +78,51 @@ An example of an irods manifest tsv is provided at [add path to example]
 
 To use **S3**
 ```
-download_from_s3: <bool> sets if needs to download data from a S3 bucket (in-country entry point)
-uuid: <str> a universally unique id which will be used to fetch data from s3
+s3_launch_uuid : <str> a universally unique id which will be used to fetch data from s3, if is not provided, the pipeline will not retrieve miseq runs from s3
 s3_bucket_input: <str> s3 bucket name to fetch data from
 
 upload_to_s3:<bool> sets if needs to upload output data to an s3 bucket
 s3_bucket_output:<str> s3 bucket name to upload data to
 ```
 
+### Pannel Settings
+The ampseq pipeline relies on a `pannels_settings.csv` to define which files it should use on key pipeline steps according to the pannel name provided for a given sample.
+Currently, this `.csv` should look like the example bellow:
+
+```
+pannel_name,aligns_to,maps_to_regions_of
+PFA_GRC1_v1.0,/path/to/pannels_resources/grc1/,/path/to/PFA_GRC1_v1.0.annotation.regions.txt
+PFA_GRC2_v1.0,/path/to/pannels_resources/grc2/,/path/to/PFA_GRC2_v1.0.annotation.regions.txt
+PFA_Spec,/path/to/pannels_resources/spec/,/path/to/PFA_Spec_v1.0.annotation.regions.txt
+```
+
+* `pannel_name` : Defines the string it should look for a given pannel, this strings should be the same provided by the user (via samplesheet or irods_manifes).
+
+* `aligns_to` : Defines which directory it should look to get the `.fasta` (and associated index files) to use for the alignment, namely  `IN_COUNTRY:CRAM_TO_BAM:align_bam` and `COMMON:REALIGNMENT:aligns_bam`.
+
+* `maps_to_regions_of` : Defines which annotation file should use for the `COMMON:REALIGNMENT:read_count_per_region`.
+
+This pannel settings system aims to detach the experimental design from the inner works of the pipeline and make it easier to experiment with its key steps. A custom `.csv` can be set to the pipeline by using the flag `--pannels_settings`. If the user does not provide a `--pannels_settings`, the pipeline default behaviour is to rely on files available at the repo (check `pannels_resources` dir).
+
+### Containers
+
+By default, the pipeline will look for the containers at `/nfs/gsu/team335/ampseq-containers/`. Another directory to look for the containers can be set using the `--containers_dir` flag at the nextflow command line.
+All recipes for the ampseq containers can be found at the `containers/` directory of this repository. Use the following command to build it:
+
+```
+cd /path/to/ampseq-pipeline/containers/
+bash buildContainers.sh
+```
+
+The buildig process take a few minutes to finish and all necessary `.sif` files to run the pipeline will be generated.
+
 ## Current To Do [1]
 - [x] Core replica pipeline
 - [x] iRODS
 - [x] S3 upload / download
 - [x] read counts
-- [ ] Genotyping
+- [x] Genotyping
 
-## Usage
 
 ## Support
 [who should someone talk to regarding the maintenance and usage of the pipeline]

@@ -13,3 +13,6 @@ __init*
 .idea*
 sandbox/*
 ampseq-NF-pipeline/*
+work/*
+output/*
+*.img
