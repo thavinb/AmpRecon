@@ -85,12 +85,32 @@ upload_to_s3:<bool> sets if needs to upload output data to an s3 bucket
 s3_bucket_output:<str> s3 bucket name to upload data to
 ```
 
+### Pannel Settings
+The ampseq pipeline relies on a `pannels_settings.csv` to define which files it should use on key pipeline steps according to the pannel name provided for a given sample.
+Currently, this `.csv` should look like the example bellow:
+
+```
+pannel_name,aligns_to,maps_to_regions_of
+PFA_GRC1_v1.0,/path/to/pannels_resources/grc1/,/path/to/PFA_GRC1_v1.0.annotation.regions.txt
+PFA_GRC2_v1.0,/path/to/pannels_resources/grc2/,/path/to/PFA_GRC2_v1.0.annotation.regions.txt
+PFA_Spec,/path/to/pannels_resources/spec/,/path/to/PFA_Spec_v1.0.annotation.regions.txt
+```
+
+* `pannel_name` : Defines the string it should look for a given pannel, this strings should be the same provided by the user (via samplesheet or irods_manifes).
+
+* `aligns_to` : Defines which directory it should look to get the `.fasta` (and associated index files) to use for the alignment, namely  `IN_COUNTRY:CRAM_TO_BAM:align_bam` and `COMMON:REALIGNMENT:aligns_bam`.
+
+* `maps_to_regions_of` : Defines which annotation file should use for the `COMMON:REALIGNMENT:read_count_per_region`.
+
+This pannel settings system aims to detach the experimental design from the inner works of the pipeline and make it easier to experiment with its key steps. A custom `.csv` can be set to the pipeline by using the flag `--pannels_settings`. If the user does not provide a `--pannels_settings`, the pipeline default behaviour is to rely on files available at the repo (check `pannels_resources` dir).
+
+
 ## Current To Do [1]
 - [x] Core replica pipeline
 - [x] iRODS
 - [x] S3 upload / download
 - [x] read counts
-- [ ] Genotyping
+- [x] Genotyping
 
 ## Usage
 
