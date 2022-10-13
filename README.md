@@ -81,13 +81,13 @@ To use **S3**
 s3_launch_uuid : <str> a universally unique id which will be used to fetch data from s3, if is not provided, the pipeline will not retrieve miseq runs from s3
 s3_bucket_input: <str> s3 bucket name to fetch data from
 
-upload_to_s3:<bool> sets if needs to upload output data to an s3 bucket
-s3_bucket_output:<str> s3 bucket name to upload data to
+upload_to_s3: <bool> sets if needs to upload output data to an s3 bucket
+s3_bucket_output: <str> s3 bucket name to upload data to
 ```
 
 ### Pannel Settings
 The ampseq pipeline relies on a `pannels_settings.csv` to define which files it should use on key pipeline steps according to the pannel name provided for a given sample.
-Currently, this `.csv` should look like the example bellow:
+Currently, this `.csv` should look like the example below:
 
 ```
 pannel_name,aligns_to,maps_to_regions_of
@@ -96,13 +96,27 @@ PFA_GRC2_v1.0,/path/to/pannels_resources/grc2/,/path/to/PFA_GRC2_v1.0.annotation
 PFA_Spec,/path/to/pannels_resources/spec/,/path/to/PFA_Spec_v1.0.annotation.regions.txt
 ```
 
-* `pannel_name` : Defines the string it should look for a given pannel, this strings should be the same provided by the user (via samplesheet or irods_manifes).
+* `pannel_name` : Defines the string it should look for a given pannel, this strings should be the same provided by the user (via samplesheet or irods_manifest).
 
 * `aligns_to` : Defines which directory it should look to get the `.fasta` (and associated index files) to use for the alignment, namely  `IN_COUNTRY:CRAM_TO_BAM:align_bam` and `COMMON:REALIGNMENT:aligns_bam`.
 
 * `maps_to_regions_of` : Defines which annotation file should use for the `COMMON:REALIGNMENT:read_count_per_region`.
 
 This pannel settings system aims to detach the experimental design from the inner works of the pipeline and make it easier to experiment with its key steps. A custom `.csv` can be set to the pipeline by using the flag `--pannels_settings`. If the user does not provide a `--pannels_settings`, the pipeline default behaviour is to rely on files available at the repo (check `pannels_resources` dir).
+
+### Genotyping Settings
+The genotyping portion of the ampseq pipeline uses a variety of parameters defined in a `methods.config` file.
+The following parameters should be present within this file:
+
+```
+gatk3: <str> path to GATK3 GenomeAnalysisTK.jar file.
+combined_vcf_file1: <str> known SNPs database file. Used to prevent BaseRecalibrator from using regions surrounding polymorphisms.
+combined_vcf_file2: <str> known SNPs database file. Used to prevent BaseRecalibrator from using regions surrounding polymorphisms.
+combined_vcf_file3: <str> known SNPs database file. Used to prevent BaseRecalibrator from using regions surrounding polymorphisms.
+conserved_bed_file: <str> file containing genomic intervals the GATK BaseRecalibrator command operates over in the bqsr.nf process.
+gatk_base_recalibrator_options: <str> input settings containing the supplied known sites files paths and intervals file path for the BaseRecalibrator command in the bqsr.nf process.
+alleles_fn: <str> file containing genomic intervals the GATK GenotypeGVCFs command operates over in the genotype_vcf_at_given_alleles.nf process.
+```
 
 ### Containers
 
@@ -114,14 +128,13 @@ cd /path/to/ampseq-pipeline/containers/
 bash buildContainers.sh
 ```
 
-The buildig process take a few minutes to finish and all necessary `.sif` files to run the pipeline will be generated.
+The building process take a few minutes to finish and all necessary `.sif` files to run the pipeline will be generated.
 
 ## Current To Do [1]
 - [x] Core replica pipeline
 - [x] iRODS
 - [x] S3 upload / download
 - [x] read counts
-- [x] Genotyping
 
 
 ## Support
