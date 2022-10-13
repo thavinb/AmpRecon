@@ -63,11 +63,13 @@ process download_bamadapterfind_output_from_s3 {
 	val(bcl_id)
 
 	output:
-	path("*.bam")
+	path("*.bam"), emit: test_bam
+	path("*.metrics"), emit: metrics
 
 	script:
 	"""
-	curl https://amplicon-test-data.cog.sanger.ac.uk/${bcl_id}.adapters.bam > test.adapters.bam
+	curl https://amplicon-test-data.cog.sanger.ac.uk/${bcl_id}.adapters.test.bam > test.adapters.bam
+	curl https://amplicon-test-data.cog.sanger.ac.uk/${bcl_id}.subset.metrics > test.metrics
 	"""
 
 }
@@ -152,7 +154,7 @@ process download_test_fastq_from_s3 {
 
         script:
         """
-        curl https://amplicon-test-data.cog.sanger.ac.uk/${file_id}.fastq > test.fastq
+        curl https://amplicon-test-data.cog.sanger.ac.uk/${file_id}.test.fastq > test.fastq
         """
 
 
