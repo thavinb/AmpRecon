@@ -59,24 +59,64 @@ log.info """
 def printHelp() {
   log.info """
   Usage:
-    nextflow run main.nf 
+    (irods)
+    nextflow run /path/to/ampseq-pipeline/main.nf -profile sanger_lsf 
+        --execution_mode irods
+        --irods_manifest ./input/irods_smallset.tsv
+
+    (incountry)
+    nextflow /path/to/ampseq-pipeline/main.nf -profile sanger_lsf
+                --execution_mode in-country --run_id 21045
+                --bcl_dir /path/to/my_bcl_dir/ --lane 1
+                --study_name test --read_group rg_test --library lib
 
   Description:
-    (temporary - honest - description)
-    Ampseq amazing brand new pipeline built from the ground up to be awesome.
+    Ampseq is a bioinformatics analysis pipeline for amplicon sequencing data.
+    Currently supporting alignment and SNP variant calling on paired-end Illumina sequencing data.
 
-    A input csv containing my run_id, bcl_dir, study_name, read_group, library,
-    and reference fasta path is necessary to run the ampseq pipeline from step 0
-
-    *for a complete description of input files check [LINK AMPSEQ]
+    *for a complete description of input files and parameters check:
+    https://gitlab.internal.sanger.ac.uk/malariagen1/ampseq-pipeline/
 
   Options:
     Inputs:
-      --irods_manifest (tab-delimited file containing rows of WG_lane and id_run data for CRAM files on iRODS)
+      (required)
+      --exectution_mode : sets the entry point for the pipeline ("irods" or "in-country")
+      
+      (incountry required)
+      --run_id : id to be used for the batch of data to be processed
+      --bcl_dir: path to a miseq directory
+      --lane : <str>
+      --study_name : <str>
+      --read_group : <str>
+      --library : <str>
 
+      (irods required)
+      --irods_manifest : an tsv containing information of irods data to fetch
+      
+      (if s3)
+      --s3_launch_uuid : <str> a universally unique id which will be used to fetch data from s3, if is not provided, the pipeline will not retrieve miseq runs from s3
+      --s3_bucket_input : <str> s3 bucket name to fetch data from
+      --upload_to_s3 : <bool> sets if needs to upload output data to an s3 bucket
+      --s3_bucket_output : <str> s3 bucket name to upload data to
+
+    Settings:
+      --results_dir (Results directory. Default: $launchDir/output/)
+      --pannels_settings : <path>, path to pannel_settings.csv
+      --containers_dir : <path>, path to a dir where the containers are located
+      (genotyping)
+      --combined_vcf_file1 : <path>
+      --combined_vcf_file2 : <path>
+      --combined_vcf_file3 : <path>
+      --gatk_base_recalibrator_options: <str>
+      --haplotype_caller_options : <str>
+      --alleles_fn : <path>
+    
     Additional options:
       --help (Prints this help message. Default: false)
-      --results_dir (Results directory. Default: $launchDir/output/)
+    
+    Profiles:
+      sanger_lsf : run the pipeline on farm5 lsf (recommended)
+      sanger_default : run the pipeline on farm5 local settings (only for development)
    """.stripIndent()
 }
 
@@ -84,10 +124,10 @@ def printHelp() {
 workflow {
   // --- Print help if requested -------------------------------------------
   // Show help message
-  //if (params.help) {
-  //    printHelp()
-  //    exit 0
-  //}
+  if (params.help) {
+      printHelp()
+      exit 0
+  }
 
   // check parameters provided
   validate_parameters()
