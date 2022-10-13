@@ -50,7 +50,7 @@ tag code on merge to develop:
   tags:
     - openstack-autoscale-theta
   script:
-    - git config --local user.name "${GITLAB_USER_LOGIN}"
+    - git config --local user.name "${GITLAB_USER_ID}"
     - git config --local user.email "${GITLAB_USER_EMAIL}"
     - export UUID=$(cat /proc/sys/kernel/random/uuid)
     - git checkout -b $UUID
