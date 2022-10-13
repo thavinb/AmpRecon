@@ -104,13 +104,14 @@ def printHelp() {
       --pannels_settings : <path>, path to pannel_settings.csv
       --containers_dir : <path>, path to a dir where the containers are located
       (genotyping)
-      --combined_vcf_file1 : <path>
-      --combined_vcf_file2 : <path>
-      --combined_vcf_file3 : <path>
-      --gatk_base_recalibrator_options: <str>
-      --haplotype_caller_options : <str>
-      --alleles_fn : <path>
-    
+      --gatk3: <str> path to GATK3 GenomeAnalysisTK.jar file.
+      --combined_vcf_file1 : <path> known SNPs database file. Used to prevent BaseRecalibrator from using regions surrounding polymorphisms.
+      --combined_vcf_file2 : <path> known SNPs database file. Used to prevent BaseRecalibrator from using regions surrounding polymorphisms.
+      --combined_vcf_file3 : <path> known SNPs database file. Used to prevent BaseRecalibrator from using regions surrounding polymorphisms.
+      --conserved_bed_file : <path> file containing genomic intervals the GATK BaseRecalibrator command operates over in the bqsr.nf process.
+      --gatk_base_recalibrator_options : <str> input settings containing the supplied known sites files paths and intervals file path for the BaseRecalibrator command in the bqsr.nf process.
+      --alleles_fn : <path> file containing genomic intervals the GATK GenotypeGVCFs command operates over in the genotype_vcf_at_given_alleles.nf process.
+
     Additional options:
       --help (Prints this help message. Default: false)
     
