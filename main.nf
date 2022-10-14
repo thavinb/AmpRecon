@@ -100,9 +100,10 @@ def printHelp() {
       --s3_bucket_output : <str> s3 bucket name to upload data to
 
     Settings:
-      --results_dir (Results directory. Default: $launchDir/output/)
+      --results_dir : <path>, output directory (Default: $launchDir/output/)
       --pannels_settings : <path>, path to pannel_settings.csv
       --containers_dir : <path>, path to a dir where the containers are located
+
       (genotyping)
       --gatk3: <str> path to GATK3 GenomeAnalysisTK.jar file.
       --combined_vcf_file1 : <path> known SNPs database file. Used to prevent BaseRecalibrator from using regions surrounding polymorphisms.

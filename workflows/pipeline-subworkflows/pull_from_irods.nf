@@ -29,18 +29,13 @@ workflow PULL_FROM_IRODS {
               // associate with new_sample_ids
               | join (newSample_WgLn_ch)  // tuple(WG_lane, fasta_file, fasta_idx_files, pannel_name, new_sample_id)
               | set {old_new_and_pannel_ch}
-    
-    // --- DEBUG -------------------------
-    //newSample_WgLn_ch.first().view()
-    //old_new_and_pannel_ch.first().view()
-    // -----------------------------------
-    
+
     old_new_and_pannel_ch
               | map { it -> tuple("${it[4]}${it[3]}", it[1], it[2], it[3],)} // tuple( new_sample_id_pannel, fasta_file, fasta_idx_files, pannel_name)
               | set { sample_tag_reference_files_ch }
     
     // add new_sample_id to irods_retrieve
-    //add new id key [WGlane]_[sample_id]-[pannel]
+    // add new id key [WGlane]_[sample_id]-[pannel]
     irods_manifest_parser.out
         | map {it -> tuple(it[2], "${it[2]}_${it[0]}_", it[1])}//, it[2])} // tuple (WG_lane, [WG_lane]_[irods_sample_id]-, irods_flpath)
         | join (old_new_and_pannel_ch) // tuple (WG_lane, new_sample_id, irods_flpath, fasta_file, fasta_idx_files, pannel_name, new_sample_id)

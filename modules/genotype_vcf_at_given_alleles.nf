@@ -28,7 +28,6 @@ process genotype_vcf_at_given_alleles {
 
     output:
         tuple val(sample_tag), path("${output_vcf_gz}"), emit: vcf_file
-//        tuple val(sample_tag), path("${output_vcf_gz_index}"), emit: vcf_file_index
 
     script:
         base_name_ref=gvcf_fn.getSimpleName()

@@ -12,7 +12,7 @@ process scramble_sam_to_bam {
         path(sam_file)
 
     output:
-        tuple val(tag), path("${bam_file}")//, path(ref_fasta_file), path(ref_fasta_dct)
+        tuple val(tag), path("${bam_file}")
 
     script:
         base_name=sam_file.getBaseName()
@@ -56,18 +56,5 @@ process scramble_cram_to_bam {
             < "${cram_file}" \
             > "${bam_file}"
         """
-        /*
-        """
-        ${scramble} \
-            -t ${params.scramble_cram_to_bam_threads} \
-            ${params.scramble_cram_to_bam_compression_level} \
-            -I cram \
-            -O bam \
-            -r "${reference_file}" \
-            -e \
-            < "${cram_file}" \
-            > "${bam_file}"
-        """
-        */
 }
 

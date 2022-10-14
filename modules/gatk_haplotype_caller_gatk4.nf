@@ -2,6 +2,7 @@ params.samtools = 'samtools'
 params.bgzip = 'bgzip'
 params.gatk = 'gatk'
 params.tabix = 'tabix'
+params.java='java'
 
 params.gatk_haplotype_caller_gatk4_contamination = 0
 params.gatk_haplotype_caller_gatk4_interval_file = ''
