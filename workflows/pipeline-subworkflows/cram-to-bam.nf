@@ -16,15 +16,6 @@ include { bam_merge } from '../../modules/bam_merge.nf'
 include { alignment_filter } from '../../modules/alignment_filter.nf'
 include { sort_bam } from '../../modules/sort_bam.nf'
 
-def load_intermediate_ch(csv_ch){
-  // if not set as parameter, assumes is a channel containing a path for the csv
-  intermediateCSV_ch = csv_ch |
-                splitCsv(header:true) |
-                multiMap {row -> run_id:row.run_id
-                                 cram_fl:row.cram_fl
-                                 sample_tag:row.sample_tag}
-  return intermediateCSV_ch
-}
 
 workflow CRAM_TO_BAM {
     take:
