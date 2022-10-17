@@ -26,7 +26,7 @@ def validate_parameters() {
       errors += 1
     }
 
-    if (params.bcl_dir == null && params.bcl_id == null){
+    if (params.bcl_dir == null && params.s3_launch_uuid == null){
       log.error("Either a bcl directory or a uuid corresponding to a run directory in s3 must be specified.")
       errors += 1
     } 
@@ -69,12 +69,7 @@ def validate_parameters() {
   }
 
   // check if all s3 required parameters were provided
-  if (params.download_from_s3==true){
-    if (params.uuid == null){
-      log.error("A uuid parameter must be provided if download_from_s3 is set to '${params.download_from_s3}'.")
-      errors += 1
-    }
-
+  if (!(params.s3_launch_uuid==null)){
     if (params.s3_bucket_input == null){
       log.error("A s3_bucket_input parameter must be provided if download_from_s3 is set to '${params.download_from_s3}'.")
       errors += 1
