@@ -130,13 +130,6 @@ bash buildContainers.sh
 
 The building process take a few minutes to finish and all necessary `.sif` files to run the pipeline will be generated.
 
-## Current To Do [1]
-- [x] Core replica pipeline
-- [x] iRODS
-- [x] S3 upload / download
-- [x] read counts
-
-
 ## Support
 [who should someone talk to regarding the maintenance and usage of the pipeline]
 
