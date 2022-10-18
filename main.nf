@@ -38,7 +38,7 @@ log.info """
          --pannels_settings   : ${params.pannels_settings}
          --download_from_s3   : ${params.download_from_s3}
          --upload_to_s3       : ${params.upload_to_s3}
-         --s3_launch_uuid     : ${params.s3_launch_uuid}
+         --s3_uuid            : ${params.s3_uuid}
          --s3_bucket_input    : ${params.s3_bucket_input}
          --s3_bucket_output   : ${params.s3_bucket_output}
          --containers_dir     : ${params.containers_dir}
@@ -94,7 +94,7 @@ def printHelp() {
       --irods_manifest : an tsv containing information of irods data to fetch
       
       (if s3)
-      --s3_launch_uuid : <str> a universally unique id which will be used to fetch data from s3, if is not provided, the pipeline will not retrieve miseq runs from s3
+      --s3_uuid : <str> a universally unique id which will be used to fetch data from s3, if is not provided, the pipeline will not retrieve miseq runs from s3
       --s3_bucket_input : <str> s3 bucket name to fetch data from
       --upload_to_s3 : <bool> sets if needs to upload output data to an s3 bucket
       --s3_bucket_output : <str> s3 bucket name to upload data to
