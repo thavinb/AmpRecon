@@ -24,8 +24,8 @@ workflow IN_COUNTRY {
    
    main:
       
-      if (params.s3_launch_uuid != null){
-         retrieve_miseq_run_from_s3(params.s3_launch_uuid)
+      if (params.s3_bucket_input != null){
+         retrieve_miseq_run_from_s3(params.s3_uuid)
          input_csv_ch = retrieve_miseq_run_from_s3.out.tuple_ch
       }
       
@@ -37,7 +37,7 @@ workflow IN_COUNTRY {
                                          params.study_name,
                                          params.read_group,
                                          params.library))
-      }  
+      }
       // process samplesheets manifest (necessary to get barcodes) and validate it
       input_csv_ch
          | map {it -> tuple (it[0], it[1])} // tuple(run_id, bcl_dir)
