@@ -98,5 +98,6 @@ try:
     print(":: DONE ::")
 
 except(AssertionError):
-    print("ERRORS WERE FOUND!")
+    print("ERRORS WERE FOUND AT IRODS MANIFEST!")
+    print("FIX IT AND TRY AGAIN")
     exit(1)
