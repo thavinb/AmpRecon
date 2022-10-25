@@ -84,6 +84,18 @@ s3_bucket_input: <str> s3 bucket name to fetch data from, if is not provided, th
 upload_to_s3: <bool> sets if needs to upload output data to an s3 bucket
 s3_bucket_output: <str> s3 bucket name to upload data to
 ```
+### iRODS Manifest
+The iRODS must be a `.tsv` and the pipeline expects to find the following columns headers:
+
+* `sample_id`: a sample identification "tag";
+
+* `primer_panel`: primer pannel name to be used (must match exactly what is provided at `pannel_name` of the `pannels_settings.csv`);
+
+* `irods_path`: full valid iRODS path for a `.cram` file (ex: `/seq/illumina/runs/38/38344/lane2/plex1/38344_2#1.cram`).
+
+The `.tsv` may have more columns at any order, but those are the only ones which will be considered.
+The pipeline builds an "internal id" set as `<cram_filename>_<sample_id>_<primer_panel>`, therefore, the pipeline will check if any combination of those values at the manifest are unique. If not, an error will be raised and the pipeline run will stop.
+An example of a valid manifest can be found at this repository (`test_data/irods_mnf.tsv`).
 
 ### Pannel Settings
 The ampseq pipeline relies on a `pannels_settings.csv` to define which files it should use on key pipeline steps according to the pannel name provided for a given sample.
