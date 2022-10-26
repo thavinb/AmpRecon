@@ -39,16 +39,13 @@ workflow PULL_FROM_IRODS {
         | map {it -> tuple("${it[1]}${it[5]}", it[2])}//, it[3])}
         | set {irods_retrieve_In_ch} // tuple (new_sample_id_pannel, irods_flpath)
     
-    irods_retrieve_In_ch.view()
     // Retrieve CRAM files from iRODS
     irods_retrieve(irods_retrieve_In_ch)
-    irods_retrieve.out.first().view()
     // Convert iRODS CRAM files to BAM format
     scramble_cram_to_bam(irods_retrieve.out)
     bam_files_ch = scramble_cram_to_bam.out
 
     // --------------------------------------------------------------------
-    bam_files_ch.first().view()
   emit:
     bam_files_ch  // tuple(new_sample_id, bam_file)
     sample_tag_reference_files_ch // tuple(new_sample_id, fasta_file, ref_files, fasta_index, pannel_names )
