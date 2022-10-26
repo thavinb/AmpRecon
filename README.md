@@ -87,7 +87,7 @@ s3_bucket_output: <str> s3 bucket name to upload data to
 ### iRODS Manifest
 The iRODS must be a `.tsv` and the pipeline expects to find the following columns headers:
 
-* `sample_id`: a sample identification "tag";
+* `sample_id`: a sample identification "tag", which is used on the pipeline output file names;
 
 * `primer_panel`: primer pannel name to be used (must match exactly what is provided at `pannel_name` of the `pannels_settings.csv`);
 
