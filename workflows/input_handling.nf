@@ -1,3 +1,5 @@
+include {validate_irods_mnf} from '../modules/validate_irods_mnf.nf'
+
 def validate_parameters() {
 
   def errors = 0
@@ -65,7 +67,11 @@ def validate_parameters() {
         log.error("The irods manifest file specified (${params.irods_manifest}) does not exist.")
         errors += 1
       }
+      else {
+          validate_irods_mnf(params.irods_manifest, params.pannels_settings)
+      }
     }
+
   }
 
   // check if all s3 required parameters were provided
