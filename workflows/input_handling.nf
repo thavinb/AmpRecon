@@ -84,7 +84,7 @@ def validate_parameters() {
 
   if (params.upload_to_s3){
     if (params.s3_bucket_output == null){
-      log.error("A s3_bucket_output parameter must be provided if download_from_s3 is set to '${params.upload_from_s3}'.")
+      log.error("A s3_bucket_output parameter must be provided if upload_to_s3 is set to '${params.upload_to_s3}'.")
       errors += 1
     }
     if (params.s3_uuid==null){
