@@ -6,15 +6,15 @@ from sys import argv, exit
 
 # load manifest
 mnf_flpath = argv[1]
-pannel_set_flpath = argv[2]
+panel_set_flpath = argv[2]
 df = pd.read_csv(mnf_flpath, sep='\t')
 
 # Set Global requirements
 REQUIRED_HEADERS = ["sample_id", "primer_panel","irods_path"]
 REQUIRED_FORMAT = ".cram"
 
-pnl_df = pd.read_csv(pannel_set_flpath, sep=',')
-REQUIRED_PANNELS = pnl_df["pannel_name"].to_list()
+pnl_df = pd.read_csv(panel_set_flpath, sep=',')
+REQUIRED_PANELS = pnl_df["panel_name"].to_list()
 ERRORS_FOUND = 0
 
 # check if required headers are present
@@ -74,14 +74,14 @@ except(AssertionError):
     print(duplicated_pipe_ids)
     ERRORS_FOUND +=1
 
-# check if only valid values for primer pannel were provided
+# check if only valid values for primer panel were provided
 print("@ checking if primer panel values provided are valid...")
-def isPannelValid(row):
-    if row["primer_panel"] in REQUIRED_PANNELS:
+def isPanelValid(row):
+    if row["primer_panel"] in REQUIRED_PANELS:
         return True
     else:
         return False
-isvalid_bools = df.apply(isPannelValid, axis=1)
+isvalid_bools = df.apply(isPanelValid, axis=1)
 invalid_ppnls = df.loc[~isvalid_bools]
 
 try:
@@ -89,7 +89,7 @@ try:
     print("    > PASS")
 
 except(AssertionError):
-    print(f"ERROR: The following rows have non valid primer names as set by {pannel_set_flpath}")
+    print(f"ERROR: The following rows have non valid primer names as set by {panel_set_flpath}")
     print(invalid_ppnls[REQUIRED_HEADERS])
     ERRORS_FOUND +=1
 

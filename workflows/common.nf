@@ -17,7 +17,7 @@ workflow COMMON {
     take:
         bam_files_ch // tuple(sample_id, bam_file)
         sample_tag_reference_files_ch // tuple(sample_id, ref_files)
-        annotations_ch // tuple (pannel_name, anotation_file)
+        annotations_ch // tuple (panel_name, anotation_file)
     main:
         // mapping tuple to multichannel 
         bam_files_ch

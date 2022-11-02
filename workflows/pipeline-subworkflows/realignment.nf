@@ -21,7 +21,7 @@ workflow REALIGNMENT {
     sample_tag
     bam_file
     sample_tag_reference_files_ch // tuple (sample_id, fasta_file, [fasta_indx_files], panel_name)
-    annotations_ch // tuple (pannel_name, anotation_file)
+    annotations_ch // tuple (panel_name, anotation_file)
 
   main:
     // Unmap the bam files (ubam)

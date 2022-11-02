@@ -6,7 +6,7 @@ nextflow.enable.dsl = 2
 // --- import modules ---------------------------------------------------------
 // - workflows
 
-include { PARSE_PANNEL_SETTINGS } from './workflows/parse_pannels_settings.nf'
+include { PARSE_PANEL_SETTINGS } from './workflows/parse_panels_settings.nf'
 include { IRODS } from './workflows/irods.nf'
 include { IN_COUNTRY } from './workflows/in_country.nf'
 include { COMMON } from './workflows/common.nf'
@@ -35,7 +35,7 @@ log.info """
          --library            : ${params.library}
          --results_dir        : ${params.results_dir}
          --irods_manifest     : ${params.irods_manifest}
-         --pannels_settings   : ${params.pannels_settings}
+         --panels_settings    : ${params.panels_settings}
          --download_from_s3   : ${params.download_from_s3}
          --upload_to_s3       : ${params.upload_to_s3}
          --s3_uuid            : ${params.s3_uuid}
@@ -101,7 +101,7 @@ def printHelp() {
 
     Settings:
       --results_dir : <path>, output directory (Default: $launchDir/output/)
-      --pannels_settings : <path>, path to pannel_settings.csv
+      --panels_settings : <path>, path to panel_settings.csv
       --containers_dir : <path>, path to a dir where the containers are located
 
       (genotyping)
@@ -135,11 +135,11 @@ workflow {
   validate_parameters()
 
   // -- MAIN-EXECUTION ------------------------------------------------------
-  // prepare pannel resource channels 
-  PARSE_PANNEL_SETTINGS(params.pannels_settings)
+  // prepare panel resource channels 
+  PARSE_PANEL_SETTINGS(params.panels_settings)
 
-  reference_ch = PARSE_PANNEL_SETTINGS.out.reference_ch
-  annotations_ch = PARSE_PANNEL_SETTINGS.out.annotations_ch
+  reference_ch = PARSE_PANEL_SETTINGS.out.reference_ch
+  annotations_ch = PARSE_PANEL_SETTINGS.out.annotations_ch
 
   if (params.execution_mode == "in-country") {
     // process in country entry point

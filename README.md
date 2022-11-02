@@ -89,7 +89,7 @@ The iRODS must be a `.tsv` and the pipeline expects to find the following column
 
 * `sample_id`: a sample identification "tag", which is used on the pipeline output file names;
 
-* `primer_panel`: primer pannel name to be used (must match exactly what is provided at `pannel_name` of the `pannels_settings.csv`);
+* `primer_panel`: primer panel name to be used (must match exactly what is provided at `panel_name` of the `panels_settings.csv`);
 
 * `irods_path`: full valid iRODS path for a `.cram` file (ex: `/seq/illumina/runs/38/38344/lane2/plex1/38344_2#1.cram`).
 
@@ -97,24 +97,24 @@ The `.tsv` may have more columns at any order, but those are the only ones which
 The pipeline builds an "internal id" set as `<cram_filename>_<sample_id>_<primer_panel>`, therefore, the pipeline will check if any combination of those values at the manifest are unique. If not, an error will be raised and the pipeline run will stop.
 An example of a valid manifest can be found at this repository (`test_data/irods_mnf.tsv`).
 
-### Pannel Settings
-The ampseq pipeline relies on a `pannels_settings.csv` to define which files it should use on key pipeline steps according to the pannel name provided for a given sample.
+### Panel Settings
+The ampseq pipeline relies on a `panels_settings.csv` to define which files it should use on key pipeline steps according to the panel name provided for a given sample.
 Currently, this `.csv` should look like the example below:
 
 ```
-pannel_name,aligns_to,maps_to_regions_of
-PFA_GRC1_v1.0,/path/to/pannels_resources/grc1/,/path/to/PFA_GRC1_v1.0.annotation.regions.txt
-PFA_GRC2_v1.0,/path/to/pannels_resources/grc2/,/path/to/PFA_GRC2_v1.0.annotation.regions.txt
-PFA_Spec,/path/to/pannels_resources/spec/,/path/to/PFA_Spec_v1.0.annotation.regions.txt
+panel_name,aligns_to,maps_to_regions_of
+PFA_GRC1_v1.0,/path/to/panels_resources/grc1/,/path/to/PFA_GRC1_v1.0.annotation.regions.txt
+PFA_GRC2_v1.0,/path/to/panels_resources/grc2/,/path/to/PFA_GRC2_v1.0.annotation.regions.txt
+PFA_Spec,/path/to/panels_resources/spec/,/path/to/PFA_Spec_v1.0.annotation.regions.txt
 ```
 
-* `pannel_name` : Defines the string it should look for a given pannel, this strings should be the same provided by the user (via samplesheet or irods_manifest).
+* `panel_name` : Defines the string it should look for a given panel, this strings should be the same provided by the user (via samplesheet or irods_manifest).
 
 * `aligns_to` : Defines which directory it should look to get the `.fasta` (and associated index files) to use for the alignment, namely  `IN_COUNTRY:CRAM_TO_BAM:align_bam` and `COMMON:REALIGNMENT:aligns_bam`.
 
 * `maps_to_regions_of` : Defines which annotation file should use for the `COMMON:REALIGNMENT:read_count_per_region`.
 
-This pannel settings system aims to detach the experimental design from the inner works of the pipeline and make it easier to experiment with its key steps. A custom `.csv` can be set to the pipeline by using the flag `--pannels_settings`. If the user does not provide a `--pannels_settings`, the pipeline default behaviour is to rely on files available at the repo (check `pannels_resources` dir).
+This panel settings system aims to detach the experimental design from the inner works of the pipeline and make it easier to experiment with its key steps. A custom `.csv` can be set to the pipeline by using the flag `--panels_settings`. If the user does not provide a `--panels_settings`, the pipeline default behaviour is to rely on files available at the repo (check `panels_resources` dir).
 
 ### Genotyping Settings
 The genotyping portion of the ampseq pipeline uses a variety of parameters defined in a `methods.config` file.

@@ -22,7 +22,7 @@ workflow CRAM_TO_BAM {
         // manifest from step 1.1
         //intermediate_csv
         cram_ch // tuple(sample_tag, cram_fl, run_id) | sample_tag = [run_id]_[lane]#[index]_[sample_name]-
-        sample_tag_reference_files_ch // tuple (sample_id, ref_fasta, fasta_index, pannel_name)
+        sample_tag_reference_files_ch // tuple (sample_id, ref_fasta, fasta_index, panel_name)
 
     main:
         // --| DEBUG |--------------------------------------------------
@@ -55,9 +55,9 @@ workflow CRAM_TO_BAM {
         //bam_to_fastq.out.first().view()
         // -----------------------------------------
         bam_to_fastq.out //tuple (old_sample_tag, fastq_files)
-              // get pannel resource files
-              | join(sample_tag_reference_files_ch) //tuple (old_sample_tag, fastq_files, ref_fasta, fasta_index, pannel_name) 
-              | set{align_bam_In_ch} // tuple (new_sample_tag, fastq, fasta, fasta_idx, pannel_name, run_id)
+              // get panel resource files
+              | join(sample_tag_reference_files_ch) //tuple (old_sample_tag, fastq_files, ref_fasta, fasta_index, panel_name) 
+              | set{align_bam_In_ch} // tuple (new_sample_tag, fastq, fasta, fasta_idx, panel_name, run_id)
 
         align_bam(align_bam_In_ch)
 
@@ -72,7 +72,7 @@ workflow CRAM_TO_BAM {
         reheader_in_ch = scramble_sam_to_bam.out 
                             | join(clip_adapters.out)
                             | join(sample_tag_reference_files_ch)
-                            | map { it -> tuple(it[0], it[1], it[2],it[3],it[4]) } // remove pannel_name from channel
+                            | map { it -> tuple(it[0], it[1], it[2],it[3],it[4]) } // remove panel_name from channel
         // --- DEBUG ------------------------
         //scramble_sam_to_bam.out.first().view()
         //clip_adapters.out.first().view()

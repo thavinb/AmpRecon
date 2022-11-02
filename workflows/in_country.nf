@@ -13,14 +13,14 @@ include { validate_parameters } from './input_handling.nf'
 include { get_taglist_file } from '../modules/manifest2tag.nf'
 include { make_samplesheet_manifest } from '../modules/make_samplesheet_manifest.nf'
 include { validate_samplesheet_manifest } from '../modules/samplesheet_manifest_validation.nf'
-include { PARSE_PANNEL_SETTINGS } from './parse_pannels_settings.nf'
+include { PARSE_PANEL_SETTINGS } from './parse_panels_settings.nf'
 include { miseq_run_validation } from '../modules/miseq_run_validation.nf'
 include { retrieve_miseq_run_from_s3 } from '../modules/retrieve_miseq_run_from_s3.nf'
 
 
 workflow IN_COUNTRY {
    take:
-      reference_ch // tuple ([fasta_file], pannel_name, [fasta_idxs])
+      reference_ch // tuple ([fasta_file], panel_name, [fasta_idxs])
    
    main:
       
@@ -45,6 +45,7 @@ workflow IN_COUNTRY {
 
       make_samplesheet_manifest(make_samplesheet_In_ch)
       panel_names_list = reference_ch.map{it -> it[1].toString()}.collect()
+
       validate_samplesheet_manifest(make_samplesheet_manifest.out.tuple, panel_names_list)
 
       get_taglist_file_In_ch = input_csv_ch.join(validate_samplesheet_manifest.out)
@@ -68,8 +69,8 @@ workflow IN_COUNTRY {
 
       // assign each sample tag the appropriate set of reference files -> tuple('lims_id#index_', 'path/to/reference/genome, 'path/to/reference/index/files')
       
-      ref_tag // tuple (lims_id, pannel_name, index)
-         | combine(reference_ch,  by: 1) // tuple (pannel_name, lims_id, index, [fasta_file], [fasta_idxs])
+      ref_tag // tuple (lims_id, panel_name, index)
+         | combine(reference_ch,  by: 1) // tuple (panel_name, lims_id, index, [fasta_file], [fasta_idxs])
          | map{it -> tuple("${params.run_id}_${params.lane}#${it[2]}_${it[1]}", it[3][0], it[4], it[0])}
          | set{sample_tag_reference_files_ch}
 
@@ -81,5 +82,5 @@ workflow IN_COUNTRY {
 
    emit:
       bam_files_ch // tuple (sample_tag, bam_file)
-      sample_tag_reference_files_ch // tuple('lims_id#index_', 'path/to/reference/genome, 'path/to/reference/index/files', pannel_name)
+      sample_tag_reference_files_ch // tuple('lims_id#index_', 'path/to/reference/genome, 'path/to/reference/index/files', panel_name)
 }

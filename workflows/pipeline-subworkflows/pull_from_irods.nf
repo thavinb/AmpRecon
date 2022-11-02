@@ -12,10 +12,10 @@ workflow PULL_FROM_IRODS {
   
   take:
     irods_ch // tuple(sample_id, WG_lane, irods_path)
-    sample_id_ref_ch // tuple(WG_lane, run_id, fasta_file, fasta_idx_files, pannel_name) * needed to associate new_ids to pannels
+    sample_id_ref_ch // tuple(WG_lane, run_id, fasta_file, fasta_idx_files, panel_name) * needed to associate new_ids to panels
   
   main:
-    // get new_sample_ids relationship with pannels resources
+    // get new_sample_ids relationship with panels resources
     irods_ch // tuple(sample_id, WG_lane, irods_path)
         | map {it -> tuple( it[1], "${it[1]}_${it[0]}_")}
         | set {newSample_WgLn_ch} // tuple(WG_lane, new_sample_id)
@@ -24,20 +24,20 @@ workflow PULL_FROM_IRODS {
               // no need for run_id on this channel
               | map { it -> tuple( it[0], it[2], it[3], it[4])} // tuple(WG_lane, fasta_file, fasta_idx_files)
               // associate with new_sample_ids
-              | join (newSample_WgLn_ch)  // tuple(WG_lane, fasta_file, fasta_idx_files, pannel_name, new_sample_id)
-              | set {old_new_and_pannel_ch}
+              | join (newSample_WgLn_ch)  // tuple(WG_lane, fasta_file, fasta_idx_files, panel_name, new_sample_id)
+              | set {old_new_and_panel_ch}
 
-    old_new_and_pannel_ch
-              | map { it -> tuple("${it[4]}${it[3]}", it[1], it[2], it[3],)} // tuple( new_sample_id_pannel, fasta_file, fasta_idx_files, pannel_name)
+    old_new_and_panel_ch
+              | map { it -> tuple("${it[4]}${it[3]}", it[1], it[2], it[3],)} // tuple( new_sample_id_panel, fasta_file, fasta_idx_files, panel_name)
               | set { sample_tag_reference_files_ch }
     
     // add new_sample_id to irods_retrieve
-    // add new id key [WGlane]_[sample_id]-[pannel]
+    // add new id key [WGlane]_[sample_id]-[panel]
     irods_ch
         | map {it -> tuple(it[1], "${it[1]}_${it[0]}_", it[2])}//, it[2])} // tuple (WG_lane, [WG_lane]_[irods_sample_id]-, irods_flpath)
-        | join (old_new_and_pannel_ch) // tuple (WG_lane, new_sample_id, irods_flpath, fasta_file, fasta_idx_files, pannel_name, new_sample_id)
+        | join (old_new_and_panel_ch) // tuple (WG_lane, new_sample_id, irods_flpath, fasta_file, fasta_idx_files, panel_name, new_sample_id)
         | map {it -> tuple("${it[1]}${it[5]}", it[2])}//, it[3])}
-        | set {irods_retrieve_In_ch} // tuple (new_sample_id_pannel, irods_flpath)
+        | set {irods_retrieve_In_ch} // tuple (new_sample_id_panel, irods_flpath)
     
     // Retrieve CRAM files from iRODS
     irods_retrieve(irods_retrieve_In_ch)
@@ -48,7 +48,7 @@ workflow PULL_FROM_IRODS {
     // --------------------------------------------------------------------
   emit:
     bam_files_ch  // tuple(new_sample_id, bam_file)
-    sample_tag_reference_files_ch // tuple(new_sample_id, fasta_file, ref_files, fasta_index, pannel_names )
+    sample_tag_reference_files_ch // tuple(new_sample_id, fasta_file, ref_files, fasta_index, panel_names )
 }
 
 /*

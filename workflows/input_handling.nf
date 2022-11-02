@@ -68,7 +68,7 @@ def validate_parameters() {
         errors += 1
       }
       else {
-          validate_irods_mnf(params.irods_manifest, params.pannels_settings)
+          validate_irods_mnf(params.irods_manifest, params.panels_settings)
       }
     }
 
