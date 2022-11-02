@@ -9,7 +9,7 @@ include { genotype_vcf_at_given_alleles } from '../../modules/genotype_vcf_at_gi
 include { index_gzipped_vcf } from '../../modules/index_gzipped_vcf.nf'
 include { upload_pipeline_output_to_s3 } from '../../modules/upload_pipeline_output_to_s3.nf'
 
-workflow GENOTYPING {
+workflow GENOTYPING_GATK {
 
   take:
         input_sample_tags_bams_indexes
