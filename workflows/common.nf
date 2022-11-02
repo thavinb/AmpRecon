@@ -5,7 +5,8 @@ nextflow.enable.dsl = 2
 
 // import subworkflows
 include { REALIGNMENT } from './pipeline-subworkflows/realignment.nf'
-include { GENOTYPING } from './pipeline-subworkflows/genotyping.nf'
+include { GENOTYPING_GATK } from './pipeline-subworkflows/genotyping_gatk.nf'
+include { GENOTYPING_BCFTOOLS } from './pipeline-subworkflows/genotyping_bcftools.nf'
 
 /*
 Here all workflows which are used regardless of the entry point (iRODS or inCountry)
@@ -36,8 +37,17 @@ workflow COMMON {
                 )
         
         // genotyping
-        GENOTYPING(
+        if( params.genotyping_gatk == true ) {
+                GENOTYPING_GATK(
                    REALIGNMENT.out,
                    sample_tag_reference_files_ch
                 )
+        }
+
+        if( params.genotyping_bcftools == true ) {
+                GENOTYPING_BCFTOOLS(   
+                   REALIGNMENT.out,
+                   sample_tag_reference_files_ch
+                )
+        }
 }

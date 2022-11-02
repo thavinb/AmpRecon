@@ -84,6 +84,19 @@ s3_bucket_input: <str> s3 bucket name to fetch data from, if is not provided, th
 upload_to_s3: <bool> sets if needs to upload output data to an s3 bucket
 s3_bucket_output: <str> s3 bucket name to upload data to
 ```
+
+To use **GATK genotyping**
+```
+genotyping_gatk : <bool> the GATK genotyping workflow will be run if this parameter is set to 'true'
+```
+By default the GATK genotyping workflow is launched as the 'genotyping_gatk' parameter is set to 'true'
+
+To use **BCFtools genotyping**
+```
+genotyping_bcftools : <bool> the BCFtools genotyping workflow will be run if this parameter is set to 'true'
+```
+By default the BCFtools genotyping workflow is prevented from running as the 'genotyping_bcftools' parameter is not set to 'true'.
+
 ### iRODS Manifest
 The iRODS must be a `.tsv` and the pipeline expects to find the following columns headers:
 
@@ -116,8 +129,8 @@ PFA_Spec,/path/to/panels_resources/spec/,/path/to/PFA_Spec_v1.0.annotation.regio
 
 This panel settings system aims to detach the experimental design from the inner works of the pipeline and make it easier to experiment with its key steps. A custom `.csv` can be set to the pipeline by using the flag `--panels_settings`. If the user does not provide a `--panels_settings`, the pipeline default behaviour is to rely on files available at the repo (check `panels_resources` dir).
 
-### Genotyping Settings
-The genotyping portion of the ampseq pipeline uses a variety of parameters defined in a `methods.config` file.
+### GATK Genotyping Settings
+The GATK genotyping portion of the ampseq pipeline uses a variety of parameters defined in a `methods.config` file.
 The following parameters should be present within this file:
 
 ```
@@ -128,6 +141,14 @@ combined_vcf_file3: <str> known SNPs database file. Used to prevent BaseRecalibr
 conserved_bed_file: <str> file containing genomic intervals the GATK BaseRecalibrator command operates over in the bqsr.nf process.
 gatk_base_recalibrator_options: <str> input settings containing the supplied known sites files paths and intervals file path for the BaseRecalibrator command in the bqsr.nf process.
 alleles_fn: <str> file containing genomic intervals the GATK GenotypeGVCFs command operates over in the genotype_vcf_at_given_alleles.nf process.
+```
+
+### BCFtools Genotyping Requirements
+The BCFtools genotyping portion of the ampseq pipeline requires 2 additional files for every reference genome used. The first is the ploidy file and the second is an annotation VCF file of SNPs. These 2 files should be in the same directory as each associated reference genome FASTA file.
+
+```
+ploidy file: REFERENCE_GENOME_FILE_BASENAME.ploidy
+annotation VCF file naming convention: REFERENCE_GENOME_FILE_BASENAME.annotation.vcf
 ```
 
 ### Containers
