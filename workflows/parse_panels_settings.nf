@@ -22,23 +22,45 @@
 def validatePanelSettings(row, source_dir){
     def errors = 0 
 
-    // check if align_to columns is a valid path
-    aligns_to_path = "${source_dir}/${row.aligns_to}"
-    aligns_to_file = file(aligns_to_path)
+    // check if reference_file columns is a valid path
+    reference_file = "${source_dir}/${row.reference_file}"
+    aligns_to_file = file(reference_file)
     if (!aligns_to_file.exists()){
-        log.error("${aligns_to_path} provided for ${row.panel_name} does not exist.")
+        log.error("${reference_file} provided for ${row.panel_name} does not exist.")
         errors += 1
     }
 
-    // check if maps_to_regions_of is a valid path
-    annotation_flpth = "${source_dir}/${row.maps_to_regions_of}"
+    // check if reference_index_files is a valid path
+    reference_index = "${source_dir}/${row.reference_index_file_basename}{.fai,.amb,.ann,.bwt,.pac,.sa}"
+    reference_index_file_list = file(reference_index)
+    reference_index_file_list.each { file -> if (!file.exists()){
+        log.error("${file} provided for ${row.panel_name} does not exist.")
+        errors += 1}
+    }
+
+    // check if reference_dictionary_file is a valid path
+    reference_dictionary = "${source_dir}/${row.reference_dictionary_file}"
+    reference_dictionary_file = file(reference_dictionary)
+    if (!reference_dictionary_file.exists()){
+        log.error("${reference_dictionary} provided for ${row.panel_name} does not exist.")
+        errors += 1
+    }
+
+    // check if annotation_vcf_file columns is a valid path
+    annotation_vcf = "${source_dir}/${row.annotation_vcf_file}"
+    annotation_vcf_file = file(annotation_vcf)
+    if (!annotation_vcf_file.exists()){
+        log.error("${annotation_vcf} provided for ${row.panel_name} does not exist.")
+        errors += 1
+    }
+
+    // check if design_file is a valid path
+    annotation_flpth = "${source_dir}/${row.design_file}"
     maps_to_file = file(annotation_flpth)
     if (!maps_to_file.exists()){
         log.error("${annotation_flpth} provided for ${row.panel_name} does not exist.")
         errors += 1
     }
-    
-    // TODO: check if all expected files are present on the resource bundle provided
     
     // count errors and kill nextflow if any had been found
     if (errors > 0) {
@@ -71,13 +93,17 @@ workflow PARSE_PANEL_SETTINGS {
                             validatePanelSettings(row, source_dir)
                             // TODO: validate if expected files were provided
                             tuple(
-                                file("${source_dir}/${row.aligns_to}/*.fasta"),
+                                file("${source_dir}/${row.reference_file}"),
                                 row.panel_name,
-                                file("${source_dir}/${row.aligns_to}/*.fasta.*")
+                                file("${source_dir}/${row.reference_index_file_basename}{.fai,.amb,.ann,.bwt,.pac,.sa}"),
+                                file("${source_dir}/${row.reference_dictionary_file}"),
+                                file("${source_dir}/${row.ploidy_file}"),
+                                file("${source_dir}/${row.annotation_vcf_file}"),
+				file("${source_dir}/${row.snp_list}")
                             )
                             }
 
-        // build panel_anotations_files from "maps_to_regions_of"
+        // build panel_anotations_files from "design_file"
         annotations_ch = Channel.fromPath(panels_settings, checkIfExists: true)
                           | splitCsv(header: true, sep: ',')
                           | map { row ->
@@ -85,11 +111,11 @@ workflow PARSE_PANEL_SETTINGS {
                                 validatePanelSettings(row, source_dir)
                                 tuple(
                                     row.panel_name,
-                                    file("${source_dir}/${row.maps_to_regions_of}")
+                                    file("${source_dir}/$row.design_file")
                                 )
                            }
-
+//reference_ch.first().view()
     emit:
         reference_ch
-        annotations_ch
+        annotations_ch // tuple ([fasta], panel_name, [fasta_idx_files], [dictionary_file], [ploidy_file], [annotation_vcf_file], [snp_list])
 }
