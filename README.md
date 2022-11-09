@@ -141,6 +141,7 @@ combined_vcf_file3: <str> known SNPs database file. Used to prevent BaseRecalibr
 conserved_bed_file: <str> file containing genomic intervals the GATK BaseRecalibrator command operates over in the bqsr.nf process.
 gatk_base_recalibrator_options: <str> input settings containing the supplied known sites files paths and intervals file path for the BaseRecalibrator command in the bqsr.nf process.
 alleles_fn: <str> file containing genomic intervals the GATK GenotypeGVCFs command operates over in the genotype_vcf_at_given_alleles.nf process.
+skip_bqsr: <bool> skip BQSR step in GATK genotyping procedure.
 ```
 
 ### BCFtools Genotyping Requirements

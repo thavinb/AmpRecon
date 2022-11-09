@@ -42,6 +42,7 @@ log.info """
          --s3_bucket_input    : ${params.s3_bucket_input}
          --s3_bucket_output   : ${params.s3_bucket_output}
          --containers_dir     : ${params.containers_dir}
+         --skip_bqsr          : ${params.skip_bqsr}
          --DEBUG_tile_limit   : ${params.DEBUG_tile_limit}
          --DEBUG_takes_n_bams : ${params.DEBUG_takes_n_bams}
         ------------------------------------------
@@ -112,6 +113,7 @@ def printHelp() {
       --conserved_bed_file : <path> file containing genomic intervals the GATK BaseRecalibrator command operates over in the bqsr.nf process.
       --gatk_base_recalibrator_options : <str> input settings containing the supplied known sites files paths and intervals file path for the BaseRecalibrator command in the bqsr.nf process.
       --alleles_fn : <path> file containing genomic intervals the GATK GenotypeGVCFs command operates over in the genotype_vcf_at_given_alleles.nf process.
+      --skip_bqsr : <bool> skip BQSR step in GATK genotyping procedure
 
     Additional options:
       --help (Prints this help message. Default: false)
