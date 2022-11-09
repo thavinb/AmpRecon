@@ -20,7 +20,7 @@ include { retrieve_miseq_run_from_s3 } from '../modules/retrieve_miseq_run_from_
 
 workflow IN_COUNTRY {
    take:
-      reference_ch // tuple ([fasta], panel_name, [fasta_idx_files], [dictionary_file], [ploidy_file], [annotation_vcf_file], [snp_list])
+      reference_ch // tuple (fasta, panel_name, [fasta_idx_files], dictionary_file, ploidy_file, annotation_vcf_file, snp_list)
    
    main:
       
@@ -70,17 +70,17 @@ workflow IN_COUNTRY {
       // assign each sample tag the appropriate set of reference files -> tuple('lims_id#index_', 'path/to/reference/genome, 'path/to/reference/index/files')
       
       ref_tag // tuple (lims_id, panel_name, index)
-         | combine(reference_ch,  by: 1) // tuple (panel_name, lims_id, index, [fasta_file], [fasta_idxs], [dictionary_file], [ploidy_file], [annotation_vcf_file], [snp_list])
+         | combine(reference_ch,  by: 1) // tuple (panel_name, lims_id, index, fasta_file, [fasta_idxs], dictionary_file, ploidy_file, annotation_vcf_file, snp_list)
          | map{it -> tuple("${params.run_id}_${params.lane}#${it[2]}_${it[1]}", it[3], it[4], it[0], it[5], it[6], it[7], it[8])}
-         | set{sample_tag_reference_files_ch} // tuple (new_sample_id, fasta_file, fasta_indexes, panel_name, [dictionary_file], [ploidy_file], [annotation_vcf_file], [snp_list])
+         | set{sample_tag_reference_files_ch} // tuple (new_sample_id, fasta_file, [fasta_indexes], panel_name, dictionary_file, ploidy_file, annotation_vcf_file, snp_list)
 
       //csv_ch = manifest_step1_1_Out_ch.mnf
 
       // Stage 1 - Step 2: CRAM to BAM
-      CRAM_TO_BAM(cram_ch, sample_tag_reference_files_ch.map{it -> tuple(it[0], it[1], it[2], it[3])})
+      CRAM_TO_BAM(cram_ch, sample_tag_reference_files_ch.map{it -> tuple(it[0], it[1], it[2], it[3], it[4])})  // tuple (sample_id, ref_fasta, fasta_index, panel_name, dictionary_file)
       bam_files_ch = CRAM_TO_BAM.out.bam_ch
-
+bam_files_ch.first().view()
    emit:
       bam_files_ch // tuple (sample_tag, bam_file)
-      sample_tag_reference_files_ch // tuple('lims_id#index_', 'path/to/reference/genome, 'path/to/reference/index/files', panel_name, [dictionary_file], [ploidy_file], [annotation_vcf_file], [snp_list])
+      sample_tag_reference_files_ch // tuple('lims_id#index_', 'path/to/reference/genome, ['path/to/reference/index/files'], panel_name, dictionary_file, ploidy_file, annotation_vcf_file, snp_list)
 }

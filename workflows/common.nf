@@ -17,7 +17,7 @@ workflow COMMON {
 
     take:
         bam_files_ch // tuple(sample_id, bam_file)
-        sample_tag_reference_files_ch // tuple(new_sample_id, fasta_file, ref_files, fasta_index, panel_names, [dictionary_file], [ploidy_file], [annotation_vcf_file], [snp_list])
+        sample_tag_reference_files_ch // tuple(new_sample_id, fasta_file, [fasta_index_files], panel_names, dictionary_file, ploidy_file, annotation_vcf_file, snp_list)
         annotations_ch // tuple (panel_name, anotation_file)
     main:
         // mapping tuple to multichannel 
@@ -29,16 +29,18 @@ workflow COMMON {
             | set { realignment_In_ch }
 
         // do realignment and read counts
-        sample_tag_reference_files_ch.map{it -> tuple(it[0], it[1], it[2], it[3])}.set{realignment_input_reference_ch}
+        sample_tag_reference_files_ch.map{it -> tuple(it[0], it[1], it[2], it[3])}.set{realignment_input_reference_ch} // tuple (sample_id, fasta_file, [fasta_indx_files], panel_name)
         REALIGNMENT(
                     realignment_In_ch.sample_tag,
                     realignment_In_ch.bam_file,
                     realignment_input_reference_ch,
                     annotations_ch
                 )
-        realignment_input_reference_ch.first().view()
+
         // genotyping
         if( params.genotyping_gatk == true ) {
+        // tuple(sample_tag, reference_fasta, reference_fasta_index, reference_dictionary_file, snp_list)
+        sample_tag_reference_files_ch.map{it -> tuple(it[0], it[1], it[2], it[4], it[7])}.set{gatk_genotyping_input_reference_ch}
         sample_tag_reference_files_ch.map{it -> tuple()}.set{gatk_genotyping_input_reference_ch}
                 GENOTYPING_GATK(
                    REALIGNMENT.out,
@@ -47,7 +49,8 @@ workflow COMMON {
         }
 
         if( params.genotyping_bcftools == true ) {
-        sample_tag_reference_files_ch.map{it -> tuple()}.set{bcftools_genotyping_input_reference_ch}
+        // tuple(sample_tag, reference_fasta, reference_fasta_index, reference_ploidy_file, reference_annotation_file)
+        sample_tag_reference_files_ch.map{it -> tuple(it[0], it[1], it[2], it[5], it[6])}.set{bcftools_genotyping_input_reference_ch}
                 GENOTYPING_BCFTOOLS(   
                    REALIGNMENT.out,
                    bcftools_genotyping_input_reference_ch

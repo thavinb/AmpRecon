@@ -10,7 +10,7 @@ include { PULL_FROM_IRODS } from './pipeline-subworkflows/pull_from_irods.nf'
 workflow IRODS {
     take:
         irods_manifest // irods manifest file
-        reference_ch // tuple ([fasta], panel_name, [fasta_idx_files], [dictionary_file], [ploidy_file], [annotation_vcf_file], [snp_list])
+        reference_ch // tuple (fasta, panel_name, [fasta_idx_files], dictionary_file, ploidy_file, annotation_vcf_file, snp_list)
     main:
         // load manifest content
         irods_ch =  Channel.fromPath(irods_manifest, checkIfExists: true)
@@ -23,9 +23,9 @@ workflow IRODS {
 
         // Assign each sample id the appropriate set of reference files
         irods_ch
-             | combine(reference_ch,  by: 1) // tuple (primer_panel, sample_id, WG_lane, irods_path, [fasta], [fasta_idx_files], [dictionary_file], [ploidy_file], [annotation_vcf_file], [snp_list])
+             | combine(reference_ch,  by: 1) // tuple (primer_panel, sample_id, WG_lane, irods_path, fasta, [fasta_idx_files], dictionary_file, ploidy_file, annotation_vcf_file, snp_list)
              | map { it -> tuple(it[2], it[1], it[4], it[5], it[0], it[6], it[7], it[8], it[9]) }
-             | set{ sample_id_ref_ch } // tuple (WG_lane, sample_id, fasta_file, fasta_idx, primer_panel, [dictionary_file], [ploidy_file], [annotation_vcf_file], [snp_list])
+             | set{ sample_id_ref_ch } // tuple (WG_lane, sample_id, fasta_file, fasta_idx, primer_panel, dictionary_file, ploidy_file, annotation_vcf_file, snp_list)
 
         // remove panels info from channel (is not used on this subworkflow)
         irods_ch.map{ it -> tuple (it[0], it[2], it[3]) }.set{irods_ch_noRef} // tuple(sample_id, WG_lane, irods_path)

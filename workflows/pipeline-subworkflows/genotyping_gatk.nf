@@ -12,8 +12,8 @@ include { upload_pipeline_output_to_s3 } from '../../modules/upload_pipeline_out
 workflow GENOTYPING_GATK {
 
   take:
-        input_sample_tags_bams_indexes
-        sample_tag_reference_files_ch
+        input_sample_tags_bams_indexes // tuple(sample_tag, bam_file, bam_index_file)
+        sample_tag_reference_files_ch // tuple(sample_tag, reference_fasta, reference_fasta_index, reference_dictionary_file, snp_list)
   main:
 
     // base quality score recalibration

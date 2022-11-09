@@ -11,8 +11,8 @@ include { upload_pipeline_output_to_s3 } from '../../modules/upload_pipeline_out
 workflow GENOTYPING_BCFTOOLS {
 
   take:
-        input_sample_tags_bams_indexes
-        sample_tag_reference_files_ch
+        input_sample_tags_bams_indexes // tuple(sample_tag, bam_file, bam_index_file)
+        sample_tag_reference_files_ch // tuple(sample_tag, reference_fasta, reference_fasta_index, reference_ploidy_file, reference_annotation_file)
   main:
 
     // compute genotype likelihoods
@@ -25,7 +25,7 @@ workflow GENOTYPING_BCFTOOLS {
     // call SNP sites
     bcftools_mpileup.out // tuple (sample_tag, bcf_file)
 	| join(sample_tag_reference_files_ch) // tuple (sample_tag, bcf_file, reference_file)
-	| map{ it -> tuple(it[0], it[1], it[5])}
+	| map{ it -> tuple(it[0], it[1], it[4])}
 	| set{call_input} // tuple (sample_tag, bcf_file, reference_ploidy_file)
     bcftools_call(call_input)
 

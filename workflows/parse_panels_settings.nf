@@ -117,5 +117,5 @@ workflow PARSE_PANEL_SETTINGS {
 //reference_ch.first().view()
     emit:
         reference_ch
-        annotations_ch // tuple ([fasta], panel_name, [fasta_idx_files], [dictionary_file], [ploidy_file], [annotation_vcf_file], [snp_list])
+        annotations_ch // tuple (fasta, panel_name, [fasta_idx_files], dictionary_file, ploidy_file, annotation_vcf_file, snp_list)
 }
