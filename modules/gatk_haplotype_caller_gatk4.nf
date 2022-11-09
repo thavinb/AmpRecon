@@ -43,7 +43,7 @@ process gatk_haplotype_caller_gatk4 {
         }
 
         """
-        mv ${reference_dict_file} ${dict_file}
+        if [["${reference_dict_file}" != "${dict_file}"]]; then mv ${reference_dict_file} ${dict_file}; fi
 
         ${samtools} index ${bam_file}
 

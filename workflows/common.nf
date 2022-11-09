@@ -41,7 +41,6 @@ workflow COMMON {
         if( params.genotyping_gatk == true ) {
         // tuple(sample_tag, reference_fasta, reference_fasta_index, reference_dictionary_file, snp_list)
         sample_tag_reference_files_ch.map{it -> tuple(it[0], it[1], it[2], it[4], it[7])}.set{gatk_genotyping_input_reference_ch}
-        sample_tag_reference_files_ch.map{it -> tuple()}.set{gatk_genotyping_input_reference_ch}
                 GENOTYPING_GATK(
                    REALIGNMENT.out,
                    gatk_genotyping_input_reference_ch

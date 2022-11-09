@@ -31,7 +31,7 @@ process bqsr {
         jvm_args="-Xmx${gatk_print_reads_gatk3_v2_memory}m" // ???
 
         """
-        mv ${reference_dict_file} ${dict_file}
+        if [[ "${reference_dict_file}" != "${dict_file}" ]]; then mv "${reference_dict_file}" "${dict_file}"; fi
 
         # Base recalibration
         ${java} ${jvm_args} -jar ${gatk} -T BaseRecalibrator -R ${reference_file} -I ${bam_file} -o ${gatk_recalibration_report} ${gatk_base_recalibrator_options}
