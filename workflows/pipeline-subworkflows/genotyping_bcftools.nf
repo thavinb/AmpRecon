@@ -18,14 +18,14 @@ workflow GENOTYPING_BCFTOOLS {
     // compute genotype likelihoods
     input_sample_tags_bams_indexes // tuple (sample_tag, bam_file, bam_index)
         | join(sample_tag_reference_files_ch) // tuple (sample_tag, bam_file, bam_index [ref_files])
-        | map{ it -> tuple(it[0], it[1], it[2], it[3], it[3]+".fai", it[3].parent+"/*"+it[3].baseName+".annotation.vcf")}
+        | map{ it -> tuple(it[0], it[1], it[2], it[3], it[4], it[6])}
         | set{mpileup_input} // tuple(sample_tag, bam_file, bam_index, reference_fasta, reference_fasta_index, reference_annotation_vcf)
     bcftools_mpileup(mpileup_input)
 
     // call SNP sites
     bcftools_mpileup.out // tuple (sample_tag, bcf_file)
 	| join(sample_tag_reference_files_ch) // tuple (sample_tag, bcf_file, reference_file)
-	| map{ it -> tuple(it[0], it[1], it[2].parent+"/*"+it[2].baseName+".ploidy")}
+	| map{ it -> tuple(it[0], it[1], it[5])}
 	| set{call_input} // tuple (sample_tag, bcf_file, reference_ploidy_file)
     bcftools_call(call_input)
 

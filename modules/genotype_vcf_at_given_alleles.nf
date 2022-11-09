@@ -1,5 +1,5 @@
 params.tabix='tabix'
-params.alleles_fn='/lustre/scratch118/malaria/team112/pipelines/resources/pfalciparum/pf_6x_genotyping.vcf.gz'
+//params.alleles_fn='/lustre/scratch118/malaria/team112/pipelines/resources/pfalciparum/pf_6x_genotyping.vcf.gz'
 params.vcf_format='{sample}.GenotypeGVCFs.{alleles}.vcf.gz'
 params.gatk='GenomeAnalysisTK.jar'
 params.bcftools='bcftools'
@@ -24,7 +24,7 @@ process genotype_vcf_at_given_alleles {
     container 'gitlab-registry.internal.sanger.ac.uk/sanger-pathogens/docker-images/genotype_vcf_at_given_alleles:0.0.3'
 
     input:
-        tuple val(sample_tag), path(gvcf_fn), path(gvcf_fn_index), path(reference_file), path(reference_index_file), path(reference_dict_file)
+        tuple val(sample_tag), path(gvcf_fn), path(gvcf_fn_index), path(reference_file), path(reference_index_file), path(reference_dict_file), path(snp_list)
 
     output:
         tuple val(sample_tag), path("${output_vcf_gz}"), emit: vcf_file
@@ -36,7 +36,7 @@ process genotype_vcf_at_given_alleles {
         output_vcf_gz_index="${output_vcf_gz}.tbi"
         java_memory = 8000 * task.attempt
 
-        alleles_fn=params.alleles_fn
+//        alleles_fn=params.alleles_fn
         vcf_format=params.vcf_format
         tabix=params.tabix
         gatk=params.gatk
@@ -52,7 +52,7 @@ process genotype_vcf_at_given_alleles {
         genotype_vcf_at_given_alleles.py \
         --java_memory ${java_memory}m \
         --gvcf_fn ${gvcf_fn} \
-        --alleles_fn ${alleles_fn} \
+        --alleles_fn ${snp_list} \
         --genotyped_fn ${output_vcf} \
         --GenotypeGVCFs_format ${vcf_format} \
         --ref_fasta ${reference_file} \

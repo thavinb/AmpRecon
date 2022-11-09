@@ -19,7 +19,7 @@ workflow GENOTYPING_GATK {
     // base quality score recalibration
     input_sample_tags_bams_indexes // tuple (sample_tag, bam_file, bam_index)
         | join(sample_tag_reference_files_ch) // tuple (sample_tag, bam_file, bam_index [ref_files])
-        | map{ it -> tuple(it[0], it[1], it[2], it[3], it[3]+".fai", it[3]+".dict")}
+        | map{ it -> tuple(it[0], it[1], it[2], it[3], it[4], it[5])}
         | set{bqsr_input} // tuple(sample_tag, bam_file, bam_index, [ref_files], )
 
     bqsr(bqsr_input)
@@ -27,7 +27,7 @@ workflow GENOTYPING_GATK {
     // haplotype caller
     bqsr.out // tuple (sample_tag, recalibrated_bam)
         | join(sample_tag_reference_files_ch) // tuple( [ref_files])
-        | map{ it -> tuple(it[0], it[1], it[2], it[2]+".fai", it[2]+".dict")}
+        | map{ it -> tuple(it[0], it[1], it[2], it[3], it[4])}
         | set{haplotype_caller_input}
     
     gatk_haplotype_caller_gatk4(haplotype_caller_input)
@@ -35,7 +35,7 @@ workflow GENOTYPING_GATK {
     // genotype alleles in VCFs
     gatk_haplotype_caller_gatk4.out.vcf_file_and_index
         | join(sample_tag_reference_files_ch)
-        | map{ it -> tuple(it[0],it[1], it[2], it[3], it[3]+".fai", it[3]+".dict")}
+        | map{ it -> tuple(it[0],it[1], it[2], it[3], it[4], it[5], it[6])}
         | set{genotyping_input_ch}   
     
     genotype_vcf_at_given_alleles(genotyping_input_ch)

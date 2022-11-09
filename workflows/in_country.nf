@@ -71,13 +71,13 @@ workflow IN_COUNTRY {
       
       ref_tag // tuple (lims_id, panel_name, index)
          | combine(reference_ch,  by: 1) // tuple (panel_name, lims_id, index, [fasta_file], [fasta_idxs], [dictionary_file], [ploidy_file], [annotation_vcf_file], [snp_list])
-         | map{it -> tuple("${params.run_id}_${params.lane}#${it[2]}_${it[1]}", it[3][0], it[4], it[0], it[5], it[6], it[7], it[8])}
+         | map{it -> tuple("${params.run_id}_${params.lane}#${it[2]}_${it[1]}", it[3], it[4], it[0], it[5], it[6], it[7], it[8])}
          | set{sample_tag_reference_files_ch} // tuple (new_sample_id, fasta_file, fasta_indexes, panel_name, [dictionary_file], [ploidy_file], [annotation_vcf_file], [snp_list])
 
       //csv_ch = manifest_step1_1_Out_ch.mnf
 
       // Stage 1 - Step 2: CRAM to BAM
-      CRAM_TO_BAM(cram_ch, sample_tag_reference_files_ch)
+      CRAM_TO_BAM(cram_ch, sample_tag_reference_files_ch.map{it -> tuple(it[0], it[1], it[2], it[3])})
       bam_files_ch = CRAM_TO_BAM.out.bam_ch
 
    emit:
