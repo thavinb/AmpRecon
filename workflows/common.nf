@@ -21,6 +21,7 @@ workflow COMMON {
         annotations_ch // tuple (panel_name, anotation_file)
     main:
         // mapping tuple to multichannel 
+        if (params.aligned_bams_mnf == null){
         bam_files_ch
             | multiMap {
                 sample_tag: it[0]
@@ -35,18 +36,23 @@ workflow COMMON {
                     sample_tag_reference_files_ch,
                     annotations_ch
                 )
-        
+        genotyping_In_ch = REALIGNMENT.out
+        }
+
+        if (params.execution_mode == "aligned_bams"){
+        genotyping_In_ch = bam_files_ch
+        }
         // genotyping
         if( params.genotyping_gatk == true ) {
                 GENOTYPING_GATK(
-                   REALIGNMENT.out,
+                   genotyping_In_ch, //REALIGNMENT.out,
                    sample_tag_reference_files_ch
                 )
         }
 
         if( params.genotyping_bcftools == true ) {
-                GENOTYPING_BCFTOOLS(   
-                   REALIGNMENT.out,
+                GENOTYPING_BCFTOOLS(
+                   genotyping_In_ch,//REALIGNMENT.out,
                    sample_tag_reference_files_ch
                 )
         }

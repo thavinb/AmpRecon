@@ -59,7 +59,7 @@ Use `-profile sanger_default` to run on the farm but local (this should be used 
 
 Absolutely required
 ```
-exectution_mode : sets the entry point for the pipeline ("irods" or "in-country")
+execution_mode : sets the entry point for the pipeline ("irods" or "in-country")
 ```
 
 Required for **in-country**

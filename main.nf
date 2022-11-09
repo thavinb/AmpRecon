@@ -27,23 +27,35 @@ log.info """
          Used parameters:
         -------------------------------------------
          --execution_mode     : ${params.execution_mode}
+         --genotyping_gatk    : ${params.genotyping_gatk}
+         --genotyping_bcftools: ${params.genotyping_bcftools}
+         --panels_settings    : ${params.panels_settings}
+         --containers_dir     : ${params.containers_dir}
+         --results_dir        : ${params.results_dir}
+
+         (in-country)
          --run_id             : ${params.run_id}
          --bcl_dir            : ${params.bcl_dir}
          --lane               : ${params.lane}
          --study_name         : ${params.study_name}
          --read_group         : ${params.read_group}
          --library            : ${params.library}
-         --results_dir        : ${params.results_dir}
+
+         (irods)
          --irods_manifest     : ${params.irods_manifest}
-         --panels_settings    : ${params.panels_settings}
+         --aligned_bams_mnf   : ${params.aligned_bams_mnf}
+         
+         (s3)
          --download_from_s3   : ${params.download_from_s3}
          --upload_to_s3       : ${params.upload_to_s3}
          --s3_uuid            : ${params.s3_uuid}
          --s3_bucket_input    : ${params.s3_bucket_input}
          --s3_bucket_output   : ${params.s3_bucket_output}
-         --containers_dir     : ${params.containers_dir}
+
+         (DEBUG) 
          --DEBUG_tile_limit   : ${params.DEBUG_tile_limit}
          --DEBUG_takes_n_bams : ${params.DEBUG_takes_n_bams}
+
         ------------------------------------------
          Runtime data:
         -------------------------------------------
@@ -80,7 +92,7 @@ def printHelp() {
   Options:
     Inputs:
       (required)
-      --exectution_mode : sets the entry point for the pipeline ("irods" or "in-country")
+      --execution_mode : sets the entry point for the pipeline ("irods" or "in-country")
       
       (incountry required)
       --run_id : id to be used for the batch of data to be processed
@@ -138,7 +150,7 @@ workflow {
   // prepare panel resource channels 
   PARSE_PANEL_SETTINGS(params.panels_settings)
 
-  reference_ch = PARSE_PANEL_SETTINGS.out.reference_ch
+  reference_ch = PARSE_PANEL_SETTINGS.out.reference_ch // tuple([fasta], panel_name, [fasta_idx])
   annotations_ch = PARSE_PANEL_SETTINGS.out.annotations_ch
 
   if (params.execution_mode == "in-country") {
@@ -154,6 +166,22 @@ workflow {
     // setup channels for downstream processing
     bam_files_ch = IRODS.out.bam_files_ch // tuple (sample_tag, bam_file, run_id)
     sample_tag_reference_files_ch = IRODS.out.sample_tag_reference_files_ch
+  }
+
+  if (params.execution_mode == "aligned_bams"){
+    // get bam files channel
+    mnf_ch = Channel.fromPath(params.aligned_bams_mnf, checkIfExists: true)
+                        | splitCsv(header:true, sep:',')
+    bam_files_ch = mnf_ch | map {row -> tuple(row.sample_tag, row.bam_file, row.bam_idx)}
+    
+    // get sample to pannels relationship channel
+    ref_to_sample = mnf_ch | map {row -> tuple(row.panel_name, row.sample_tag)} 
+
+    reference_ch
+      | map {it -> tuple(it[1],it[0][0], it[2])} // tuple(panel_name, fasta_file, [fasta_idxs])
+      | join(ref_to_sample) // tuple(panel_name, fasta_file, [fasta_idxs], sample_tag)
+      | map {it -> tuple(it[3],it[1],it[2],it[0])} // tuple(sample_tag,)
+      | set {sample_tag_reference_files_ch}
   }
 
   COMMON(bam_files_ch, sample_tag_reference_files_ch, annotations_ch)
