@@ -44,7 +44,7 @@ else:
     out_mnf.write("sample_tag,panel_name,bam_file,bam_idx\n")
 
 # write manifest line for the bam file
-out_mnf.write(f"{sample_tag},{panel_name},{bam_dir}{bam_fl},{bam_dir}{bam_idx},\n")
+out_mnf.write(f"{sample_tag},{panel_name},{bam_dir}{bam_fl},{bam_dir}{bam_idx}\n")
 out_mnf.close()
 /$
 }

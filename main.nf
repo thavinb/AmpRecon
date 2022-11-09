@@ -27,11 +27,11 @@ log.info """
          Used parameters:
         -------------------------------------------
          --execution_mode     : ${params.execution_mode}
-         --genotyping_gatk    : ${params.genotyping_gatk}
-         --genotyping_bcftools: ${params.genotyping_bcftools}
          --panels_settings    : ${params.panels_settings}
          --containers_dir     : ${params.containers_dir}
          --results_dir        : ${params.results_dir}
+         --genotyping_gatk    : ${params.genotyping_gatk}
+         --genotyping_bcftools: ${params.genotyping_bcftools}
 
          (in-country)
          --run_id             : ${params.run_id}
@@ -43,6 +43,8 @@ log.info """
 
          (irods)
          --irods_manifest     : ${params.irods_manifest}
+
+         (aligned_bams)
          --aligned_bams_mnf   : ${params.aligned_bams_mnf}
          
          (s3)
