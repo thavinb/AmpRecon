@@ -114,8 +114,7 @@ workflow PARSE_PANEL_SETTINGS {
                                     file("${source_dir}/$row.design_file")
                                 )
                            }
-//reference_ch.first().view()
     emit:
-        reference_ch
-        annotations_ch // tuple (fasta, panel_name, [fasta_idx_files], dictionary_file, ploidy_file, annotation_vcf_file, snp_list)
+        reference_ch // tuple(fasta, panel_name, [fasta_idx_files], dictionary_file, ploidy_file, annotation_vcf_file, snp_list)
+        annotations_ch // tuple(panel_name, design_file)
 }
