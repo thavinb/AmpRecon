@@ -79,7 +79,7 @@ workflow IN_COUNTRY {
       // Stage 1 - Step 2: CRAM to BAM
       CRAM_TO_BAM(cram_ch, sample_tag_reference_files_ch.map{it -> tuple(it[0], it[1], it[2], it[3], it[4])})  // tuple (sample_id, ref_fasta, fasta_index, panel_name, dictionary_file)
       bam_files_ch = CRAM_TO_BAM.out.bam_ch
-bam_files_ch.first().view()
+
    emit:
       bam_files_ch // tuple (sample_tag, bam_file)
       sample_tag_reference_files_ch // tuple('lims_id#index_', 'path/to/reference/genome, ['path/to/reference/index/files'], panel_name, dictionary_file, ploidy_file, annotation_vcf_file, snp_list)
