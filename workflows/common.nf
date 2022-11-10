@@ -47,7 +47,7 @@ workflow COMMON {
         }
         // genotyping
         BQSR(
-            REALIGNMENT.out,
+            genotyping_In_ch,
             sample_tag_reference_files_ch
         )
 
