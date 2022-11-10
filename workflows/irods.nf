@@ -21,15 +21,15 @@ workflow IRODS {
                               WG_lane = "${row.irods_path}".split('/')[-1].split('\\.')[0]
                               tuple(row.sample_id, row.primer_panel, WG_lane, row.irods_path) 
                             }
-                      | map { it -> tuple("${it[1]}_${it[0]}_${it[1]}", it[1], it[2])}
+                      | map { it -> tuple("${it[2]}_${it[0]}_${it[1]}", it[1], it[3])}
 
         // assign each sample tag the appropriate set of reference files
-        irods_ch.map{it -> tuple("it[0], it[1])}.set{new_sample_tag_panel_ch}
+        irods_ch.map{it -> tuple(it[0], it[1])}.set{new_sample_tag_panel_ch}
         DESIGNATE_PANEL_RESOURCES(new_sample_tag_panel_ch, reference_ch)
         sample_tag_reference_files_ch = DESIGNATE_PANEL_RESOURCES.out.sample_tag_reference_files_ch
 
         // run step1.2b - pull from iRODS
-        PULL_FROM_IRODS(irods_ch.map{it -> tuple(it[0], it[3])}) // tuple(sample_id, irods_path)
+        PULL_FROM_IRODS(irods_ch.map{it -> tuple(it[0], it[2])}) // tuple(sample_id, irods_path)
         bam_files_ch = PULL_FROM_IRODS.out.bam_files_ch
 
     emit:
