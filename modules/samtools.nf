@@ -22,7 +22,8 @@ process samtools_sort {
 }
 
 process samtools_index {
-    publishDir "${params.results_dir}/", overwrite: true, mode: "copy"
+    // saveAs argument to ensure that BQSR saved output has same name as when BQSR not run
+    publishDir "${params.results_dir}/", overwrite: true, mode: "copy", saveAs: {"${base_name.lastIndexOf('.recalibrated').with {it != -1 ? base_name[0..<it] : base_name}}.bam"}
     input:
         tuple val(sample_tag), path(input_bam)
 
