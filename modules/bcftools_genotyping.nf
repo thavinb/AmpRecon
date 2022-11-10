@@ -57,7 +57,7 @@ process bcftools_filter {
     /*
     * SNPs in the input BCF file are filtered and output as an uncompressed VCF file
     */
-    publishDir "${params.results_dir}/", overwrite: true
+    publishDir "${params.results_dir}/", overwrite: true, mode: "copy"
     label 'bcftools'
     input:
         tuple val(sample_tag), path(input_bcf)
