@@ -179,12 +179,12 @@ workflow {
     
     // get sample to pannels relationship channel
     ref_to_sample = mnf_ch | map {row -> tuple(row.panel_name, row.sample_tag)} 
-
-    reference_ch
-      | map {it -> tuple(it[1],it[0][0], it[2])} // tuple(panel_name, fasta_file, [fasta_idxs])
-      | join(ref_to_sample) // tuple(panel_name, fasta_file, [fasta_idxs], sample_tag)
-      | map {it -> tuple(it[3],it[1],it[2],it[0])} // tuple(sample_tag,)
-      | set {sample_tag_reference_files_ch}
+    
+    ref_to_sample
+      | map {it -> tuple(it[1],it[0])} // tuple(panel_name, sample_tag)
+      | combine(reference_ch, by:1) // tuple(panel_name, sampple_tag, [fasta_file], [fasta_idxs])
+      | map {it -> tuple(it[1],it[2][0], it[3], it[0])} // tuple(sample_tag, fasta_file, [fasta_idxs], panel_name)
+      | set { sample_tag_reference_files_ch}
   }
 
   COMMON(bam_files_ch, sample_tag_reference_files_ch, annotations_ch)
