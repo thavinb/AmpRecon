@@ -115,19 +115,29 @@ The ampseq pipeline relies on a `panels_settings.csv` to define which files it s
 Currently, this `.csv` should look like the example below:
 
 ```
-panel_name,aligns_to,maps_to_regions_of
-PFA_GRC1_v1.0,/path/to/panels_resources/grc1/,/path/to/PFA_GRC1_v1.0.annotation.regions.txt
-PFA_GRC2_v1.0,/path/to/panels_resources/grc2/,/path/to/PFA_GRC2_v1.0.annotation.regions.txt
-PFA_Spec,/path/to/panels_resources/spec/,/path/to/PFA_Spec_v1.0.annotation.regions.txt
+panel_name,reference_file,reference_index_file_basename,reference_dictionary_file,design_file,ploidy_file,annotation_vcf_file,snp_list
+PFA_GRC1_v1.0,PFA_GRC1_v1.0.fasta,PFA_GRC1_v1.0.fasta,PFA_GRC1_v1.0.dict,PFA_GRC1_v1.0.regions.txt,PFA_GRC1_v1.0.ploidy,PFA_GRC1_v1.0.annotation.vcf,PFA_GRC1_v1.0.genotyping.vcf.gz
+PFA_GRC2_v1.0,PFA_GRC2_v1.0.fasta,PFA_GRC2_v1.0.fasta,PFA_GRC2_v1.0.dict,PFA_GRC2_v1.0.regions.txt,PFA_GRC2_v1.0.ploidy,PFA_GRC2_v1.0.annotation.vcf,PFA_GRC2_v1.0.genotyping.vcf.gz
+PFA_Spec,PFA_Spec.fasta,PFA_Spec.fasta,PFA_Spec.dict,PFA_Spec.regions.txt,PFA_Spec.ploidy,PFA_Spec.annotation.vcf,PFA_Spec.genotyping.vcf.gz
 ```
 
 * `panel_name` : Defines the string it should look for a given panel, this strings should be the same provided by the user (via samplesheet or irods_manifest).
 
-* `aligns_to` : Defines which directory it should look to get the `.fasta` (and associated index files) to use for the alignment, namely  `IN_COUNTRY:CRAM_TO_BAM:align_bam` and `COMMON:REALIGNMENT:aligns_bam`.
+* `reference_file` : The path to the `reference.fasta` (and associated index files) to use for the alignment, namely  `IN_COUNTRY:CRAM_TO_BAM:align_bam` and `COMMON:REALIGNMENT:aligns_bam`.
 
-* `maps_to_regions_of` : Defines which annotation file should use for the `COMMON:REALIGNMENT:read_count_per_region`.
+* `reference_index_file_basename` : Defines the basename path of the index files (.fai, .amb, .ann, .bwt, .pac and .sa) associated with the `reference.fasta'.
 
-This panel settings system aims to detach the experimental design from the inner works of the pipeline and make it easier to experiment with its key steps. A custom `.csv` can be set to the pipeline by using the flag `--panels_settings`. If the user does not provide a `--panels_settings`, the pipeline default behaviour is to rely on files available at the repo (check `panels_resources` dir).
+* `reference_dictionary_file` : The path to the sequence dictionary file for this reference genome.
+
+* `design_file` : Defines which annotation file should use for the `COMMON:REALIGNMENT:read_count_per_region`.
+
+* `ploidy_file` : The path to the --ploidy-file used by bcftools call in the bcftools genotyping workflow.
+
+* `annotation_vcf_file` : The path to the --targets-file used by bcftools mpileup in the BCFtools genotyping workflow.
+
+* `snp_list` : The path to the intervals file used by GATK GenotypeGVCFs in the GATK genotyping workflow.
+
+The aim of this panel settings system is to detach the experimental design from the inner works of the pipeline and make it easier to experiment with its key steps. A custom `.csv` can be set to the pipeline by using the flag `--panels_settings`. If the user does not provide a `--panels_settings`, the pipeline default behaviour is to rely on files available at the repo (check `panels_resources` dir).
 
 ### GATK Genotyping Settings
 The GATK genotyping portion of the ampseq pipeline uses a variety of parameters defined in a `methods.config` file.
@@ -140,7 +150,6 @@ combined_vcf_file2: <str> known SNPs database file. Used to prevent BaseRecalibr
 combined_vcf_file3: <str> known SNPs database file. Used to prevent BaseRecalibrator from using regions surrounding polymorphisms.
 conserved_bed_file: <str> file containing genomic intervals the GATK BaseRecalibrator command operates over in the bqsr.nf process.
 gatk_base_recalibrator_options: <str> input settings containing the supplied known sites files paths and intervals file path for the BaseRecalibrator command in the bqsr.nf process.
-alleles_fn: <str> file containing genomic intervals the GATK GenotypeGVCFs command operates over in the genotype_vcf_at_given_alleles.nf process.
 ```
 
 ### BCFtools Genotyping Requirements
