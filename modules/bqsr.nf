@@ -31,6 +31,7 @@ process bqsr {
         jvm_args="-Xmx${gatk_print_reads_gatk3_v2_memory}m" // ???
 
         """
+        # If needed, rename dictionary file to correct format.
         if [[ "${reference_dict_file}" != "${dict_file}" ]]; then mv "${reference_dict_file}" "${dict_file}"; fi
 
         # Base recalibration

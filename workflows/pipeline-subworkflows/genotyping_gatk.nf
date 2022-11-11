@@ -18,25 +18,25 @@ workflow GENOTYPING_GATK {
 
     // base quality score recalibration
     input_sample_tags_bams_indexes // tuple (sample_tag, bam_file, bam_index)
-        | join(sample_tag_reference_files_ch) // tuple (sample_tag, bam_file, bam_index [ref_files])
+        | join(sample_tag_reference_files_ch) // tuple (sample_tag, bam_file, bam_index, reference_fasta, reference_fasta_index, reference_dictionary_file, snp_list)
         | map{ it -> tuple(it[0], it[1], it[2], it[3], it[4], it[5])}
-        | set{bqsr_input} // tuple(sample_tag, bam_file, bam_index, [ref_files], )
+        | set{bqsr_input} // tuple(sample_tag, bam_file, bam_index, reference_fasta, reference_fasta_index, reference_dictionary_file)
 
     bqsr(bqsr_input)
 
     // haplotype caller
     bqsr.out // tuple (sample_tag, recalibrated_bam)
-        | join(sample_tag_reference_files_ch) // tuple( [ref_files])
+        | join(sample_tag_reference_files_ch) // tuple(sample_tag, recalibrated_bam, reference_fasta, reference_fasta_index, reference_dictionary_file, snp_list)
         | map{ it -> tuple(it[0], it[1], it[2], it[3], it[4])}
-        | set{haplotype_caller_input}
+        | set{haplotype_caller_input} // tuple(sample_tag, recalibrated_bam, reference_fasta, reference_fasta_index, reference_dictionary_file)
     
     gatk_haplotype_caller_gatk4(haplotype_caller_input)
 
     // genotype alleles in VCFs
     gatk_haplotype_caller_gatk4.out.vcf_file_and_index
-        | join(sample_tag_reference_files_ch)
-        | map{ it -> tuple(it[0],it[1], it[2], it[3], it[4], it[5], it[6])}
-        | set{genotyping_input_ch}   
+        | join(sample_tag_reference_files_ch) // tuple(sample_tag, vcf_file, vcf_index, reference_fasta, reference_fasta_index, reference_dictionary_file, snp_list)
+        | map{ it -> tuple(it[0], it[1], it[2], it[3], it[4], it[5], it[6])}
+        | set{genotyping_input_ch} // tuple (sample_tag, vcf_file, vcf_index, reference_fasta, reference_fasta_index, reference_dictionary_file, snp_list)
     
     genotype_vcf_at_given_alleles(genotyping_input_ch)
     index_gzipped_vcf(genotype_vcf_at_given_alleles.out).set{genotyped_vcf_ch}

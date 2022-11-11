@@ -73,7 +73,7 @@ workflow CRAM_TO_BAM {
         reheader_in_ch = scramble_sam_to_bam.out 
                             | join(clip_adapters.out)
                             | join(sample_tag_reference_files_ch)
-                            | map { it -> tuple(it[0], it[1], it[2],it[3],it[6]) } // tuple(sample_tag, scrambed_bam, clipped_bam, ref_fasta, dictionary_file)
+                            | map { it -> tuple(it[0], it[1], it[2],it[3],it[6]) } // tuple(sample_tag, scrambled_bam, clipped_bam, ref_fasta, dictionary_file)
         // --- DEBUG ------------------------
         //scramble_sam_to_bam.out.first().view()
         //clip_adapters.out.first().view()

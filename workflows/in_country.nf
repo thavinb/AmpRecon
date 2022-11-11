@@ -68,7 +68,8 @@ workflow IN_COUNTRY {
 
       // assign each sample tag the appropriate set of reference files
       DESIGNATE_PANEL_RESOURCES(new_sample_tag_ch, reference_ch)
-      sample_tag_reference_files_ch = DESIGNATE_PANEL_RESOURCES.out.sample_tag_reference_files_ch
+      sample_tag_reference_files_ch = DESIGNATE_PANEL_RESOURCES.out.sample_tag_reference_files_ch 
+      // tuple(sample_tag, path/to/reference/genome, ['path/to/reference/index/files'], panel_name, dictionary_file, ploidy_file, annotation_vcf_file, snp_list)
 
       // Stage 1 - Step 2: CRAM to BAM
       CRAM_TO_BAM(cram_ch, sample_tag_reference_files_ch.map{it -> tuple(it[0], it[1], it[2], it[3], it[4])})  // tuple (sample_id, ref_fasta, fasta_index, panel_name, dictionary_file)
@@ -76,5 +77,5 @@ workflow IN_COUNTRY {
 
    emit:
       bam_files_ch // tuple (sample_tag, bam_file)
-      sample_tag_reference_files_ch // tuple('lims_id#index_', 'path/to/reference/genome, ['path/to/reference/index/files'], panel_name, dictionary_file, ploidy_file, annotation_vcf_file, snp_list)
+      sample_tag_reference_files_ch // tuple(sample_tag, path/to/reference/genome, ['path/to/reference/index/files'], panel_name, dictionary_file, ploidy_file, annotation_vcf_file, snp_list)
 }

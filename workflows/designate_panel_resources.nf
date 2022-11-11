@@ -20,7 +20,8 @@ workflow DESIGNATE_PANEL_RESOURCES {
           |  combine(reference_ch,  by: 1) // tuple (panel_name, new_sample_id, fasta, [fasta_idx_files], dictionary_file, ploidy_file, annotation_vcf_file, snp_list)
           |  map{it -> tuple(it[1], it[2], it[3], it[0], it[4], it[5], it[6], it[7])}
           |  set{sample_tag_reference_files_ch}
+        // tuple (new_sample_id, path/to/reference/genome, ['path/to/reference/index/files'], panel_name, dictionary_file, ploidy_file, annotation_vcf_file, snp_list)
 
     emit:
-        sample_tag_reference_files_ch // tuple('new_sample_id-panel_name', 'path/to/reference/genome, ['path/to/reference/index/files'], panel_name, dictionary_file, ploidy_file, annotation_vcf_file, snp_list)
+        sample_tag_reference_files_ch // tuple (new_sample_id, path/to/reference/genome, ['path/to/reference/index/files'], panel_name, dictionary_file, ploidy_file, annotation_vcf_file, snp_list)
 }

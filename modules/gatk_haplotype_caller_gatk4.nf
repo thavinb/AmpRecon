@@ -43,6 +43,7 @@ process gatk_haplotype_caller_gatk4 {
         }
 
         """
+        # If needed, rename dictionary file to correct format.
         if [["${reference_dict_file}" != "${dict_file}"]]; then mv ${reference_dict_file} ${dict_file}; fi
 
         ${samtools} index ${bam_file}

@@ -47,6 +47,7 @@ process genotype_vcf_at_given_alleles {
         dict_file="${base_name_ref}.dict"
 
         """
+        # If needed, rename dictionary file to correct format.
         if [["${reference_dict_file}" != "${dict_file}"]]; then mv ${reference_dict_file} ${dict_file}; fi
 
         genotype_vcf_at_given_alleles.py \
