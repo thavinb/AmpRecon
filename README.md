@@ -51,15 +51,22 @@ nextflow ../ampseq-pipeline/main.nf -profile sanger_lsf \
         --execution_mode irods \ 
         --irods_manifest ./input/irods_smallset.tsv
 ```
+To run from the **aligned_bams** entry point:
 
+```
+nextflow ../ampseq-pipeline/main.nf -profile sanger_lsf \
+         --execution_mode aligned_bams \
+         --aligned_bams_mnf /path/to/my/aligned_bams_mnf.csv
+```
 Use `-profile sanger_lsf` to make nextflow be able to submit task to the farm lsf queue.
 Use `-profile sanger_default` to run on the farm but local (this should be used only for dev porpuse).
+To use a panel resources different than the ones provided at this repository, the user needs to provide a custom pannels settings csv via `--panels_settings`.
 
 ## Parameters
 
 Absolutely required
 ```
-exectution_mode : sets the entry point for the pipeline ("irods" or "in-country")
+execution_mode : sets the entry point for the pipeline ("irods" or "in-country")
 ```
 
 Required for **in-country**
@@ -75,6 +82,13 @@ Required for **iRODS**
 irods_manifest : an tsv containing information of irods data to fetch
 ```
 An example of an irods manifest tsv is provided at [add path to example]
+
+Required for **aligned_bams**
+```
+aligned_bams_mnf : a .csv containing information of aligned bam and .bai, sample_tag and primer panel name per file
+```
+
+An example of the aligned bams manifest csv is provided at [add path to example]
 
 To use **S3**
 ```
@@ -128,6 +142,11 @@ PFA_Spec,/path/to/panels_resources/spec/,/path/to/PFA_Spec_v1.0.annotation.regio
 * `maps_to_regions_of` : Defines which annotation file should use for the `COMMON:REALIGNMENT:read_count_per_region`.
 
 This panel settings system aims to detach the experimental design from the inner works of the pipeline and make it easier to experiment with its key steps. A custom `.csv` can be set to the pipeline by using the flag `--panels_settings`. If the user does not provide a `--panels_settings`, the pipeline default behaviour is to rely on files available at the repo (check `panels_resources` dir).
+
+### Aligned BAMs entry point
+
+The pipeline is able to start the pipeline from genotyping if a valid aligned bams manifest can be provided via `aligned_bams_mnf`.
+The source of the aligned bam files is irrelevant for the pipeline, however an aligned bams manifest is written automatically for **IN_COUNTRY** or **iRODS** entry points which can be used.
 
 ### GATK Genotyping Settings
 The GATK genotyping portion of the ampseq pipeline uses a variety of parameters defined in a `methods.config` file.

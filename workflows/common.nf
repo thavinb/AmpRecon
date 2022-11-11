@@ -23,12 +23,13 @@ workflow COMMON {
         annotations_ch // tuple (panel_name, anotation_file)
     main:
         // mapping tuple to multichannel 
-        bam_files_ch
-            | multiMap {
+        if (params.aligned_bams_mnf == null){
+            bam_files_ch
+              | multiMap {
                 sample_tag: it[0]
                 bam_file: it[1]
                 }
-            | set { realignment_In_ch }
+              | set { realignment_In_ch }
         
         // do realignment and read counts
         REALIGNMENT(
@@ -37,9 +38,16 @@ workflow COMMON {
                     sample_tag_reference_files_ch,
                     annotations_ch
                 )
-        
+
+        genotyping_In_ch = REALIGNMENT.out
+        }
+
+        if (params.execution_mode == "aligned_bams"){
+        genotyping_In_ch = bam_files_ch
+        }
+        // genotyping
         BQSR(
-            REALIGNMENT.out,
+            genotyping_In_ch,
             sample_tag_reference_files_ch
         )
 
@@ -52,7 +60,7 @@ workflow COMMON {
         }
 
         if( params.genotyping_bcftools == true ) {
-                GENOTYPING_BCFTOOLS(   
+                GENOTYPING_BCFTOOLS(
                    BQSR.out,
                    sample_tag_reference_files_ch
                 )
@@ -62,14 +70,14 @@ workflow COMMON {
 workflow BQSR {
     take:
         input_sample_tags_bams_indexes
-        sample_tag_reference_files_ch
+        sample_tag_reference_files_ch // tuple(sample_tag, fasta_file, [fasta_idxs], panel_name)
     
     main:
         // base quality score recalibration
         input_sample_tags_bams_indexes // tuple (sample_tag, bam_file, bam_index)
-            | join(sample_tag_reference_files_ch) // tuple (sample_tag, bam_file, bam_index [ref_files])
+            | join(sample_tag_reference_files_ch) // tuple (sample_tag, bam_file, bam_index, fasta_file, [ref_files], panel_name)
             | map{ it -> tuple(it[0], it[1], it[2], it[3], it[3]+".fai", it[3]+".dict")}
-            | set{bqsr_input} // tuple(sample_tag, bam_file, bam_index, [ref_files], )
+            | set{bqsr_input} // tuple(sample_tag, bam_file, bam_index, fasta, fasta.fai, fasta.dict)
 
         if (!params.skip_bqsr) {
             bqsr(bqsr_input)
