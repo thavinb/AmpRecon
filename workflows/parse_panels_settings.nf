@@ -31,10 +31,12 @@ def validatePanelSettings(row, source_dir){
     }
 
     // check if reference_index_files is a valid path
-    reference_index = "${source_dir}/${row.reference_index_file_basename}{.fai,.amb,.ann,.bwt,.pac,.sa}"
-    reference_index_file_list = file(reference_index)
-    reference_index_file_list.each { file -> if (!file.exists()){
-        log.error("${file} provided for ${row.panel_name} does not exist.")
+    reference_index_file_list = [".fai", ".amb", ".ann", ".bwt", ".pac", ".sa"]
+    reference_index_file_list.each {extension  -> extension
+    index_file = file("${source_dir}/${row.reference_index_file_basename}" + extension)
+    if (!index_file.exists()){
+        print(index_file)
+        log.error("${index_file} provided for ${row.panel_name} does not exist.")
         errors += 1}
     }
 
