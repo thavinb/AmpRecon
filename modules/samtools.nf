@@ -22,6 +22,7 @@ process samtools_sort {
 }
 
 process samtools_index {
+    // saveAs argument to ensure that BQSR saved output has same name as when BQSR not run
     publishDir "${params.results_dir}/", overwrite: true, mode: "copy"
     input:
         tuple val(sample_tag), path(input_bam)

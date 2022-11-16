@@ -11,7 +11,7 @@ process gatk_haplotype_caller_gatk4 {
     //label 'pf7_container'
     label 'genotyping'
     input:
-        tuple val(sample_tag), path(bam_file), path(reference_file), path(reference_index_file), path(reference_dict_file)
+        tuple val(sample_tag), path(bam_file), path(bam_index), path(reference_file), path(reference_index_file), path(reference_dict_file)
 
     output:
         tuple val(sample_tag), path("${vcf_file_gz}"), path("${vcf_file_gz_index}"), emit: vcf_file_and_index
