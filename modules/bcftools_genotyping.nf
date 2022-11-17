@@ -1,3 +1,6 @@
+params.bgzip = 'bgzip'
+params.tabix = 'tabix'
+
 process bcftools_mpileup {
     /*
     * Creates an uncompressed BCF file containing calculated genotype likelihoods for every possible genomic position supported by the BAM
@@ -63,31 +66,40 @@ process bcftools_filter {
         tuple val(sample_tag), path(input_bcf)
 
     output:
-        tuple val(sample_tag), path("${output_vcf}")
+        tuple val(sample_tag), path("${output_vcf}"), path("${output_vcf_index}")
 
     script:
         base_name = input_bcf.baseName
         intermediate_vcf="${base_name}.intermediate.vcf"
-        output_vcf="${base_name}.vcf"
+        output_vcf_uncompressed="${base_name}.vcf"
+        output_vcf="${base_name}.vcf.gz"
+        output_vcf_index="${output_vcf}.tbi"
+
+        bgzip = params.bgzip
+        tabix = params.tabix
 
 	// Had to escape backslash character in FORMAT line of script
 
         """
-	bcftools filter \
-	--mode + \
-	--soft-filter LowDepth \
-	--exclude FORMAT/DP\\<8 \
-	--output-type v \
-	< "${input_bcf}" \
-	> "${intermediate_vcf}"
+        bcftools filter \
+        --mode + \
+        --soft-filter LowDepth \
+        --exclude FORMAT/DP\\<8 \
+        --output-type v \
+        < "${input_bcf}" \
+        > "${intermediate_vcf}"
 
-	bcftools filter \
-	--mode + \
-	--soft-filter LowQual \
-	--exclude '%QUAL<15 || MQ<20' \
-	--output-type v \
-	< "${intermediate_vcf}" \
-	> "${output_vcf}"
+        bcftools filter \
+        --mode + \
+        --soft-filter LowQual \
+        --exclude '%QUAL<15 || MQ<20' \
+        --output-type v \
+        < "${intermediate_vcf}" \
+        > "${output_vcf_uncompressed}"
+
+        # Compress and index (g)vcf
+        ${bgzip} -c ${output_vcf_uncompressed} > ${output_vcf}
+        ${tabix} -p vcf ${output_vcf}
 
         rm "${intermediate_vcf}"
         """
