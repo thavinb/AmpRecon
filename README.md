@@ -49,7 +49,7 @@ To run from the **iRODS** entry point:
 ```
 nextflow ../ampseq-pipeline/main.nf -profile sanger_lsf \ 
         --execution_mode irods \ 
-        --irods_manifest ./input/irods_smallset.tsv
+        --irods_manifest ./input/irods_manifest.tsv
 ```
 
 Use `-profile sanger_lsf` to make nextflow be able to submit task to the farm lsf queue.
@@ -115,27 +115,21 @@ The ampseq pipeline relies on a `panels_settings.csv` to define which files it s
 Currently, this `.csv` should look like the example below:
 
 ```
-panel_name,reference_file,reference_index_file_basename,reference_dictionary_file,design_file,ploidy_file,annotation_vcf_file,snp_list
-PFA_GRC1_v1.0,PFA_GRC1_v1.0.fasta,PFA_GRC1_v1.0.fasta,PFA_GRC1_v1.0.dict,PFA_GRC1_v1.0.regions.txt,PFA_GRC1_v1.0.ploidy,PFA_GRC1_v1.0.annotation.vcf,PFA_GRC1_v1.0.genotyping.vcf.gz
-PFA_GRC2_v1.0,PFA_GRC2_v1.0.fasta,PFA_GRC2_v1.0.fasta,PFA_GRC2_v1.0.dict,PFA_GRC2_v1.0.regions.txt,PFA_GRC2_v1.0.ploidy,PFA_GRC2_v1.0.annotation.vcf,PFA_GRC2_v1.0.genotyping.vcf.gz
-PFA_Spec,PFA_Spec.fasta,PFA_Spec.fasta,PFA_Spec.dict,PFA_Spec.regions.txt,PFA_Spec.ploidy,PFA_Spec.annotation.vcf,PFA_Spec.genotyping.vcf.gz
+panel_name,reference_file,design_file,snp_list
+PFA_GRC1_v1.0,PFA_GRC1_v1.0.fasta,PFA_GRC1_v1.0.regions.txt,PFA_GRC1_v1.0.annotation.vcf
+PFA_GRC2_v1.0,PFA_GRC2_v1.0.fasta,PFA_GRC2_v1.0.regions.txt,PFA_GRC2_v1.0.annotation.vcf
+PFA_Spec,PFA_Spec.fasta,PFA_Spec.regions.txt,PFA_Spec.annotation.vcf
 ```
 
 * `panel_name` : Defines the string it should look for a given panel, this strings should be the same provided by the user (via samplesheet or irods_manifest).
 
-* `reference_file` : The path to the `reference.fasta` (and associated index files) to use for the alignment, namely  `IN_COUNTRY:CRAM_TO_BAM:align_bam` and `COMMON:REALIGNMENT:aligns_bam`.
-
-* `reference_index_file_basename` : Defines the basename path of the index files (.fai, .amb, .ann, .bwt, .pac and .sa) associated with the `reference.fasta'.
+* `reference_file` : Path to the `reference.fasta` for use in alignment. Reference index files (.fai, .amb, .ann, .bwt, .pac and .sa) and a sequence dictionary file (reference_file_name.dict) should also be found at this location.
 
 * `reference_dictionary_file` : The path to the sequence dictionary file for this reference genome.
 
 * `design_file` : Defines which annotation file should use for the `COMMON:REALIGNMENT:read_count_per_region`.
 
-* `ploidy_file` : The path to the --ploidy-file used by bcftools call in the bcftools genotyping workflow.
-
-* `annotation_vcf_file` : The path to the --targets-file used by bcftools mpileup in the BCFtools genotyping workflow.
-
-* `snp_list` : The path to the intervals file used by GATK GenotypeGVCFs in the GATK genotyping workflow.
+* `snp_list` : Path to the SNP list file, used as both an intervals file for GATK GenotypeGVCFs and as a targets file for BCFtools mpileup.
 
 The aim of this panel settings system is to detach the experimental design from the inner works of the pipeline and make it easier to experiment with its key steps. A custom `.csv` can be set to the pipeline by using the flag `--panels_settings`. If the user does not provide a `--panels_settings`, the pipeline default behaviour is to rely on files available at the repo (check `panels_resources` dir).
 

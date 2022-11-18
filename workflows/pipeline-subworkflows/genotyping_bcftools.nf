@@ -12,21 +12,21 @@ workflow GENOTYPING_BCFTOOLS {
 
   take:
         input_sample_tags_bams_indexes // tuple(sample_tag, bam_file, bam_index_file)
-        sample_tag_reference_files_ch // tuple(sample_tag, reference_fasta, reference_fasta_index, reference_ploidy_file, reference_annotation_file)
+        sample_tag_reference_files_ch // tuple(sample_tag, reference_fasta, snp_list)
   main:
 
     // compute genotype likelihoods
     input_sample_tags_bams_indexes // tuple (sample_tag, bam_file, bam_index)
-        | join(sample_tag_reference_files_ch) // tuple (sample_tag, bam_file, bam_index, reference_fasta, reference_fasta_index, reference_ploidy_file, reference_annotation_file)
-        | map{ it -> tuple(it[0], it[1], it[2], it[3], it[4], it[6])}
-        | set{mpileup_input} // tuple(sample_tag, bam_file, bam_index, reference_fasta, reference_fasta_index, reference_annotation_vcf)
+        | join(sample_tag_reference_files_ch) // tuple (sample_tag, bam_file, bam_index, reference_fasta, snp_list)
+        | map{ it -> tuple(it[0], it[1], it[2], it[3], it[4])}
+        | set{mpileup_input} // tuple(sample_tag, bam_file, bam_index, reference_fasta, snp_list)
     bcftools_mpileup(mpileup_input)
 
     // call SNP sites
     bcftools_mpileup.out // tuple (sample_tag, bcf_file)
-	| join(sample_tag_reference_files_ch) // tuple (sample_tag, bcf_file, reference_fasta, reference_fasta_index, reference_ploidy_file, reference_annotation_file)
-	| map{ it -> tuple(it[0], it[1], it[4])}
-	| set{call_input} // tuple (sample_tag, bcf_file, reference_ploidy_file)
+	| join(sample_tag_reference_files_ch) // tuple (sample_tag, bcf_file, reference_fasta, snp_list)
+	| map{ it -> tuple(it[0], it[1])}
+	| set{call_input} // tuple (sample_tag, bcf_file)
     bcftools_call(call_input)
 
     // filter genetic variants

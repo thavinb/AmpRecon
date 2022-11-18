@@ -21,7 +21,7 @@ include { retrieve_miseq_run_from_s3 } from '../modules/retrieve_miseq_run_from_
 
 workflow IN_COUNTRY {
    take:
-      reference_ch // tuple (fasta, panel_name, [fasta_idx_files], dictionary_file, ploidy_file, annotation_vcf_file, snp_list)
+      reference_ch // tuple (fasta, panel_name, snp_list)
    
    main:
       
@@ -69,13 +69,13 @@ workflow IN_COUNTRY {
       // assign each sample tag the appropriate set of reference files
       DESIGNATE_PANEL_RESOURCES(new_sample_tag_ch, reference_ch)
       sample_tag_reference_files_ch = DESIGNATE_PANEL_RESOURCES.out.sample_tag_reference_files_ch 
-      // tuple(sample_tag, path/to/reference/genome, ['path/to/reference/index/files'], panel_name, dictionary_file, ploidy_file, annotation_vcf_file, snp_list)
+      // tuple(sample_tag, panel_name path/to/reference/genome, snp_list)
 
       // Stage 1 - Step 2: CRAM to BAM
-      CRAM_TO_BAM(cram_ch, sample_tag_reference_files_ch.map{it -> tuple(it[0], it[1], it[2], it[3], it[4])})  // tuple (sample_id, ref_fasta, fasta_index, panel_name, dictionary_file)
+      CRAM_TO_BAM(cram_ch, sample_tag_reference_files_ch.map{it -> tuple(it[0], it[2], it[1])})  // tuple (sample_tag, ref_fasta, panel_name)
       bam_files_ch = CRAM_TO_BAM.out.bam_ch
 
    emit:
       bam_files_ch // tuple (sample_tag, bam_file)
-      sample_tag_reference_files_ch // tuple(sample_tag, path/to/reference/genome, ['path/to/reference/index/files'], panel_name, dictionary_file, ploidy_file, annotation_vcf_file, snp_list)
+      sample_tag_reference_files_ch // tuple (sample_tag, panel_name, path/to/reference/genome, snp_list)
 }

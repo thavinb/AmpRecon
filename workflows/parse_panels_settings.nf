@@ -30,28 +30,28 @@ def validatePanelSettings(row, source_dir){
         errors += 1
     }
 
-    // check if reference_index_files are valid paths
+    // check if necessary index files for reference genome exist
     reference_index_file_list = [".fai", ".amb", ".ann", ".bwt", ".pac", ".sa"]
     reference_index_file_list.each {extension  -> extension
-    index_file = file("${source_dir}/${row.reference_index_file_basename}" + extension)
+    index_file = file("${source_dir}/${row.reference_file}" + extension)
     if (!index_file.exists()){
         log.error("${index_file} provided for ${row.panel_name} does not exist.")
         errors += 1}
     }
 
-    // check if reference_dictionary_file is a valid path
-    reference_dictionary = "${source_dir}/${row.reference_dictionary_file}"
+    // check if dictionary file for reference genome exists
+    reference_dictionary = "${source_dir}/" + file("${row.reference_file}").parent + "/" + file("${row.reference_file}").baseName+".dict"
     reference_dictionary_file = file(reference_dictionary)
     if (!reference_dictionary_file.exists()){
         log.error("${reference_dictionary} provided for ${row.panel_name} does not exist.")
         errors += 1
     }
 
-    // check if annotation_vcf_file columns is a valid path
-    annotation_vcf = "${source_dir}/${row.annotation_vcf_file}"
-    annotation_vcf_file = file(annotation_vcf)
-    if (!annotation_vcf_file.exists()){
-        log.error("${annotation_vcf} provided for ${row.panel_name} does not exist.")
+    // check if snp_list columns is a valid path
+    snp_list = "${source_dir}/${row.snp_list}"
+    snp_list_file = file(snp_list)
+    if (!snp_list_file.exists()){
+        log.error("${snp_list} provided for ${row.panel_name} does not exist.")
         errors += 1
     }
 
@@ -94,13 +94,9 @@ workflow PARSE_PANEL_SETTINGS {
                             validatePanelSettings(row, source_dir)
                             // TODO: validate if expected files were provided
                             tuple(
-                                file("${source_dir}/${row.reference_file}"),
+                                "${source_dir}/${row.reference_file}",
                                 row.panel_name,
-                                file("${source_dir}/${row.reference_index_file_basename}{.fai,.amb,.ann,.bwt,.pac,.sa}"),
-                                file("${source_dir}/${row.reference_dictionary_file}"),
-                                file("${source_dir}/${row.ploidy_file}"),
-                                file("${source_dir}/${row.annotation_vcf_file}"),
-				file("${source_dir}/${row.snp_list}")
+				"${source_dir}/${row.snp_list}"
                             )
                             }
 
@@ -116,6 +112,6 @@ workflow PARSE_PANEL_SETTINGS {
                                 )
                            }
     emit:
-        reference_ch // tuple(fasta, panel_name, [fasta_idx_files], dictionary_file, ploidy_file, annotation_vcf_file, snp_list)
+        reference_ch // tuple(reference_file, panel_name, snp_list)
         annotations_ch // tuple(panel_name, design_file)
 }
