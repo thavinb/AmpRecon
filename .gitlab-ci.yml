@@ -57,6 +57,6 @@ tag code on merge to develop:
     - export TIMESTAMP_VERSION=$(date -u '+%Y.%m.%d.%H.%M.%S.%3N')
     - echo "Tagging with tag ${TIMESTAMP_VERSION}"
     - git tag -a $TIMESTAMP_VERSION -m "Version $TIMESTAMP_VERSION"
-    - git push https://${AMPLICON_CI_TOKEN_NAME}:${AMPLICON_CI_TOKEN_VALUE}@${CI_SERVER_HOST}/${CI_PROJECT_PATH}.git $TIMESTAMP_VERSION
+    - git push https://${AMPSEQ_CI_USERNAME}:${AMPSEQ_USER_TOKEN}@${CI_SERVER_HOST}/${CI_PROJECT_PATH}.git $TIMESTAMP_VERSION
 
 

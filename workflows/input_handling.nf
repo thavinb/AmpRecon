@@ -1,7 +1,9 @@
+include {validate_irods_mnf} from '../modules/validate_irods_mnf.nf'
+
 def validate_parameters() {
 
   def errors = 0
-  def valid_execution_modes = ["in-country", "irods"]
+  def valid_execution_modes = ["in-country", "irods", "aligned_bams"]
   
   // --- SANITY CHECKS ------------------------------------------------------
   // check if output dir exists, if not create the default
@@ -14,7 +16,7 @@ def validate_parameters() {
   }
 
   // check if execution mode is valid
-  if (!valid_execution_modes.contains(params.execution_mode)) {
+  if (!valid_execution_modes.contains(params.execution_mode)){
     log.error("The execution mode provided (${params.execution_mode}) is not valid. valid modes = ${valid_execution_modes}")
     errors += 1
   }
@@ -65,8 +67,29 @@ def validate_parameters() {
         log.error("The irods manifest file specified (${params.irods_manifest}) does not exist.")
         errors += 1
       }
+      else {
+          validate_irods_mnf(params.irods_manifest, params.panels_settings)
+      }
     }
+
   }
+
+  if (params.execution_mode == "aligned_bams"){
+    if (params.aligned_bams_mnf == null){
+      log.error("An aligned_bams_mnf must be provided for execution mode '${params.execution_mode}'.")
+      errors += 1
+    }
+    if (params.aligned_bams_mnf){
+      aligned_bams_manifest = file(params.aligned_bams_mnf)
+      if (!aligned_bams_manifest.exists()){
+        log.error("The aligned bams manifest file specified (${params.aligned_bams_mnf}) does not exist.")
+        errors += 1
+      }
+    // TODO add some manifest validation
+
+    }
+  }  
+
 
   // check if all s3 required parameters were provided
   if (!(params.s3_bucket_input==null)){
@@ -78,7 +101,7 @@ def validate_parameters() {
 
   if (params.upload_to_s3){
     if (params.s3_bucket_output == null){
-      log.error("A s3_bucket_output parameter must be provided if download_from_s3 is set to '${params.upload_from_s3}'.")
+      log.error("A s3_bucket_output parameter must be provided if upload_to_s3 is set to '${params.upload_to_s3}'.")
       errors += 1
     }
     if (params.s3_uuid==null){

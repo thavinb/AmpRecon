@@ -30,8 +30,8 @@ process genotype_vcf_at_given_alleles {
         tuple val(sample_tag), path("${output_vcf_gz}"), emit: vcf_file
 
     script:
-        base_name_ref=gvcf_fn.getSimpleName()
-        output_vcf="${base_name_ref}.genotyped.vcf"
+        base_name_ref=gvcf_fn.getBaseName().replace(".recalibrated.vcf", "")
+        output_vcf="${base_name_ref}.gatk_genotyped.vcf"
         output_vcf_gz="${output_vcf}.gz"
         output_vcf_gz_index="${output_vcf_gz}.tbi"
         java_memory = 8000 * task.attempt

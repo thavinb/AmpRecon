@@ -1,0 +1,4 @@
+panel_name,aligns_to,maps_to_regions_of
+PFA_GRC1_v1.0,/panels_resources/grc1/,/path/to/my/grcA.annotation.regions.txt
+PFA_GRC2_v1.0,/panels_resources/grc2/,/path/to/my/grcB.annotation.regions.txt
+PFA_Spec,/panels_resources/spec/,/path/to/my/grcC..annotation.regions.txt

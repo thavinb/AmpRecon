@@ -40,4 +40,7 @@ singularity build --fakeroot pythonBox.sif SingularityFile_pythonBox
 
 echo "@ building genotyping.sif"
 singularity build --fakeroot genotyping.sif SingularityFile_genotyping
+
+echo "@ building bcftools.sif"
+singularity build --fakeroot bcftools.sif SingularityFile_bcftools
 echo ":: DONE ::"

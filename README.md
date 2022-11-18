@@ -51,15 +51,22 @@ nextflow ../ampseq-pipeline/main.nf -profile sanger_lsf \
         --execution_mode irods \ 
         --irods_manifest ./input/irods_smallset.tsv
 ```
+To run from the **aligned_bams** entry point:
 
+```
+nextflow ../ampseq-pipeline/main.nf -profile sanger_lsf \
+         --execution_mode aligned_bams \
+         --aligned_bams_mnf /path/to/my/aligned_bams_mnf.csv
+```
 Use `-profile sanger_lsf` to make nextflow be able to submit task to the farm lsf queue.
 Use `-profile sanger_default` to run on the farm but local (this should be used only for dev porpuse).
+To use a panel resources different than the ones provided at this repository, the user needs to provide a custom pannels settings csv via `--panels_settings`.
 
 ## Parameters
 
 Absolutely required
 ```
-exectution_mode : sets the entry point for the pipeline ("irods" or "in-country")
+execution_mode : sets the entry point for the pipeline ("irods" or "in-country")
 ```
 
 Required for **in-country**
@@ -76,6 +83,13 @@ irods_manifest : an tsv containing information of irods data to fetch
 ```
 An example of an irods manifest tsv is provided at [add path to example]
 
+Required for **aligned_bams**
+```
+aligned_bams_mnf : a .csv containing information of aligned bam and .bai, sample_tag and primer panel name per file
+```
+
+An example of the aligned bams manifest csv is provided at [add path to example]
+
 To use **S3**
 ```
 s3_uuid : <str> a universally unique id which will be used to fetch data from s3,
@@ -85,27 +99,57 @@ upload_to_s3: <bool> sets if needs to upload output data to an s3 bucket
 s3_bucket_output: <str> s3 bucket name to upload data to
 ```
 
-### Pannel Settings
-The ampseq pipeline relies on a `pannels_settings.csv` to define which files it should use on key pipeline steps according to the pannel name provided for a given sample.
+To use **GATK genotyping**
+```
+genotyping_gatk : <bool> the GATK genotyping workflow will be run if this parameter is set to 'true'
+```
+By default the GATK genotyping workflow is launched as the 'genotyping_gatk' parameter is set to 'true'
+
+To use **BCFtools genotyping**
+```
+genotyping_bcftools : <bool> the BCFtools genotyping workflow will be run if this parameter is set to 'true'
+```
+By default the BCFtools genotyping workflow is prevented from running as the 'genotyping_bcftools' parameter is not set to 'true'.
+
+### iRODS Manifest
+The iRODS must be a `.tsv` and the pipeline expects to find the following columns headers:
+
+* `sample_id`: a sample identification "tag", which is used on the pipeline output file names;
+
+* `primer_panel`: primer panel name to be used (must match exactly what is provided at `panel_name` of the `panels_settings.csv`);
+
+* `irods_path`: full valid iRODS path for a `.cram` file (ex: `/seq/illumina/runs/38/38344/lane2/plex1/38344_2#1.cram`).
+
+The `.tsv` may have more columns at any order, but those are the only ones which will be considered.
+The pipeline builds an "internal id" set as `<cram_filename>_<sample_id>_<primer_panel>`, therefore, the pipeline will check if any combination of those values at the manifest are unique. If not, an error will be raised and the pipeline run will stop.
+An example of a valid manifest can be found at this repository (`test_data/irods_mnf.tsv`).
+
+### Panel Settings
+The ampseq pipeline relies on a `panels_settings.csv` to define which files it should use on key pipeline steps according to the panel name provided for a given sample.
 Currently, this `.csv` should look like the example below:
 
 ```
-pannel_name,aligns_to,maps_to_regions_of
-PFA_GRC1_v1.0,/path/to/pannels_resources/grc1/,/path/to/PFA_GRC1_v1.0.annotation.regions.txt
-PFA_GRC2_v1.0,/path/to/pannels_resources/grc2/,/path/to/PFA_GRC2_v1.0.annotation.regions.txt
-PFA_Spec,/path/to/pannels_resources/spec/,/path/to/PFA_Spec_v1.0.annotation.regions.txt
+panel_name,aligns_to,maps_to_regions_of
+PFA_GRC1_v1.0,/path/to/panels_resources/grc1/,/path/to/PFA_GRC1_v1.0.annotation.regions.txt
+PFA_GRC2_v1.0,/path/to/panels_resources/grc2/,/path/to/PFA_GRC2_v1.0.annotation.regions.txt
+PFA_Spec,/path/to/panels_resources/spec/,/path/to/PFA_Spec_v1.0.annotation.regions.txt
 ```
 
-* `pannel_name` : Defines the string it should look for a given pannel, this strings should be the same provided by the user (via samplesheet or irods_manifest).
+* `panel_name` : Defines the string it should look for a given panel, this strings should be the same provided by the user (via samplesheet or irods_manifest).
 
 * `aligns_to` : Defines which directory it should look to get the `.fasta` (and associated index files) to use for the alignment, namely  `IN_COUNTRY:CRAM_TO_BAM:align_bam` and `COMMON:REALIGNMENT:aligns_bam`.
 
 * `maps_to_regions_of` : Defines which annotation file should use for the `COMMON:REALIGNMENT:read_count_per_region`.
 
-This pannel settings system aims to detach the experimental design from the inner works of the pipeline and make it easier to experiment with its key steps. A custom `.csv` can be set to the pipeline by using the flag `--pannels_settings`. If the user does not provide a `--pannels_settings`, the pipeline default behaviour is to rely on files available at the repo (check `pannels_resources` dir).
+This panel settings system aims to detach the experimental design from the inner works of the pipeline and make it easier to experiment with its key steps. A custom `.csv` can be set to the pipeline by using the flag `--panels_settings`. If the user does not provide a `--panels_settings`, the pipeline default behaviour is to rely on files available at the repo (check `panels_resources` dir).
 
-### Genotyping Settings
-The genotyping portion of the ampseq pipeline uses a variety of parameters defined in a `methods.config` file.
+### Aligned BAMs entry point
+
+The pipeline is able to start the pipeline from genotyping if a valid aligned bams manifest can be provided via `aligned_bams_mnf`.
+The source of the aligned bam files is irrelevant for the pipeline, however an aligned bams manifest is written automatically for **IN_COUNTRY** or **iRODS** entry points which can be used.
+
+### GATK Genotyping Settings
+The GATK genotyping portion of the ampseq pipeline uses a variety of parameters defined in a `methods.config` file.
 The following parameters should be present within this file:
 
 ```
@@ -116,6 +160,15 @@ combined_vcf_file3: <str> known SNPs database file. Used to prevent BaseRecalibr
 conserved_bed_file: <str> file containing genomic intervals the GATK BaseRecalibrator command operates over in the bqsr.nf process.
 gatk_base_recalibrator_options: <str> input settings containing the supplied known sites files paths and intervals file path for the BaseRecalibrator command in the bqsr.nf process.
 alleles_fn: <str> file containing genomic intervals the GATK GenotypeGVCFs command operates over in the genotype_vcf_at_given_alleles.nf process.
+skip_bqsr: <bool> skip BQSR step in genotyping procedure.
+```
+
+### BCFtools Genotyping Requirements
+The BCFtools genotyping portion of the ampseq pipeline requires 2 additional files for every reference genome used. The first is the ploidy file and the second is an annotation VCF file of SNPs. These 2 files should be in the same directory as each associated reference genome FASTA file.
+
+```
+ploidy file: REFERENCE_GENOME_FILE_BASENAME.ploidy
+annotation VCF file naming convention: REFERENCE_GENOME_FILE_BASENAME.annotation.vcf
 ```
 
 ### Containers

@@ -1,5 +1,0 @@
-run_id,bcl_dir_path,lane,study_name,read_group,library,reference_fasta,redo_reference_fasta
-21045,input/bcl_dir/21045/,1,test,21045_1,lib,/path/to/my_reference.fasta,/path/to/my_new_reference.fasta
-210710,input/bcl_dir/210710/,1,test,210710_1,lib,/path/to/my_reference.fasta,/path/to/my_new_reference.fasta
-210714,input/bcl_dir/210714/,1,test,210714_1,lib,/path/to/my_reference.fasta,/path/to/my_new_reference.fasta
-211022,input/bcl_dir/211022/,1,test,211022_1,lib,/path/to/my_reference.fasta,/path/to/my_new_reference.fasta

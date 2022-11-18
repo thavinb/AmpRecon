@@ -19,3 +19,9 @@ wait
 nextflow run tests/test_align_bam.nf -c tests/test_align_bam.config -profile standard
 wait
 nextflow run tests/test_scramble.nf -c tests/test_scramble.config -profile standard
+wait
+nextflow run tests/test_bcftools_mpileup.nf -c tests/test_bcftools.config -profile standard
+wait
+nextflow run tests/test_bcftools_call.nf -c tests/test_bcftools.config -profile standard
+wait
+nextflow run tests/test_bcftools_filter.nf -c tests/test_bcftools.config -profile standard

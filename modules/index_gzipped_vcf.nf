@@ -1,5 +1,5 @@
 process index_gzipped_vcf {
-
+    publishDir "${params.results_dir}/", overwrite: true, mode: "copy"
     input:
         tuple val(sample_tag), path(input_zipped_vcf_file)
 

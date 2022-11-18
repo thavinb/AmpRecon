@@ -257,3 +257,49 @@ process download_test_split_bam_from_s3 {
 	"""
 }
 
+process download_annotation_vcf_from_s3 {
+
+        input:
+        val(file_id)
+
+        output:
+        path("${file_id}.annotation.vcf")
+
+        script:
+        """
+        curl https://amplicon-test-data.cog.sanger.ac.uk/pf_grc1v1.0/${file_id}.annotation.vcf > ${file_id}.annotation.vcf
+        """
+
+
+}
+
+process download_ploidy_file_from_s3 {
+
+        input:
+        val(file_id)   
+
+        output:
+        path("${file_id}.ploidy")
+
+        script:
+        """
+        curl https://amplicon-test-data.cog.sanger.ac.uk/pf_grc1v1.0/${file_id}.ploidy > ${file_id}.ploidy
+        """   
+
+
+}
+
+process download_test_file_from_s3 {
+        input:
+        val(file_name)
+
+        output:
+        path("${file_name}")
+
+        script:
+        """
+        curl https://amplicon-test-data.cog.sanger.ac.uk/${file_name} > ${file_name}
+        """
+}
+
+
