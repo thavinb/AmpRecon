@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 
-import os
 import re
 import subprocess
 import sys
@@ -73,9 +72,7 @@ def main():
     old = "\n".join(filteredOldArray)
 
     lookup = {}
-    # Dictionary file should be named like so: 'path/reference.dict'
-    dictionary_file = os.path.splitext(sys.argv[3])[0]+".dict"
-    with open(dictionary_file, "r") as fd:
+    with open("{}.dict".format(sys.argv[3]), "r") as fd:
         for line in fd:
             if "\t" in line:
                 refBits = line.split("\t")

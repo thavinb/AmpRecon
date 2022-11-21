@@ -22,46 +22,23 @@
 def validatePanelSettings(row, source_dir){
     def errors = 0 
 
-    // check if reference_file columns is a valid path
-    reference_file = "${source_dir}/${row.reference_file}"
-    aligns_to_file = file(reference_file)
+    // check if align_to columns is a valid path
+    aligns_to_path = "${source_dir}/${row.aligns_to}"
+    aligns_to_file = file(aligns_to_path)
     if (!aligns_to_file.exists()){
-        log.error("${reference_file} provided for ${row.panel_name} does not exist.")
+        log.error("${aligns_to_path} provided for ${row.panel_name} does not exist.")
         errors += 1
     }
 
-    // check if necessary index files for reference genome exist
-    reference_index_file_list = [".fai", ".amb", ".ann", ".bwt", ".pac", ".sa"]
-    reference_index_file_list.each {extension  -> extension
-    index_file = file("${source_dir}/${row.reference_file}" + extension)
-    if (!index_file.exists()){
-        log.error("${index_file} provided for ${row.panel_name} does not exist.")
-        errors += 1}
-    }
-
-    // check if dictionary file for reference genome exists
-    reference_dictionary = "${source_dir}/" + file("${row.reference_file}").parent + "/" + file("${row.reference_file}").baseName+".dict"
-    reference_dictionary_file = file(reference_dictionary)
-    if (!reference_dictionary_file.exists()){
-        log.error("${reference_dictionary} provided for ${row.panel_name} does not exist.")
-        errors += 1
-    }
-
-    // check if snp_list columns is a valid path
-    snp_list = "${source_dir}/${row.snp_list}"
-    snp_list_file = file(snp_list)
-    if (!snp_list_file.exists()){
-        log.error("${snp_list} provided for ${row.panel_name} does not exist.")
-        errors += 1
-    }
-
-    // check if design_file is a valid path
-    annotation_flpth = "${source_dir}/${row.design_file}"
+    // check if maps_to_regions_of is a valid path
+    annotation_flpth = "${source_dir}/${row.maps_to_regions_of}"
     maps_to_file = file(annotation_flpth)
     if (!maps_to_file.exists()){
         log.error("${annotation_flpth} provided for ${row.panel_name} does not exist.")
         errors += 1
     }
+    
+    // TODO: check if all expected files are present on the resource bundle provided
     
     // count errors and kill nextflow if any had been found
     if (errors > 0) {
@@ -94,13 +71,13 @@ workflow PARSE_PANEL_SETTINGS {
                             validatePanelSettings(row, source_dir)
                             // TODO: validate if expected files were provided
                             tuple(
-                                "${source_dir}/${row.reference_file}",
+                                file("${source_dir}/${row.aligns_to}/*.fasta"),
                                 row.panel_name,
-				"${source_dir}/${row.snp_list}"
+                                file("${source_dir}/${row.aligns_to}/*.fasta.*")
                             )
                             }
 
-        // build panel_anotations_files from "design_file"
+        // build panel_anotations_files from "maps_to_regions_of"
         annotations_ch = Channel.fromPath(panels_settings, checkIfExists: true)
                           | splitCsv(header: true, sep: ',')
                           | map { row ->
@@ -108,10 +85,11 @@ workflow PARSE_PANEL_SETTINGS {
                                 validatePanelSettings(row, source_dir)
                                 tuple(
                                     row.panel_name,
-                                    file("${source_dir}/$row.design_file")
+                                    file("${source_dir}/${row.maps_to_regions_of}")
                                 )
                            }
+
     emit:
-        reference_ch // tuple(reference_file, panel_name, snp_list)
-        annotations_ch // tuple(panel_name, design_file)
+        reference_ch
+        annotations_ch
 }
