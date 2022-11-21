@@ -17,14 +17,35 @@ workflow {
 	fastq = download_test_fastq_from_s3("21045_1_ref")
 	sample_tag = Channel.of("1")
 	panel_name = Channel.of("panel")
-	
 	test_ch = create_tuple(index, fastq, fasta)
+
 	align_bam(test_ch)
-	check_md5sum(align_bam.out.sam_file, "632278662f857f3aff77bc76719d22d2")
+        remove_header(align_bam.out.sam_file)
+
+        // Header removed from SAM file : random/path/to/ref.fa in header alters md5sum
+        sam_file_no_header = remove_header.out
+	check_md5sum(sam_file_no_header, "09565387278a353b0d8e51092fa665eb")
 }
 
+process remove_header {
+    label 'samtools'
+
+    input:
+    path(sam_file)
+
+    output:
+    path({sam_file_no_header})
+
+    script:
+    base_name = sam_file.getBaseName()
+    sam_file_no_header = "${base_name}.no_header.sam"
+    """
+    samtools view --no-header "${sam_file}" > "${sam_file_no_header}"
+    """
+}
 
 process create_tuple {
+    stageInMode 'copy'
 
     input:
     path(index)
@@ -32,11 +53,12 @@ process create_tuple {
     path(ref)
 
     output:
-    tuple val("1"), path(fastq), path(ref), path(index), val("panel_name")
+    tuple val("1"), path(fastq), path(ref_file), val("panel_name")
 
     script:
+    ref_file = ref
     """
-    echo 
+    echo
     """
 
 

@@ -5,7 +5,7 @@ process irods_manifest_parser {
     publishDir "${params.results_dir}", mode: 'copy', overwrite: true
 
     input:
-         tuple val(id_run), val(WG_lane), val(irods_path)
+        tuple val(id_run), val(WG_lane), val(irods_path)
 
     output:
         tuple env(sample_id), val(irods_path), val(WG_lane)

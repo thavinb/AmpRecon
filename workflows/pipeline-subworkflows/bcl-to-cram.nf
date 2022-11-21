@@ -48,10 +48,10 @@ workflow BCL_TO_CRAM {
           | flatten()
           | map { it -> tuple(it.simpleName, it, params.run_id) }
           | set {final_cram_ch} // tuple(sample_tag, cram_fl, run_id)
-        //final_cram_ch.first().view()
+
     emit:
         final_cram_ch // tuple( sample_tag, cram_fl, run_id)
-        //manifest_out
+
 }
 /*
 // -------------------------- DOCUMENTATION -----------------------------------
