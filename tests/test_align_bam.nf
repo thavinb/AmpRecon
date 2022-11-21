@@ -24,21 +24,23 @@ workflow {
 
         // Header removed from SAM file : random/path/to/ref.fa in header alters md5sum
         sam_file_no_header = remove_header.out
-	check_md5sum(sam_file_no_header, "d41d8cd98f00b204e9800998ecf8427e")
+	check_md5sum(sam_file_no_header, "09565387278a353b0d8e51092fa665eb")
 }
 
 process remove_header {
-    label 'python_plus_samtools'
-    input:
+    label 'samtools'
 
+    input:
     path(sam_file)
 
     output:
-    path({sam_file})
+    path({sam_file_no_header})
 
     script:
+    base_name = sam_file.getBaseName()
+    sam_file_no_header = "${base_name}.no_header.sam"
     """
-    samtools view "${sam_file}" > "${sam_file}"
+    samtools view --no-header "${sam_file}" > "${sam_file_no_header}"
     """
 }
 
