@@ -10,7 +10,7 @@ process align_bam {
     label 'bwa'
 
     input:
-        tuple val(sample_tag), path(fastq), val(reference_fasta), val(panel_name)
+        tuple val(sample_tag), path(fastq), path(reference_fasta), path(ref_bwa_index_fls), val(panel_name)
 
     output:
         val("${sample_tag}"), emit: sample_tag
@@ -18,7 +18,7 @@ process align_bam {
 
     script:
         bwa=params.bwa
-        ref_simplename=file(reference_fasta).simpleName
+        ref_simplename=reference_fasta.simpleName
         """
         bwa mem \
             -p \

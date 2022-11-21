@@ -49,7 +49,7 @@ To run from the **iRODS** entry point:
 ```
 nextflow ../ampseq-pipeline/main.nf -profile sanger_lsf \ 
         --execution_mode irods \ 
-        --irods_manifest ./input/irods_manifest.tsv
+        --irods_manifest ./input/irods_smallset.tsv
 ```
 To run from the **aligned_bams** entry point:
 
@@ -129,23 +129,19 @@ The ampseq pipeline relies on a `panels_settings.csv` to define which files it s
 Currently, this `.csv` should look like the example below:
 
 ```
-panel_name,reference_file,design_file,snp_list
-PFA_GRC1_v1.0,PFA_GRC1_v1.0.fasta,PFA_GRC1_v1.0.regions.txt,PFA_GRC1_v1.0.annotation.vcf
-PFA_GRC2_v1.0,PFA_GRC2_v1.0.fasta,PFA_GRC2_v1.0.regions.txt,PFA_GRC2_v1.0.annotation.vcf
-PFA_Spec,PFA_Spec.fasta,PFA_Spec.regions.txt,PFA_Spec.annotation.vcf
+panel_name,aligns_to,maps_to_regions_of
+PFA_GRC1_v1.0,/path/to/panels_resources/grc1/,/path/to/PFA_GRC1_v1.0.annotation.regions.txt
+PFA_GRC2_v1.0,/path/to/panels_resources/grc2/,/path/to/PFA_GRC2_v1.0.annotation.regions.txt
+PFA_Spec,/path/to/panels_resources/spec/,/path/to/PFA_Spec_v1.0.annotation.regions.txt
 ```
 
 * `panel_name` : Defines the string it should look for a given panel, this strings should be the same provided by the user (via samplesheet or irods_manifest).
 
-* `reference_file` : Path to the `reference.fasta` for use in alignment. Reference index files (.fai, .amb, .ann, .bwt, .pac and .sa) and a sequence dictionary file (reference_file_name.dict) should also be found at this location.
+* `aligns_to` : Defines which directory it should look to get the `.fasta` (and associated index files) to use for the alignment, namely  `IN_COUNTRY:CRAM_TO_BAM:align_bam` and `COMMON:REALIGNMENT:aligns_bam`.
 
-* `reference_dictionary_file` : The path to the sequence dictionary file for this reference genome.
+* `maps_to_regions_of` : Defines which annotation file should use for the `COMMON:REALIGNMENT:read_count_per_region`.
 
-* `design_file` : Defines which annotation file should use for the `COMMON:REALIGNMENT:read_count_per_region`.
-
-* `snp_list` : Path to the SNP list file, used as both an intervals file for GATK GenotypeGVCFs and as a targets file for BCFtools mpileup.
-
-The aim of this panel settings system is to detach the experimental design from the inner works of the pipeline and make it easier to experiment with its key steps. A custom `.csv` can be set to the pipeline by using the flag `--panels_settings`. If the user does not provide a `--panels_settings`, the pipeline default behaviour is to rely on files available at the repo (check `panels_resources` dir).
+This panel settings system aims to detach the experimental design from the inner works of the pipeline and make it easier to experiment with its key steps. A custom `.csv` can be set to the pipeline by using the flag `--panels_settings`. If the user does not provide a `--panels_settings`, the pipeline default behaviour is to rely on files available at the repo (check `panels_resources` dir).
 
 ### Aligned BAMs entry point
 

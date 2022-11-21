@@ -8,10 +8,10 @@ params.gatk_haplotype_caller_gatk4_contamination = 0
 params.gatk_haplotype_caller_gatk4_interval_file = ''
 
 process gatk_haplotype_caller_gatk4 {
-
+    //label 'pf7_container'
     label 'genotyping'
     input:
-        tuple val(sample_tag), path(bam_file), val(reference_file)
+        tuple val(sample_tag), path(bam_file), path(bam_index), path(reference_file), path(reference_index_file), path(reference_dict_file)
 
     output:
         tuple val(sample_tag), path("${vcf_file_gz}"), path("${vcf_file_gz_index}"), emit: vcf_file_and_index
@@ -19,6 +19,9 @@ process gatk_haplotype_caller_gatk4 {
     script:
         java_Xmx = 16000
         jvm_args="-Xmx${java_Xmx}m"
+
+        base_name_ref=reference_file.getBaseName()
+        dict_file="${base_name_ref}.dict"
 
         base_name=bam_file.getBaseName()
         vcf_file="${base_name}.vcf"
@@ -40,6 +43,8 @@ process gatk_haplotype_caller_gatk4 {
         }
 
         """
+        mv ${reference_dict_file} ${dict_file}
+
         ${samtools} index ${bam_file}
 
         # GATK4 Haplotyper has issues with OpenJDK 11
