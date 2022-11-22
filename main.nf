@@ -177,13 +177,12 @@ workflow {
                         | splitCsv(header:true, sep:',')
     bam_files_ch = mnf_ch | map {row -> tuple(row.sample_tag, row.bam_file, row.bam_idx)}
     
-    // get sample to pannels relationship channel
-    ref_to_sample = mnf_ch | map {row -> tuple(row.panel_name, row.sample_tag)} 
-    
+    // get sample tags to panel resources relationship channel
+    ref_to_sample = mnf_ch | map {row -> tuple(row.sample_tag, row.panel_name)} 
+
     ref_to_sample
-      | map {it -> tuple(it[1],it[0])} // tuple(panel_name, sample_tag)
       | combine(reference_ch, by:1) // tuple(panel_name, sample_tag, reference_file, snp_list)
-      | map {it -> tuple(it[1], it[2], it[3], it[0])} // tuple(sample_tag, panel_name, fasta_file, snp_list)
+      | map {it -> tuple(it[1], it[0], it[2], it[3])} // tuple(sample_tag, panel_name, fasta_file, snp_list)
       | set { sample_tag_reference_files_ch}
   }
 

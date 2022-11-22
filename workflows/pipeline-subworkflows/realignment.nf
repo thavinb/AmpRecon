@@ -107,10 +107,10 @@ workflow REALIGNMENT {
   // write aligned bam manifest
 
   samtools_index.out // tuple (sample_tag, input_bam, bam_bai)
-    | join(sample_tag_reference_files_ch) //tuple (sample_tag, input_bam, bam_bai, fasta_file, fasta_idx_files, panel_name)
-    | map {it -> tuple(it[0],it[1],it[2],it[5])}
-    | set {manifest_ch}
-  
+    | join(sample_tag_reference_files_ch) //tuple (sample_tag, input_bam, bam_bai, fasta_file, panel_name)
+    | map {it -> tuple(it[0], it[1], it[2], it[4])}
+    | set {manifest_ch} // tuple (sample_tag, bam, bam_index, panel_name)
+
   write_aligned_bam_mnf(manifest_ch)
 
   emit:
