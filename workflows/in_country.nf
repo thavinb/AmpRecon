@@ -59,23 +59,28 @@ workflow IN_COUNTRY {
       cram_ch = BCL_TO_CRAM.out // tuple (sample_tag, cram_fl, run_id)
 
       // get the relevant sample data from the manifest
-      new_sample_tag_ch = make_samplesheet_manifest.out.manifest_file // WARN: this need to be removed, we should no rely on results dir
+      sample_tag_ch = make_samplesheet_manifest.out.manifest_file // WARN: this need to be removed, we should no rely on results dir
                   | splitCsv(header: ["lims_id", "sims_id", "index", "assay",
                                      "barcode_sequence", "well", "plate"],
                                     skip: 18)
                   | map { row -> tuple(row.lims_id, row.assay, row.index) }
-                  | map{it -> tuple("${params.run_id}_${params.lane}#${it[2]}_${it[0]}", it[1])} // tuple (new_sample_tag, panel_name)
+                  | map{it -> tuple("${params.run_id}_${params.lane}#${it[2]}_${it[0]}", it[1])} // tuple (sample_tag, panel_name)
+
+      // add panel names to sample_tags
+      panel_name_cram_ch = cram_ch.join(sample_tag_ch) // tuple (sample_tag, cram_fl, run_id, panel_name)
+                           | map{it -> tuple("${it[0]}_${it[3]}", it[1], it[2])} // tuple(sample_tag_panel_name, cram_fl, run_id)
+      new_sample_tag_ch = sample_tag_ch.map{it -> tuple("${it[0]}_${it[1]}", it[1])} // tuple (new_sample_tag, panel_name)  
 
       // assign each sample tag the appropriate set of reference files
       DESIGNATE_PANEL_RESOURCES(new_sample_tag_ch, reference_ch)
       sample_tag_reference_files_ch = DESIGNATE_PANEL_RESOURCES.out.sample_tag_reference_files_ch 
-      // tuple(sample_tag, panel_name path/to/reference/genome, snp_list)
+      // tuple(new_sample_tag, panel_name path/to/reference/genome, snp_list)
 
       // Stage 1 - Step 2: CRAM to BAM
-      CRAM_TO_BAM(cram_ch, sample_tag_reference_files_ch.map{it -> tuple(it[0], it[2], it[1])})  // tuple (sample_tag, ref_fasta, panel_name)
+      CRAM_TO_BAM(panel_name_cram_ch, sample_tag_reference_files_ch.map{it -> tuple(it[0], it[2], it[1])})  // tuple (new_sample_tag, ref_fasta, panel_name)
       bam_files_ch = CRAM_TO_BAM.out.bam_ch
 
    emit:
-      bam_files_ch // tuple (sample_tag, bam_file)
-      sample_tag_reference_files_ch // tuple (sample_tag, panel_name, path/to/reference/genome, snp_list)
+      bam_files_ch // tuple (new_sample_tag, bam_file)
+      sample_tag_reference_files_ch // tuple (new_sample_tag, panel_name, path/to/reference/genome, snp_list)
 }
