@@ -6,6 +6,7 @@ nextflow.enable.dsl = 2
 // --- import modules ---------------------------------------------------------
 // - workflows
 include { BCL_TO_CRAM } from './pipeline-subworkflows/bcl-to-cram.nf'
+include { DESIGNATE_PANEL_RESOURCES } from './designate_panel_resources.nf'
 include { CRAM_TO_BAM } from './pipeline-subworkflows/cram-to-bam.nf'
 
 // - process to extract and validate information expected based on input params
@@ -20,7 +21,7 @@ include { retrieve_miseq_run_from_s3 } from '../modules/retrieve_miseq_run_from_
 
 workflow IN_COUNTRY {
    take:
-      reference_ch // tuple ([fasta_file], panel_name, [fasta_idxs])
+      reference_ch // tuple (fasta, panel_name, snp_list)
    
    main:
       
@@ -56,31 +57,30 @@ workflow IN_COUNTRY {
       // Stage 1 - Step 1: BCL to CRAM
       BCL_TO_CRAM(step1_Input_ch, make_samplesheet_manifest.out.manifest_file)
       cram_ch = BCL_TO_CRAM.out // tuple (sample_tag, cram_fl, run_id)
-      
-      //manifest_step1_1_Out_ch = BCL_TO_CRAM.out.multiMap { it -> run_id: it[0]
-      //                                                           mnf: it[1]}
 
       // get the relevant sample data from the manifest
-      ref_tag = make_samplesheet_manifest.out.manifest_file // WARN: this need to be removed, we should no rely on results dir
+      sample_tag_ch = make_samplesheet_manifest.out.manifest_file // WARN: this need to be removed, we should no rely on results dir
                   | splitCsv(header: ["lims_id", "sims_id", "index", "assay",
                                      "barcode_sequence", "well", "plate"],
                                     skip: 18)
                   | map { row -> tuple(row.lims_id, row.assay, row.index) }
+                  | map{it -> tuple("${params.run_id}_${params.lane}#${it[2]}_${it[0]}", it[1])} // tuple (sample_tag, panel_name)
 
-      // assign each sample tag the appropriate set of reference files -> tuple('lims_id#index_', 'path/to/reference/genome, 'path/to/reference/index/files')
-      
-      ref_tag // tuple (lims_id, panel_name, index)
-         | combine(reference_ch,  by: 1) // tuple (panel_name, lims_id, index, [fasta_file], [fasta_idxs])
-         | map{it -> tuple("${params.run_id}_${params.lane}#${it[2]}_${it[1]}", it[3][0], it[4], it[0])}
-         | set{sample_tag_reference_files_ch}
+      // add panel names to sample_tags
+      panel_name_cram_ch = cram_ch.join(sample_tag_ch) // tuple (sample_tag, cram_fl, run_id, panel_name)
+                           | map{it -> tuple("${it[0]}_${it[3]}", it[1], it[2])} // tuple(sample_tag_panel_name, cram_fl, run_id)
+      new_sample_tag_ch = sample_tag_ch.map{it -> tuple("${it[0]}_${it[1]}", it[1])} // tuple (new_sample_tag, panel_name)  
 
-      //csv_ch = manifest_step1_1_Out_ch.mnf
+      // assign each sample tag the appropriate set of reference files
+      DESIGNATE_PANEL_RESOURCES(new_sample_tag_ch, reference_ch)
+      sample_tag_reference_files_ch = DESIGNATE_PANEL_RESOURCES.out.sample_tag_reference_files_ch 
+      // tuple(new_sample_tag, panel_name path/to/reference/genome, snp_list)
 
       // Stage 1 - Step 2: CRAM to BAM
-      CRAM_TO_BAM(cram_ch, sample_tag_reference_files_ch)
+      CRAM_TO_BAM(panel_name_cram_ch, sample_tag_reference_files_ch.map{it -> tuple(it[0], it[2], it[1])})  // tuple (new_sample_tag, ref_fasta, panel_name)
       bam_files_ch = CRAM_TO_BAM.out.bam_ch
 
    emit:
-      bam_files_ch // tuple (sample_tag, bam_file)
-      sample_tag_reference_files_ch // tuple('lims_id#index_', 'path/to/reference/genome, 'path/to/reference/index/files', panel_name)
+      bam_files_ch // tuple (new_sample_tag, bam_file)
+      sample_tag_reference_files_ch // tuple (new_sample_tag, panel_name, path/to/reference/genome, snp_list)
 }

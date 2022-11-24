@@ -153,8 +153,8 @@ workflow {
   // prepare panel resource channels 
   PARSE_PANEL_SETTINGS(params.panels_settings)
 
-  reference_ch = PARSE_PANEL_SETTINGS.out.reference_ch // tuple([fasta], panel_name, [fasta_idx])
-  annotations_ch = PARSE_PANEL_SETTINGS.out.annotations_ch
+  reference_ch = PARSE_PANEL_SETTINGS.out.reference_ch // tuple(reference_file, panel_name, snp_list)
+  annotations_ch = PARSE_PANEL_SETTINGS.out.annotations_ch // tuple(panel_name, design_file)
 
   if (params.execution_mode == "in-country") {
     // process in country entry point
@@ -177,13 +177,12 @@ workflow {
                         | splitCsv(header:true, sep:',')
     bam_files_ch = mnf_ch | map {row -> tuple(row.sample_tag, row.bam_file, row.bam_idx)}
     
-    // get sample to pannels relationship channel
-    ref_to_sample = mnf_ch | map {row -> tuple(row.panel_name, row.sample_tag)} 
-    
+    // get sample tags to panel resources relationship channel
+    ref_to_sample = mnf_ch | map {row -> tuple(row.sample_tag, row.panel_name)} 
+
     ref_to_sample
-      | map {it -> tuple(it[1],it[0])} // tuple(panel_name, sample_tag)
-      | combine(reference_ch, by:1) // tuple(panel_name, sampple_tag, [fasta_file], [fasta_idxs])
-      | map {it -> tuple(it[1],it[2][0], it[3], it[0])} // tuple(sample_tag, fasta_file, [fasta_idxs], panel_name)
+      | combine(reference_ch, by:1) // tuple(panel_name, sample_tag, reference_file, snp_list)
+      | map {it -> tuple(it[1], it[0], it[2], it[3])} // tuple(sample_tag, panel_name, fasta_file, snp_list)
       | set { sample_tag_reference_files_ch}
   }
 

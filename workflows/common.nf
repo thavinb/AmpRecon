@@ -19,7 +19,7 @@ workflow COMMON {
 
     take:
         bam_files_ch // tuple(sample_id, bam_file)
-        sample_tag_reference_files_ch // tuple(sample_id, ref_files)
+        sample_tag_reference_files_ch // tupl (sample_id, panel_name, reference_fasta_file, snp_list)
         annotations_ch // tuple (panel_name, anotation_file)
     main:
         // mapping tuple to multichannel 
@@ -32,10 +32,11 @@ workflow COMMON {
               | set { realignment_In_ch }
         
         // do realignment and read counts
+        sample_tag_reference_files_ch.map{it -> tuple(it[0], it[2], it[1])}.set{realignment_ref_ch} // tuple (sample_id, fasta_file, panel_name)
         REALIGNMENT(
                     realignment_In_ch.sample_tag,
                     realignment_In_ch.bam_file,
-                    sample_tag_reference_files_ch,
+                    realignment_ref_ch,
                     annotations_ch
                 )
 
@@ -46,23 +47,26 @@ workflow COMMON {
         genotyping_In_ch = bam_files_ch
         }
         // genotyping
+        sample_tag_reference_files_ch.map{it -> tuple(it[0], it[2])}.set{bqsr_ref_ch} // tuple (sample_id, fasta_file)
         BQSR(
             genotyping_In_ch,
-            sample_tag_reference_files_ch
+            bqsr_ref_ch
         )
 
         // genotyping
         if( params.genotyping_gatk == true ) {
+        sample_tag_reference_files_ch.map{it -> tuple(it[0], it[2], it[3])}.set{gatk_genotyping_ref_ch} // tuple (sample_id, fasta_file, snp_list)
                 GENOTYPING_GATK(
                    BQSR.out,
-                   sample_tag_reference_files_ch
+                   gatk_genotyping_ref_ch
                 )
         }
 
         if( params.genotyping_bcftools == true ) {
+        sample_tag_reference_files_ch.map{it -> tuple(it[0], it[2], it[3])}.set{bcftools_genotyping_ref_ch} // tuple (sample_id, fasta_file, snp_list)
                 GENOTYPING_BCFTOOLS(
                    BQSR.out,
-                   sample_tag_reference_files_ch
+                   bcftools_genotyping_ref_ch
                 )
         }
 }
@@ -70,14 +74,14 @@ workflow COMMON {
 workflow BQSR {
     take:
         input_sample_tags_bams_indexes
-        sample_tag_reference_files_ch // tuple(sample_tag, fasta_file, [fasta_idxs], panel_name)
+        sample_tag_reference_files_ch // tuple(sample_tag, fasta_file)
     
     main:
         // base quality score recalibration
         input_sample_tags_bams_indexes // tuple (sample_tag, bam_file, bam_index)
-            | join(sample_tag_reference_files_ch) // tuple (sample_tag, bam_file, bam_index, fasta_file, [ref_files], panel_name)
-            | map{ it -> tuple(it[0], it[1], it[2], it[3], it[3]+".fai", it[3]+".dict")}
-            | set{bqsr_input} // tuple(sample_tag, bam_file, bam_index, fasta, fasta.fai, fasta.dict)
+            | join(sample_tag_reference_files_ch) // tuple (sample_tag, bam_file, bam_index, fasta_file)
+            | map{ it -> tuple(it[0], it[1], it[2], it[3])}
+            | set{bqsr_input} // tuple(sample_tag, bam_file, bam_index, fasta)
 
         if (!params.skip_bqsr) {
             bqsr(bqsr_input)
