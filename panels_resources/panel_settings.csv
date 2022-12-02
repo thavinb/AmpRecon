@@ -1,4 +1,0 @@
-panel_name,reference_file,design_file,snp_list
-PFA_GRC1_v1.0,/panels_resources/grc1/PFA_GRC1_v1.0.fasta,/panels_resources/grc1/PFA_GRC1_v1.0.annotation.regions.txt,/panels_resources/grc1/PFA_GRC1_v1.0.annotation.vcf
-PFA_GRC2_v1.0,/panels_resources/grc2/PFA_GRC2_v1.0.fasta,/panels_resources/grc2/PFA_GRC2_v1.0.annotation.regions.txt,/panels_resources/grc2/PFA_GRC2_v1.0.annotation.vcf
-PFA_Spec,/panels_resources/spec/PFA_Spec.fasta,/panels_resources/spec/PFA_Spec.annotation.regions.txt,/panels_resources/spec/PFA_Spec.annotation.vcf
