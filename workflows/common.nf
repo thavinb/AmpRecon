@@ -47,7 +47,7 @@ workflow COMMON {
         genotyping_In_ch = bam_files_ch
         }
         // genotyping
-        sample_tag_reference_files_ch.map{it -> tuple(it[0], it[2])}.set{bqsr_ref_ch} // tuple (sample_id, fasta_file)
+        sample_tag_reference_files_ch.map{it -> tuple(it[0], it[2], it[3])}.set{bqsr_ref_ch} // tuple (sample_id, fasta_file, snp_list)
         BQSR(
             genotyping_In_ch,
             bqsr_ref_ch
