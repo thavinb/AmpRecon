@@ -2,7 +2,7 @@ process irods_retrieve {
     /**
     * Retrieves a file from iRODS.
     */
-
+    label 'irods'
     input:
         tuple val(sample), val(irods_path)
 
