@@ -24,7 +24,7 @@ process genotype_vcf_at_given_alleles {
         bgzip=params.bgzip
         suffix=params.suffix
 
-        output_base = gvcf_fn.getBaseName().replace(".vcf", "")
+        output_base = gvcf_fn.getBaseName().replace(".recalibrated","").replace(".vcf", "")
         genotyped_gvcf = "${output_base}.GenotypeGVCFs.vcf"
 
         output_vcf="${output_base}.${suffix}"
