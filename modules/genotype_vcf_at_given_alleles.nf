@@ -43,8 +43,7 @@ process genotype_vcf_at_given_alleles {
 
         main ${genotyped_gvcf} \
         ${snp_list} \
-        --output_suffix ${suffix} \
-        --output_location .
+        --output_suffix ${suffix}
 
         # Compress and index (g)vcf
         ${bgzip} -c ${output_vcf} > ${output_vcf_gz}
