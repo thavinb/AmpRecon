@@ -49,7 +49,7 @@ To run from the **iRODS** entry point:
 ```
 nextflow ../ampseq-pipeline/main.nf -profile sanger_lsf \ 
         --execution_mode irods \ 
-        --irods_manifest ./input/irods_smallset.tsv
+        --irods_manifest ./input/irods_manifest.tsv
 ```
 To run from the **aligned_bams** entry point:
 
@@ -129,37 +129,31 @@ The ampseq pipeline relies on a `panels_settings.csv` to define which files it s
 Currently, this `.csv` should look like the example below:
 
 ```
-panel_name,aligns_to,maps_to_regions_of
-PFA_GRC1_v1.0,/path/to/panels_resources/grc1/,/path/to/PFA_GRC1_v1.0.annotation.regions.txt
-PFA_GRC2_v1.0,/path/to/panels_resources/grc2/,/path/to/PFA_GRC2_v1.0.annotation.regions.txt
-PFA_Spec,/path/to/panels_resources/spec/,/path/to/PFA_Spec_v1.0.annotation.regions.txt
+panel_name,reference_file,design_file,snp_list
+PFA_GRC1_v1.0,PFA_GRC1_v1.0.fasta,PFA_GRC1_v1.0.regions.txt,PFA_GRC1_v1.0.annotation.vcf
+PFA_GRC2_v1.0,PFA_GRC2_v1.0.fasta,PFA_GRC2_v1.0.regions.txt,PFA_GRC2_v1.0.annotation.vcf
+PFA_Spec,PFA_Spec.fasta,PFA_Spec.regions.txt,PFA_Spec.annotation.vcf
 ```
 
 * `panel_name` : Defines the string it should look for a given panel, this strings should be the same provided by the user (via samplesheet or irods_manifest).
 
-* `aligns_to` : Defines which directory it should look to get the `.fasta` (and associated index files) to use for the alignment, namely  `IN_COUNTRY:CRAM_TO_BAM:align_bam` and `COMMON:REALIGNMENT:aligns_bam`.
+* `reference_file` : Path to the `reference.fasta` for use in alignment. Reference index files (.fai, .amb, .ann, .bwt, .pac and .sa) and a sequence dictionary file (reference_file_name.dict) should also be found at this location.
 
-* `maps_to_regions_of` : Defines which annotation file should use for the `COMMON:REALIGNMENT:read_count_per_region`.
+* `design_file` : Defines which annotation file should use for the `COMMON:REALIGNMENT:read_count_per_region`.
 
-This panel settings system aims to detach the experimental design from the inner works of the pipeline and make it easier to experiment with its key steps. A custom `.csv` can be set to the pipeline by using the flag `--panels_settings`. If the user does not provide a `--panels_settings`, the pipeline default behaviour is to rely on files available at the repo (check `panels_resources` dir).
+* `snp_list` : Path to the SNP list file, used as both an intervals file for GATK GenotypeGVCFs and as a targets file for BCFtools mpileup.
+
+The aim of this panel settings system is to detach the experimental design from the inner works of the pipeline and make it easier to experiment with its key steps. A custom `.csv` can be set to the pipeline by using the flag `--panels_settings`. If the user does not provide a `--panels_settings`, the pipeline default behaviour is to rely on files available at the repo (check `panels_resources` dir).
 
 ### Aligned BAMs entry point
-
 The pipeline is able to start the pipeline from genotyping if a valid aligned bams manifest can be provided via `aligned_bams_mnf`.
 The source of the aligned bam files is irrelevant for the pipeline, however an aligned bams manifest is written automatically for **IN_COUNTRY** or **iRODS** entry points which can be used.
 
-### GATK Genotyping Settings
-The GATK genotyping portion of the ampseq pipeline uses a variety of parameters defined in a `methods.config` file.
-The following parameters should be present within this file:
+### Genotyping Settings
+The following parameter should be present within the nextflow.config file:
 
 ```
-gatk3: <str> path to GATK3 GenomeAnalysisTK.jar file.
-combined_vcf_file1: <str> known SNPs database file. Used to prevent BaseRecalibrator from using regions surrounding polymorphisms.
-combined_vcf_file2: <str> known SNPs database file. Used to prevent BaseRecalibrator from using regions surrounding polymorphisms.
-combined_vcf_file3: <str> known SNPs database file. Used to prevent BaseRecalibrator from using regions surrounding polymorphisms.
-conserved_bed_file: <str> file containing genomic intervals the GATK BaseRecalibrator command operates over in the bqsr.nf process.
-gatk_base_recalibrator_options: <str> input settings containing the supplied known sites files paths and intervals file path for the BaseRecalibrator command in the bqsr.nf process.
-alleles_fn: <str> file containing genomic intervals the GATK GenotypeGVCFs command operates over in the genotype_vcf_at_given_alleles.nf process.
+gatk3: <str> path to GATK3 GenomeAnalysisTK.jar file - only needed if GATK genotyping is enabled.
 skip_bqsr: <bool> skip BQSR step in genotyping procedure.
 ```
 

@@ -7,7 +7,7 @@ process bcftools_mpileup {
     */
     label 'bcftools'
     input:
-        tuple val(sample_tag), path(input_bam), path(input_bam_index), path(reference_file), path(reference_index_file), path(reference_annotation_vcf)
+        tuple val(sample_tag), path(input_bam), path(input_bam_index), val(reference_file), val(reference_annotation_vcf)
 
     output:
         tuple val(sample_tag), path("${output_bcf}")
@@ -35,7 +35,7 @@ process bcftools_call {
     */
     label 'bcftools'
     input:
-        tuple val(sample_tag), path(input_bcf), path(reference_ploidy_file)
+        tuple val(sample_tag), path(input_bcf)
 
     output:
         tuple val(sample_tag), path("${output_bcf}")
@@ -43,13 +43,16 @@ process bcftools_call {
     script:
         base_name = input_bcf.baseName
         output_bcf="${base_name}.bcftools_genotyped.bcf"
+        ploidy="* * * * 2"
 
         """
+        echo "${ploidy}" > ploidy_file.ploidy
+
 	bcftools call \
 	--multiallelic-caller \
 	--keep-alts \
 	--skip-variants indels \
-	--ploidy-file "${reference_ploidy_file}" \
+	--ploidy-file "ploidy_file.ploidy" \
 	--output-type u \
 	< "${input_bcf}" \
 	> "${output_bcf}"

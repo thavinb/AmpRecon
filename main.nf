@@ -30,8 +30,10 @@ log.info """
          --panels_settings    : ${params.panels_settings}
          --containers_dir     : ${params.containers_dir}
          --results_dir        : ${params.results_dir}
+         --containers_dir     : ${params.containers_dir}
          --genotyping_gatk    : ${params.genotyping_gatk}
          --genotyping_bcftools: ${params.genotyping_bcftools}
+         --skip_bqsr          : ${params.skip_bqsr}
 
          (in-country)
          --run_id             : ${params.run_id}
@@ -53,8 +55,8 @@ log.info """
          --s3_uuid            : ${params.s3_uuid}
          --s3_bucket_input    : ${params.s3_bucket_input}
          --s3_bucket_output   : ${params.s3_bucket_output}
-         --containers_dir     : ${params.containers_dir}
-         --skip_bqsr          : ${params.skip_bqsr}
+
+         (DEBUG)
          --DEBUG_tile_limit   : ${params.DEBUG_tile_limit}
          --DEBUG_takes_n_bams : ${params.DEBUG_takes_n_bams}
 
@@ -94,7 +96,7 @@ def printHelp() {
   Options:
     Inputs:
       (required)
-      --execution_mode : sets the entry point for the pipeline ("irods" or "in-country")
+      --execution_mode : sets the entry point for the pipeline ("irods", "aligned_bams" or "in-country")
       
       (incountry required)
       --run_id : id to be used for the batch of data to be processed
@@ -119,13 +121,7 @@ def printHelp() {
       --containers_dir : <path>, path to a dir where the containers are located
 
       (genotyping)
-      --gatk3: <str> path to GATK3 GenomeAnalysisTK.jar file.
-      --combined_vcf_file1 : <path> known SNPs database file. Used to prevent BaseRecalibrator from using regions surrounding polymorphisms.
-      --combined_vcf_file2 : <path> known SNPs database file. Used to prevent BaseRecalibrator from using regions surrounding polymorphisms.
-      --combined_vcf_file3 : <path> known SNPs database file. Used to prevent BaseRecalibrator from using regions surrounding polymorphisms.
-      --conserved_bed_file : <path> file containing genomic intervals the GATK BaseRecalibrator command operates over in the bqsr.nf process.
-      --gatk_base_recalibrator_options : <str> input settings containing the supplied known sites files paths and intervals file path for the BaseRecalibrator command in the bqsr.nf process.
-      --alleles_fn : <path> file containing genomic intervals the GATK GenotypeGVCFs command operates over in the genotype_vcf_at_given_alleles.nf process.
+      --gatk3: <str> path to GATK3 GenomeAnalysisTK.jar file
       --skip_bqsr : <bool> skip BQSR step in GATK genotyping procedure
 
     Additional options:
@@ -153,8 +149,8 @@ workflow {
   // prepare panel resource channels 
   PARSE_PANEL_SETTINGS(params.panels_settings)
 
-  reference_ch = PARSE_PANEL_SETTINGS.out.reference_ch // tuple([fasta], panel_name, [fasta_idx])
-  annotations_ch = PARSE_PANEL_SETTINGS.out.annotations_ch
+  reference_ch = PARSE_PANEL_SETTINGS.out.reference_ch // tuple(reference_file, panel_name, snp_list)
+  annotations_ch = PARSE_PANEL_SETTINGS.out.annotations_ch // tuple(panel_name, design_file)
 
   if (params.execution_mode == "in-country") {
     // process in country entry point
@@ -177,13 +173,12 @@ workflow {
                         | splitCsv(header:true, sep:',')
     bam_files_ch = mnf_ch | map {row -> tuple(row.sample_tag, row.bam_file, row.bam_idx)}
     
-    // get sample to pannels relationship channel
-    ref_to_sample = mnf_ch | map {row -> tuple(row.panel_name, row.sample_tag)} 
-    
+    // get sample tags to panel resources relationship channel
+    ref_to_sample = mnf_ch | map {row -> tuple(row.sample_tag, row.panel_name)} 
+
     ref_to_sample
-      | map {it -> tuple(it[1],it[0])} // tuple(panel_name, sample_tag)
-      | combine(reference_ch, by:1) // tuple(panel_name, sampple_tag, [fasta_file], [fasta_idxs])
-      | map {it -> tuple(it[1],it[2][0], it[3], it[0])} // tuple(sample_tag, fasta_file, [fasta_idxs], panel_name)
+      | combine(reference_ch, by:1) // tuple(panel_name, sample_tag, reference_file, snp_list)
+      | map {it -> tuple(it[1], it[0], it[2], it[3])} // tuple(sample_tag, panel_name, fasta_file, snp_list)
       | set { sample_tag_reference_files_ch}
   }
 

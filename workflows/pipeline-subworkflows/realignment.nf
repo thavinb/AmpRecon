@@ -55,7 +55,7 @@ workflow REALIGNMENT {
   take:
     sample_tag
     bam_file
-    sample_tag_reference_files_ch // tuple (sample_id, fasta_file, [fasta_indx_files], panel_name)
+    sample_tag_reference_files_ch // tuple (sample_id, fasta_file, panel_name)
     annotations_ch // tuple (panel_name, anotation_file)
 
   main:
@@ -68,7 +68,7 @@ workflow REALIGNMENT {
 
     // prepare channels to be used on join for input for other processes
     bam_to_fastq.out // tuple (sample_id, fastq_file)
-          | join(sample_tag_reference_files_ch) //tuple (sample_id, fastq, fasta_file, fasta_idx_files, panel_name)
+          | join(sample_tag_reference_files_ch) //tuple (sample_id, fastq, fasta_file, panel_name)
           | set{align_bam_In_ch}
 
      // do new alignment
@@ -107,10 +107,10 @@ workflow REALIGNMENT {
   // write aligned bam manifest
 
   samtools_index.out // tuple (sample_tag, input_bam, bam_bai)
-    | join(sample_tag_reference_files_ch) //tuple (sample_tag, input_bam, bam_bai, fasta_file, fasta_idx_files, panel_name)
-    | map {it -> tuple(it[0],it[1],it[2],it[5])}
-    | set {manifest_ch}
-  
+    | join(sample_tag_reference_files_ch) //tuple (sample_tag, input_bam, bam_bai, fasta_file, panel_name)
+    | map {it -> tuple(it[0], it[1], it[2], it[4])}
+    | set {manifest_ch} // tuple (sample_tag, bam, bam_index, panel_name)
+
   write_aligned_bam_mnf(manifest_ch)
 
   emit:
@@ -124,5 +124,3 @@ workflow REALIGNMENT {
 [2] BAM files are converted to FASTQ format, before being aligned to a reference genome.
 [3] align to a given reference
 */
-
-

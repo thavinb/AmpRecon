@@ -5,7 +5,7 @@ process mapping_reheader {
      */
     label 'python_plus_samtools'
     input:
-        tuple val(sample_tag), path(scrambled_bam),  path(clipped_bam), path(reference_fasta), path(ref_dict)
+        tuple val(sample_tag), path(scrambled_bam),  path(clipped_bam), val(reference_fasta)
 
     output:
         tuple val(sample_tag), path("${output_file}")
