@@ -1,4 +1,0 @@
-panel_name,reference_file,design_file,snp_list
-PFA_GRC1_v1.0,/my/path/to/grc1/Pf_GRC1v1.0.fasta,/my/path/to/grc1/PFA_GRC1_v1.0.amplicon_locations.txt,/my/path/to/grc1/vcfs/Pf_GRC1v1.0.annotation.vcf
-PFA_GRC2_v1.0,/my/path/to/grc2/genome/Pf_GRC2v1.0.fasta,/my/path/to/grc2/design/PFA_GRC2_v1.0.amplicon_locations.txt,/my/path/to/grc2/vcfs/Pf_GRC2v1.0.annotation.vcf
-PFA_Spec,/my/path/to/spec/genome/Spec_v1.0.fasta,/my/path/to/spec/design/PFA_Spec_v1.0.amplicon_locations.txt,/my/path/to/spec/vcfs/Spec_v1.0.annotation.vcf

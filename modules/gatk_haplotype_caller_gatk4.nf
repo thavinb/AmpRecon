@@ -8,7 +8,6 @@ params.gatk_haplotype_caller_gatk4_contamination = 0
 params.gatk_haplotype_caller_gatk4_interval_file = ''
 
 process gatk_haplotype_caller_gatk4 {
-    //label 'pf7_container'
     label 'genotyping'
     input:
         tuple val(sample_tag), path(bam_file), path(bam_index), val(reference_file)

@@ -149,17 +149,11 @@ The aim of this panel settings system is to detach the experimental design from 
 The pipeline is able to start the pipeline from genotyping if a valid aligned bams manifest can be provided via `aligned_bams_mnf`.
 The source of the aligned bam files is irrelevant for the pipeline, however an aligned bams manifest is written automatically for **IN_COUNTRY** or **iRODS** entry points which can be used.
 
-### GATK Genotyping Settings
-The GATK genotyping portion of the ampseq pipeline uses a variety of parameters defined in a `methods.config` file.
-The following parameters should be present within this file:
+### Genotyping Settings
+The following parameter should be present within the nextflow.config file:
 
 ```
-gatk3: <str> path to GATK3 GenomeAnalysisTK.jar file.
-combined_vcf_file1: <str> known SNPs database file. Used to prevent BaseRecalibrator from using regions surrounding polymorphisms.
-combined_vcf_file2: <str> known SNPs database file. Used to prevent BaseRecalibrator from using regions surrounding polymorphisms.
-combined_vcf_file3: <str> known SNPs database file. Used to prevent BaseRecalibrator from using regions surrounding polymorphisms.
-conserved_bed_file: <str> file containing genomic intervals the GATK BaseRecalibrator command operates over in the bqsr.nf process.
-gatk_base_recalibrator_options: <str> input settings containing the supplied known sites files paths and intervals file path for the BaseRecalibrator command in the bqsr.nf process.
+gatk3: <str> path to GATK3 GenomeAnalysisTK.jar file - only needed if GATK genotyping is enabled.
 skip_bqsr: <bool> skip BQSR step in genotyping procedure.
 ```
 
