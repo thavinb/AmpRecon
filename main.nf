@@ -94,7 +94,7 @@ def printHelp() {
   Options:
     Inputs:
       (required)
-      --execution_mode : sets the entry point for the pipeline ("irods" or "in-country")
+      --execution_mode : sets the entry point for the pipeline ("irods", "aligned_bams" or "in-country")
       
       (incountry required)
       --run_id : id to be used for the batch of data to be processed
@@ -119,13 +119,7 @@ def printHelp() {
       --containers_dir : <path>, path to a dir where the containers are located
 
       (genotyping)
-      --gatk3: <str> path to GATK3 GenomeAnalysisTK.jar file.
-      --combined_vcf_file1 : <path> known SNPs database file. Used to prevent BaseRecalibrator from using regions surrounding polymorphisms.
-      --combined_vcf_file2 : <path> known SNPs database file. Used to prevent BaseRecalibrator from using regions surrounding polymorphisms.
-      --combined_vcf_file3 : <path> known SNPs database file. Used to prevent BaseRecalibrator from using regions surrounding polymorphisms.
-      --conserved_bed_file : <path> file containing genomic intervals the GATK BaseRecalibrator command operates over in the bqsr.nf process.
-      --gatk_base_recalibrator_options : <str> input settings containing the supplied known sites files paths and intervals file path for the BaseRecalibrator command in the bqsr.nf process.
-      --alleles_fn : <path> file containing genomic intervals the GATK GenotypeGVCFs command operates over in the genotype_vcf_at_given_alleles.nf process.
+      --gatk3: <str> path to GATK3 GenomeAnalysisTK.jar file
       --skip_bqsr : <bool> skip BQSR step in GATK genotyping procedure
 
     Additional options:
