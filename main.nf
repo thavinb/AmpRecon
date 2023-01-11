@@ -30,8 +30,10 @@ log.info """
          --panels_settings    : ${params.panels_settings}
          --containers_dir     : ${params.containers_dir}
          --results_dir        : ${params.results_dir}
+         --containers_dir     : ${params.containers_dir}
          --genotyping_gatk    : ${params.genotyping_gatk}
          --genotyping_bcftools: ${params.genotyping_bcftools}
+         --skip_bqsr          : ${params.skip_bqsr}
 
          (in-country)
          --run_id             : ${params.run_id}
@@ -53,8 +55,8 @@ log.info """
          --s3_uuid            : ${params.s3_uuid}
          --s3_bucket_input    : ${params.s3_bucket_input}
          --s3_bucket_output   : ${params.s3_bucket_output}
-         --containers_dir     : ${params.containers_dir}
-         --skip_bqsr          : ${params.skip_bqsr}
+
+         (DEBUG)
          --DEBUG_tile_limit   : ${params.DEBUG_tile_limit}
          --DEBUG_takes_n_bams : ${params.DEBUG_takes_n_bams}
 
