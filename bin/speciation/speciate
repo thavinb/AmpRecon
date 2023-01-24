@@ -1,0 +1,24 @@
+#!/usr/bin/env python
+
+from speciation.speciation import Speciate
+import os
+import json
+
+if __name__=="__main__":
+    test_dir = os.path.dirname(os.path.realpath(__file__))
+
+    input_vcf = os.path.join(
+            test_dir, 
+            "test_files", 
+            "27122_1#543.vcf"
+        )
+    chrom_key = os.path.join(test_dir,"spec_key.json")
+    species_ref = os.path.join(test_dir,"species_ref.json")
+
+    obj = Speciate(input_vcf, chrom_key, species_ref)
+    print(obj.matched_loci)
+    print(obj.species_label)
+
+    # json.dump(obj.alleles_depth_dict,open(f"{test_dir}/test_files/alleles_depth_dict.json","w+"))
+    
+    
