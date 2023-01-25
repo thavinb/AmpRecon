@@ -10,10 +10,13 @@ test_dir = os.path.dirname(os.path.realpath(__file__))
 class TestSpeciate(unittest.TestCase):
     
     def setUp(self):
+        """
+        Set up input object for unit tests
+        """
         input_vcf = os.path.join(
             test_dir, 
             "test_files", 
-            "28307_1#18.vcf"
+            "unit_test.vcf"
             )
         chrom_key = os.path.join(test_dir,"spec_key.json")
         species_ref = os.path.join(test_dir,"species_ref.json")
@@ -25,61 +28,159 @@ class TestSpeciate(unittest.TestCase):
         test_json = os.path.join(test_dir,"test_files", "test.json")
         self.assertEqual(self.obj._read_json(test_json),match)
 
-    # def test_convert_coords_store_depth(self):
-    #     truth_json = json.load(open(os.path.join(test_dir,"test_files","alleles_depth_dict.json")))
-    #     self.assertEqual(self.obj.alleles_depth_dict,truth_json)
+    def test_convert_coords_store_depth(self):
+        truth = {
+            "F1":{
+                "Pf":{
+                    "Allele":["A"],
+                    "DP":10
+                    },
+                "Pv":{
+                    "Allele":[],
+                    "DP":0
+                }
+            },
+            "F2":{
+                "Pf":{
+                    "Allele":["T"],
+                    "DP":12
+                    },
+                "Pv":{
+                    "Allele":[],
+                    "DP":0
+                }
+            },
+            "F3":{
+                "Pf":{
+                    "Allele":["C"],
+                    "DP":12
+                    },
+                "Pv":{
+                    "Allele":[],
+                    "DP":0
+                }    
+            },
+            "F4":{
+                "Pf":{
+                    "Allele":[],
+                    "DP":0
+                    },
+                "Pv":{
+                    "Allele":[],
+                    "DP":0
+                }
+            },
+            "F5":{
+                "Pf":{
+                    "Allele":["T","G"],
+                    "DP":23
+                    },
+                "Pv":{
+                    "Allele":[],
+                    "DP":0
+                }
+            }
+        }
+
+        for k,v in truth.items():
+            self.assertEqual(v,self.obj.alleles_depth_dict[k],k)
+
+    def run_manipulate_maf(self, test, match):
+        self.obj.alleles_depth_dict = test
+        self.obj._manipulate_maf()
+        self.assertEqual(self.obj.alleles_depth_dict, match)
 
     def test_manipulate_maf(self):
-        self.obj.alleles_depth_dict = {
-            "F130":{'Pf': {'Allele': ['A'], 'DP': 1}, 'Pv': {'Allele': ['A'], 'DP': 500}}
-        }
+        
+        for dp, allele in zip([500, 50],[[],["A"]]):
+            test = {
+            "F130":{'Pf': {'Allele': ["A"], 'DP': 1}, 'Pv': {'Allele': ['A'], 'DP': dp}}
+            }
 
-        self.obj._manipulate_maf()
-        match = {
-            "F130":{'Pf': {'Allele': [], 'DP': 1}, 'Pv': {'Allele': ['A'], 'DP': 500}}
-        }
-        # print(self.alleles_depth_dict)
-        self.assertEqual(self.obj.alleles_depth_dict, match)
+            match = {
+                "F130":{'Pf': {'Allele': allele, 'DP': 1}, 'Pv': {'Allele': ['A'], 'DP': dp}}
+            }
+            
+            self.run_manipulate_maf(test, match)
 
-        self.obj.alleles_depth_dict = {
-            "F130":{'Pf': {'Allele': ['A'], 'DP': 1}, 'Pv': {'Allele': ['A'], 'DP': 50}}
-        }
+    def run_merge_alleles(self, test, match, key="F130"):
+        self.obj.alleles_depth_dict = test
+        self.obj.merged_alleles = self.obj._merge_alleles()
+        self.assertEqual(self.obj.merged_alleles[key], match)
 
-        self.obj._manipulate_maf()
-        match = {
-            "F130":{'Pf': {'Allele': ['A'], 'DP': 1}, 'Pv': {'Allele': ['A'], 'DP': 50}}
-        }
-        # print(self.alleles_depth_dict)
-        self.assertEqual(self.obj.alleles_depth_dict, match)
 
     def test_merge_alleles(self):
-        self.obj.alleles_depth_dict = {
+        test = {
             "F130":{'Pf': {'Allele': ['A'], 'DP': 1}, 'Pv': {'Allele': ['A'], 'DP': 50}}
         }
-        self.obj.merged_alleles = self.obj._merge_alleles()
+        match = ["A"]
+        
+        self.run_merge_alleles(test, match)
 
-        self.assertEqual(self.obj.merged_alleles["F130"],["A"])
-
-        self.obj.alleles_depth_dict = {
+        test = {
             "F130":{'Pf': {'Allele': ['A','T'], 'DP': 1}, 'Pv': {'Allele': ['A'], 'DP': 50}}
         }
-        self.obj.merged_alleles = self.obj._merge_alleles()
+        match = ["A","T"]
+        self.run_merge_alleles(test, match)
 
-        self.assertEqual(self.obj.merged_alleles["F130"],["A","T"])
-
-        self.obj.alleles_depth_dict = {
+        test = {
             "F130":{'Pf': {'Allele': ['A','T'], 'DP': 1}, 'Pv': {'Allele': ['A',"T"], 'DP': 50}}
         }
-        self.obj.merged_alleles = self.obj._merge_alleles()
+        match = ["A","T"]
+        self.run_merge_alleles(test, match)
 
-        self.assertEqual(self.obj.merged_alleles["F130"],["A","T"])
-
-        self.obj.alleles_depth_dict = {
+        test = {
             "F130":{'Pf': {'Allele': ['A'], 'DP': 1}, 'Pv': {'Allele': ['A',"T"], 'DP': 50}}
         }
-        self.obj.merged_alleles = self.obj._merge_alleles()
+        match = ["A","T"]
+        self.run_merge_alleles(test, match)
 
-        self.assertEqual(self.obj.merged_alleles["F130"],["A","T"])
+    def test_match_loci(self):
+        self.obj.species_ref = {
+            "F23": {"Falciparum": "T", "Knowlesi": "A", "Vivax": "A", "Ovale": "T", "Malariae": "T"}, 
+            "F60": {"Falciparum": "A", "Knowlesi": "A", "Vivax": "A", "Ovale": "A", "Malariae": "T"}, 
+            "F61": {"Falciparum": "A", "Knowlesi": "A", "Vivax": "A", "Ovale": "A", "Malariae": "T"}, 
+            "F81": {"Falciparum": "A", "Knowlesi": "G", "Vivax": "A", "Ovale": "A", "Malariae": "A"}
+            }
+
+        self.obj.merged_alleles = {
+            "F23":["T","A"],
+            "F60":["A"],
+            "F61":["A"],
+            "F81":["A"]
+        }
+
+        match = {
+            "Falciparum":1,
+            "Knowlesi":0.75,
+            "Vivax":1,
+            "Ovale":1,
+            "Malariae":0.5
+        }
+
+        matched_loci = self.obj._match_loci(denom=len(self.obj.merged_alleles))
+        self.assertEqual(matched_loci, match)
+
+    def test_get_species_tag(self):
+        self.obj.matched_loci = {
+            'Falciparum': 1.0, 
+            'Knowlesi': 0.7692307692307693, 
+            'Vivax': 1.0, 
+            'Ovale': 0.8461538461538461, 
+            'Malariae': 0.8653846153846154
+            }
+
+        label = self.obj._get_species_tag()
+        self.assertEqual(label, "Pf/Pv")
+
+        self.obj.matched_loci["Vivax"] = 0.5
+        label = self.obj._get_species_tag()
+        self.assertEqual(label, "Pf")
+
+        self.obj.matched_loci["Falciparum"] = 0.5
+        label = self.obj._get_species_tag()
+        self.assertEqual(label, "-")
+
 
 if __name__=="__main__":
     unittest.main()
