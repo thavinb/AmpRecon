@@ -39,7 +39,7 @@ class Speciate:
         self.alleles_depth_dict = self._convert_coords_store_alleles_depth()
         self._manipulate_maf()
         self.merged_alleles = self._merge_alleles()
-        self.matched_loci = self._match_loci()
+        self.matched_loci = self._match_loci(denom=len(self.species_ref))
         self.species_label = self._get_species_tag()
 
     @staticmethod
@@ -49,7 +49,7 @@ class Speciate:
         """
         return json.load(open(fp))
 
-    def _get_call(self, call):
+    def _get_call(self, call, all_alleles):
         """
         Replicates het filtering logic applied in core pipeline.
         For a given call:
@@ -66,11 +66,16 @@ class Speciate:
         DP = call.data.DP
         if DP >= self.min_total_depth:
             pattern = "/|\|"
-            alleles = list(set(re.split(pattern, call.gt_bases)))
+            gt = set([int(i) for i in re.split(pattern, call["GT"]) if i])
+            if isinstance(call["AD"],list):
+                ad = [int(i) for i in call["AD"]]
+            else:
+                ad = [int(call["AD"])]
+            d_ad = dict(zip(all_alleles, ad))
+            alleles = [str(all_alleles[i]) for i in gt]
             if alleles:
                 if len(alleles)>1:
-                    d_ad = dict(zip(alleles, call.data.AD))
-                    alleles = [allele for allele,ad in d_ad.items() if ad>=self.het_min_allele_depth]
+                    alleles = [a for a in alleles if d_ad[a]>=self.het_min_allele_depth]
         else:
             alleles = []
             DP = 0
@@ -91,10 +96,13 @@ class Speciate:
         out = defaultdict(dict)
         for record in self.vcf_file:
             comboNum = self.chrom_key.get(record.CHROM).get(str(record.POS))
+            ref = record.REF
+            alts = [i for i in record.ALT if i]
+            all_alleles = [str(i) for i in [ref]+alts]
             try:
                 assert not record.FILTER
                 call = record.genotype(self.sample)
-                called_alleles, DP = self._get_call(call)
+                called_alleles, DP = self._get_call(call, all_alleles)
             except (IndexError, AssertionError):
                 called_alleles = []
                 DP = 0
@@ -162,7 +170,7 @@ class Speciate:
                 out[pos].update(d_depth[species]["Allele"])
         return {k:sorted(list(v)) for k,v in out.items()}
 
-    def _match_loci(self):
+    def _match_loci(self, denom):
         """
         Calculate frequency of each species specific position called
 
@@ -174,13 +182,12 @@ class Speciate:
         4) return dict
         """
         out = defaultdict(int)
-
         for pos, d_alleles in self.species_ref.items():
             sample_alleles = self.merged_alleles.get(pos,[])
             for species, allele in d_alleles.items():
                 if allele in sample_alleles:
                     out[species]+=1
-        out = {k:v/len(self.species_ref) for k,v in out.items()}
+        out = {k:v/denom for k,v in out.items()}
         return out
     
     def _get_species_tag(self):
