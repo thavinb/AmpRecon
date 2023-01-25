@@ -4,20 +4,35 @@ from speciation.speciation import Speciate
 import os
 import json
 
+test_spec = {(28307, 18): 'Pf/Pv',
+ (27488, 987): 'Pf/Pv',
+ (28599, 784): 'Pf/Pv',
+ (29770, 1006): 'Pv',
+ (32894, 900): 'Pv',
+ (35247, 849): 'Pv',
+ (39062, 1057): 'Pf/Pv',
+ (27083, 666): 'Pm',
+ (27122, 543): 'Pf/Pm',
+ (26846, 656): 'Pm',
+ (20223, 288): "Pf"
+ }
+
 if __name__=="__main__":
     test_dir = os.path.dirname(os.path.realpath(__file__))
 
-    input_vcf = os.path.join(
-            test_dir, 
-            "test_files", 
-            "27122_1#543.vcf"
-        )
     chrom_key = os.path.join(test_dir,"spec_key.json")
     species_ref = os.path.join(test_dir,"species_ref.json")
 
-    obj = Speciate(input_vcf, chrom_key, species_ref)
-    print(obj.matched_loci)
-    print(obj.species_label)
+    # test_spec = json.load(open(os.path.join(test_dir,"test_spec.json")))
+    for (run,tag), result in test_spec.items():
+        vcf_name=f"{run}_1#{tag}.vcf"
+        input_vcf = os.path.join(
+            test_dir, 
+            "test_files", 
+            vcf_name
+        )
+        obj = Speciate(input_vcf, chrom_key, species_ref)
+        print(vcf_name, obj.species_label, result, obj.species_label==result, obj.matched_loci)
 
     # json.dump(obj.alleles_depth_dict,open(f"{test_dir}/test_files/alleles_depth_dict.json","w+"))
     
