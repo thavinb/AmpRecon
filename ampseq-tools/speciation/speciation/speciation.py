@@ -125,7 +125,7 @@ class Speciate:
         3) if Pf DP > Pv DP use Pf DP for MAF calculation, vice versa
         4) Check if there is a species (won't be if no depth/depths equal)
         5) calculate maf
-        6) If MAF < min_maf (0.95 in production), remove allele calls from other species
+        6) If MAF < min_maf (0.01 in production), remove allele calls from other species
         """
         iterable = self.alleles_depth_dict.copy()
         
