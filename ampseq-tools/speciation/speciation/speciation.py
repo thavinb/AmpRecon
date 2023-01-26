@@ -39,7 +39,7 @@ class Speciate:
         self.alleles_depth_dict = self._convert_coords_store_alleles_depth()
         self._manipulate_maf()
         self.merged_alleles = self._merge_alleles()
-        self.matched_loci = self._match_loci(denom=len(self.species_ref))
+        self.matched_loci = self._match_loci()
         self.species_label = self._get_species_tag()
 
     @staticmethod
@@ -170,7 +170,7 @@ class Speciate:
                 out[pos].update(d_depth[species]["Allele"])
         return {k:sorted(list(v)) for k,v in out.items()}
 
-    def _match_loci(self, denom):
+    def _match_loci(self):
         """
         Calculate frequency of each species specific position called
 
@@ -178,16 +178,19 @@ class Speciate:
         1) get alleles from sample (if missing get empty list)
         2) For each species in that position from species ref add 
            to count if allele exists in sample alleles
-        3) Create proportions from length fo species ref
+        3) Create proportions from no. discriminating positions with a call
         4) return dict
         """
         out = defaultdict(int)
+        tot=0
         for pos, d_alleles in self.species_ref.items():
             sample_alleles = self.merged_alleles.get(pos,[])
+            if sample_alleles:
+                tot+=1
             for species, allele in d_alleles.items():
                 if allele in sample_alleles:
                     out[species]+=1
-        out = {k:v/denom for k,v in out.items()}
+        out = {k:v/tot for k,v in out.items()}
         return out
     
     def _get_species_tag(self):
