@@ -54,11 +54,11 @@ class Speciate:
         Replicates het filtering logic applied in core pipeline.
         For a given call:
         1) get total depth
-        2) if total depth > min total depth (5 from production)
+        2) if total depth > min total depth (10 from production)
             a) get unique genotype bases
             b) if call is het (alleles list length > 1)
                 i) get allele depth for each allele
-                ii) create alleles list from all allleles with AD greater than het_min_allele_depth (10 from production)
+                ii) create alleles list from all allleles with AD greater than het_min_allele_depth (5 from production)
             c) if call not het do not modify alleles list
         3) if total depth less, empty alleles list and DP = 0
         4) return alleles and DP
@@ -152,6 +152,7 @@ class Speciate:
                     species="Pv"
                     DP=d_gt["Pv"]["DP"]
             
+            maf=0
             if species:
                 maf = self._calculate_maf(DP, totDepth)
                 if maf<self.min_maf:
