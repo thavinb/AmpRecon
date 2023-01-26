@@ -100,7 +100,6 @@ class Speciate:
             alts = [i for i in record.ALT if i]
             all_alleles = [str(i) for i in [ref]+alts]
             try:
-                assert not record.FILTER
                 call = record.genotype(self.sample)
                 called_alleles, DP = self._get_call(call, all_alleles)
             except (IndexError, AssertionError):
