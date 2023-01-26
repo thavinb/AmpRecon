@@ -3,6 +3,7 @@
 from speciation.speciation import Speciate
 import os
 import json
+import pandas as pd
 
 test_spec = {
     (28307, 18): 'Pf/Pv',
@@ -37,11 +38,20 @@ if __name__=="__main__":
             vcf_name, 
             obj.species_label, 
             result, 
-            obj.species_label==result, 
-            obj.matched_loci
+            obj.species_label==result
             )
         if obj.species_label==result:
             right+=1
+
+        out_df = pd.DataFrame(obj.write_out).T
+        
+        out_df.to_csv(
+                os.path.join(
+                test_dir, 
+                "outputs", 
+                f"{vcf_name.split('.')[0]}.tsv"),
+                sep="\t"
+            )
 
     print(f"{right}/{len(test_spec)} Correct")
     

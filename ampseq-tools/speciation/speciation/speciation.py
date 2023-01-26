@@ -35,6 +35,7 @@ class Speciate:
         self.het_min_allele_depth = het_min_allele_depth
         self.chrom_key = self._read_json(chrom_key)
         self.species_ref = self._read_json(species_ref)
+        self.write_out = {}
 
         self.alleles_depth_dict = self._convert_coords_store_alleles_depth()
         self._manipulate_maf()
@@ -160,6 +161,12 @@ class Speciate:
                         self.alleles_depth_dict[pos]["Pv"]["Allele"] = []
                     elif species=="Pv":
                         self.alleles_depth_dict[pos]["Pf"]["Allele"] = []
+            
+            self.write_out[pos] = {
+                "PfDepth":d_gt["Pf"]["DP"],
+                "PvDepth":d_gt["Pv"]["DP"],
+                "MAF":maf
+            }
         iterable=None
 
     def _merge_alleles(self):
@@ -173,6 +180,7 @@ class Speciate:
         for pos, d_depth in self.alleles_depth_dict.items():
             for species in d_species_convert.values():
                 out[pos].update(d_depth[species]["Allele"])
+            self.write_out[pos]["Call"] = ",".join(list(out[pos]))
         return {k:sorted(list(v)) for k,v in out.items()}
 
     def _match_loci(self):
