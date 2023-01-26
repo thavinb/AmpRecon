@@ -158,7 +158,7 @@ class TestSpeciate(unittest.TestCase):
             "Malariae":0.5
         }
 
-        matched_loci = self.obj._match_loci(denom=len(self.obj.merged_alleles))
+        matched_loci = self.obj._match_loci()
         self.assertEqual(matched_loci, match)
 
     def test_get_species_tag(self):
