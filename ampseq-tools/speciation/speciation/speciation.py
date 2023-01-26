@@ -24,8 +24,8 @@ class Speciate:
         species_ref,
         min_maf=0.01,
         match_threshold=0.95,
-        min_total_depth=5,
-        het_min_allele_depth=10
+        min_total_depth=10,
+        het_min_allele_depth=5
     ):
         self.vcf_file = vcf.Reader(filename=vcf_file)
         self.sample = self.vcf_file.samples[0]
