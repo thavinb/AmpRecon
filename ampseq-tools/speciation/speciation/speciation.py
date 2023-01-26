@@ -99,7 +99,12 @@ class Speciate:
             ref = record.REF
             alts = [i for i in record.ALT if i]
             all_alleles = [str(i) for i in [ref]+alts]
+            filt = ";".join(
+                record.FILTER) if record.FILTER is not None else 'PASS'
+            if filt.strip() == '':
+                filt = 'PASS'
             try:
+                assert filt=="PASS"
                 call = record.genotype(self.sample)
                 called_alleles, DP = self._get_call(call, all_alleles)
             except (IndexError, AssertionError):
