@@ -52,7 +52,8 @@ if __name__=="__main__":
                 f"{vcf_name.split('.')[0]}.tsv"),
                 sep="\t"
             )
-
+        
+        json.dump(obj.matched_loci,open(os.path.join(test_dir, "outputs",f"{vcf_name.split('.')[0]}.json"),"w+"))
     print(f"{right}/{len(test_spec)} Correct")
     
     
