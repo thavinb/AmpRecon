@@ -172,7 +172,7 @@ class Speciate:
                         self.alleles_depth_dict[pos]["Pv"]["Allele"] = [] 
                     elif species=="Pv":
                         self.alleles_depth_dict[pos]["Pf"]["Allele"] = []
-            elif d_gt["Pf"]["DP"]==+d_gt["Pv"]["DP"]:
+            elif d_gt["Pf"]["DP"]==d_gt["Pv"]["DP"]:
                 maf = 0.5
             
             if pos in self.species_ref:
