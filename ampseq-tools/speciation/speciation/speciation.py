@@ -139,7 +139,7 @@ class Speciate:
         """
         Calculate Pf/Pv MAF
         """
-        return 1-speciesDepth/totDepth
+        return 1-int(speciesDepth)/int(totDepth)
 
     def _manipulate_maf(self):
         """
@@ -172,6 +172,8 @@ class Speciate:
                         self.alleles_depth_dict[pos]["Pv"]["Allele"] = [] 
                     elif species=="Pv":
                         self.alleles_depth_dict[pos]["Pf"]["Allele"] = []
+                if not species:
+                    maf=0.5
             
             if pos in self.species_ref:
                 self.write_out[pos] = {
