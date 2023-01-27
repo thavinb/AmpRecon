@@ -84,11 +84,10 @@ class Speciate:
             for a in alleles:
                 ad1 = d_ad[a]
                 if ad1<self.het_min_allele_depth:
-                    print(a,ad,DP)
                     alleles_out.remove(a)
                     ad.remove(ad1)
                     DP-=ad1
-        else:
+        if not DP >= self.min_total_depth:
             alleles_out = []
             DP = 0
         return alleles_out, DP
@@ -115,11 +114,12 @@ class Speciate:
                 record.FILTER) if record.FILTER is not None else 'PASS'
             if filt.strip() == '':
                 filt = 'PASS'
+            # print(comboNum)
             try:
-                assert filt=="PASS"
+                # assert filt=="PASS"
                 call = record.genotype(self.sample)
                 called_alleles, DP = self._get_call(call, all_alleles)
-            except (IndexError, AssertionError):
+            except (IndexError, AssertionError) as e:
                 called_alleles = []
                 DP = 0
             
@@ -173,11 +173,12 @@ class Speciate:
                     elif species=="Pv":
                         self.alleles_depth_dict[pos]["Pf"]["Allele"] = []
             
-            self.write_out[pos] = {
-                "PfDepth":d_gt["Pf"]["DP"],
-                "PvDepth":d_gt["Pv"]["DP"],
-                "MAF":maf
-            }
+            if pos in self.species_ref:
+                self.write_out[pos] = {
+                    "PfDepth":d_gt["Pf"]["DP"],
+                    "PvDepth":d_gt["Pv"]["DP"],
+                    "MAF":maf
+                }
         iterable=None
 
     def _merge_alleles(self):
@@ -191,7 +192,8 @@ class Speciate:
         for pos, d_depth in self.alleles_depth_dict.items():
             for species in d_species_convert.values():
                 out[pos].update(d_depth[species]["Allele"])
-            self.write_out[pos]["Call"] = ",".join(list(out[pos]))
+                if pos in self.species_ref:
+                    self.write_out[pos]["Call"] = ",".join(list(out[pos]))
         return {k:sorted(list(v)) for k,v in out.items()}
 
     def _match_loci(self):
