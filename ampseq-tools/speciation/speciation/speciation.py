@@ -165,15 +165,13 @@ class Speciate:
                     DP=d_gt["Pv"]["DP"]
             
             maf=0
-            if species:
+            if totDepth>0:
                 maf = self._calculate_maf(DP, totDepth)
                 if maf<self.min_maf:
                     if species=="Pf":
                         self.alleles_depth_dict[pos]["Pv"]["Allele"] = [] 
                     elif species=="Pv":
                         self.alleles_depth_dict[pos]["Pf"]["Allele"] = []
-            elif d_gt["Pf"]["DP"]==d_gt["Pv"]["DP"]:
-                maf = 0.5
             
             if pos in self.species_ref:
                 self.write_out[pos] = {
