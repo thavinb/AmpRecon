@@ -74,13 +74,24 @@ class Speciate:
                 ad = [int(call["AD"])]
             d_ad = dict(zip(all_alleles, ad))
             alleles = [str(all_alleles[i]) for i in gt]
-            if alleles:
-                if len(alleles)>1:
-                    alleles = [a for a in alleles if d_ad[a]>=self.het_min_allele_depth]
+            for a in all_alleles:
+                if a not in alleles:
+                    ad1 = d_ad[a]
+                    ad.remove(ad1)
+                    DP-=ad1
+
+            alleles_out = alleles.copy()
+            for a in alleles:
+                ad1 = d_ad[a]
+                if ad1<self.het_min_allele_depth:
+                    print(a,ad,DP)
+                    alleles_out.remove(a)
+                    ad.remove(ad1)
+                    DP-=ad1
         else:
-            alleles = []
+            alleles_out = []
             DP = 0
-        return alleles, DP
+        return alleles_out, DP
 
 
     def _convert_coords_store_alleles_depth(self):
@@ -158,7 +169,7 @@ class Speciate:
                 maf = self._calculate_maf(DP, totDepth)
                 if maf<self.min_maf:
                     if species=="Pf":
-                        self.alleles_depth_dict[pos]["Pv"]["Allele"] = []
+                        self.alleles_depth_dict[pos]["Pv"]["Allele"] = [] 
                     elif species=="Pv":
                         self.alleles_depth_dict[pos]["Pf"]["Allele"] = []
             
