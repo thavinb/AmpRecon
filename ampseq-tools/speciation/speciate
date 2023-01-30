@@ -7,6 +7,15 @@ import pandas as pd
 import argparse
 from glob import glob
 from pathlib import Path
+from tqdm import tqdm
+from multiprocessing import Pool
+
+class NoConfigError(Exception):
+    def __init__(self, message="""
+        You must specify a path to a valid config file.
+    """):
+        self.message = message
+        super().__init__(self.message)
 
 def output_df(records, outdir, name, sep="\t"):
     Path(outdir).mkdir(parents=True, exist_ok=True)
@@ -14,6 +23,28 @@ def output_df(records, outdir, name, sep="\t"):
     outfile = os.path.join(outdir, name)
     df.to_csv(outfile, sep=sep, index=False)
 
+def main(vcf, base, barcode, outdir):
+    speciate = Speciate(
+            vcf,
+            barcode,
+            **config
+        )
+
+    species_out_row = {"Sample": base, "Species":speciate.species_label}
+
+    speciate.matched_loci["Sample"] = base
+    
+    df_maf = pd.DataFrame(speciate.write_out).T
+    df_maf = df_maf.reset_index().rename({"index":"Position"}, axis=1)
+    output_df(df_maf, outdir,f"{base}_maf.tsv")
+
+    return {
+        "species_out":species_out_row,
+        "matched_loci": speciate.matched_loci
+    }
+
+def map_main(args):
+    return main(*args)
 
 if __name__=="__main__":
     parser = argparse.ArgumentParser(
@@ -35,6 +66,12 @@ if __name__=="__main__":
     """)
     parser.add_argument("--outdir", help="""
         Path to directory to output results (default: .)
+    """)
+    parser.add_argument("--pbar", action="store_true", help="""
+        Show a progress bar while running 
+    """)
+    parser.add_argument("--ncpus", type=int, help="""
+        No. cpus to use in processing
     """)
 
     args = {k:v for k,v in vars(parser.parse_args()).items()}
@@ -64,25 +101,37 @@ if __name__=="__main__":
     species_out_records = []
     sample_stats_records = []
 
-    for vcf in args["input_vcfs"]:
-        base = os.path.basename(vcf.split(".")[0])
-        barcode = d_barcode[base]
+    if not args["ncpus"] or args["ncpus"]==1:
+        if args["pbar"]:
+            iterator = tqdm(args["input_vcfs"])
+        else:
+            iterator = args["input_vcfs"]
 
-        speciate = Speciate(
+        all_samples_out = []
+        for vcf in iterator:
+            base = os.path.basename(vcf.split(".")[0])
+            barcode = d_barcode[base]
+
+            out = main(vcf, base, barcode, args["outdir"])
+
+            all_samples_out.append(out)
+    else:
+        all_args = [(
             vcf,
-            barcode,
-            **config
-        )
-        
-        species_out_row = {"Sample": base, "Species":speciate.species_label}
-        species_out_records.append(species_out_row)
-
-        speciate.matched_loci["Sample"] = base
-        sample_stats_records.append(speciate.matched_loci)
-
-        df_maf = pd.DataFrame(speciate.write_out).T
-        df_maf = df_maf.reset_index().rename({"index":"Position"}, axis=1)
-        output_df(df_maf, args["outdir"],f"{base}_maf.tsv")
+            os.path.basename(vcf.split(".")[0]),
+            d_barcode[os.path.basename(vcf.split(".")[0])],
+            args["outdir"]
+            ) for vcf in args["input_vcfs"]]
+            
+        with Pool(args["ncpus"]) as p:
+            if args["pbar"]:
+                all_samples_out = list(tqdm(p.imap(map_main, all_args), total=len(args["input_vcfs"])))
+            else:
+                all_samples_out = list(p.imap(map_main, all_args))
+    
+    for record in all_samples_out:
+        species_out_records.append(record["species_out"])
+        sample_stats_records.append(record["matched_loci"])
 
     output_df(species_out_records, args["outdir"], "species_out.tsv")
     output_df(sample_stats_records, args["outdir"], "sample_stats.tsv")
