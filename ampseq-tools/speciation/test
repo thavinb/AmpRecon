@@ -21,7 +21,12 @@ class TestSpeciate(unittest.TestCase):
         chrom_key = os.path.join(test_dir,"spec_key.json")
         species_ref = os.path.join(test_dir,"species_ref.json")
 
-        self.obj = Speciate(input_vcf, chrom_key, species_ref)
+        self.obj = Speciate(
+            input_vcf, 
+            "AGXTGXCGTAGGCGCXCATCTTTXGTACTTAXTCTCGTTGAATTCXXGCGGGAACGXGGCTAGGCGCTAACACTCAGGTTAGCAATAAXCXTGCAACGAGC",
+            chrom_key, 
+            species_ref
+            )
     
     def test_read_json(self):
         match = {"A":1,"B":2}
@@ -43,7 +48,7 @@ class TestSpeciate(unittest.TestCase):
             "F2":{
                 "Pf":{
                     "Allele":["T"],
-                    "DP":12
+                    "DP":10
                     },
                 "Pv":{
                     "Allele":[],
@@ -53,7 +58,7 @@ class TestSpeciate(unittest.TestCase):
             "F3":{
                 "Pf":{
                     "Allele":["C"],
-                    "DP":12
+                    "DP":10
                     },
                 "Pv":{
                     "Allele":[],
@@ -73,7 +78,7 @@ class TestSpeciate(unittest.TestCase):
             "F5":{
                 "Pf":{
                     "Allele":["T","G"],
-                    "DP":23
+                    "DP":22
                     },
                 "Pv":{
                     "Allele":[],
@@ -169,17 +174,24 @@ class TestSpeciate(unittest.TestCase):
             'Ovale': 0.8461538461538461, 
             'Malariae': 0.8653846153846154
             }
+        barcode1="AGXTGXCGTAGGCGCXCATCTTTXGTACTTAXTCTCGTTGAATTCXXGCGGGAACGXGGCTAGGCGCTAACACTCAGGTTAGCAATAAXCXTGCAACGAGC"
+        args = (barcode1, "Pf", 51)
+        label = self.obj._get_species_tag(*args)
+        self.assertEqual(label, "Pf/Pv")
 
-        label = self.obj._get_species_tag()
+        self.obj.matched_loci["Falciparum"] = 0.5
+        label = self.obj._get_species_tag(*args)
         self.assertEqual(label, "Pf/Pv")
 
         self.obj.matched_loci["Vivax"] = 0.5
-        label = self.obj._get_species_tag()
-        self.assertEqual(label, "Pf")
-
-        self.obj.matched_loci["Falciparum"] = 0.5
-        label = self.obj._get_species_tag()
+        label = self.obj._get_species_tag(*args)
         self.assertEqual(label, "-")
+
+        barcode2="XXTXXXXXTXXXXXXXXXXXTXTXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXGXXXXXXXCGXXXXXXXXXCXXXX"
+        args = (barcode2, "Pf", 51)
+        self.obj.matched_loci["Vivax"] = 1.0
+        label = self.obj._get_species_tag(*args)
+        self.assertEqual(label, "Pv")
 
 
 if __name__=="__main__":

@@ -20,12 +20,15 @@ class Speciate:
     def __init__(
         self,
         vcf_file,
+        barcode,
         chrom_key,
         species_ref,
         min_maf=0.01,
         match_threshold=0.95,
         min_total_depth=10,
-        het_min_allele_depth=5
+        het_min_allele_depth=5,
+        default_species="Pf",
+        default_species_barcode_coverage=51
     ):
         self.vcf_file = vcf.Reader(filename=vcf_file)
         self.sample = self.vcf_file.samples[0]
@@ -41,7 +44,11 @@ class Speciate:
         self._manipulate_maf()
         self.merged_alleles = self._merge_alleles()
         self.matched_loci = self._match_loci()
-        self.species_label = self._get_species_tag()
+        self.species_label = self._get_species_tag(
+            barcode, 
+            default_species, 
+            default_species_barcode_coverage
+            )
 
     @staticmethod
     def _read_json(fp):
@@ -110,13 +117,7 @@ class Speciate:
             ref = record.REF
             alts = [i for i in record.ALT if i]
             all_alleles = [str(i) for i in [ref]+alts]
-            filt = ";".join(
-                record.FILTER) if record.FILTER is not None else 'PASS'
-            if filt.strip() == '':
-                filt = 'PASS'
-            # print(comboNum)
             try:
-                # assert filt=="PASS"
                 call = record.genotype(self.sample)
                 called_alleles, DP = self._get_call(call, all_alleles)
             except (IndexError, AssertionError) as e:
@@ -221,11 +222,20 @@ class Speciate:
         out = {k:v/tot for k,v in out.items()}
         return out
     
-    def _get_species_tag(self):
+    def _get_species_tag(self, barcode, default_species, min_coverage):
         """
-        Join together species tags which have a frequency greater than match_threshold (0.95 in production)
+        Join together species tags which have a frequency greater than match_threshold (0.95 in production).
+
+        If barcode has sufficient coverage (51 non missing positions in production) append 
+        default species (Pf in production)
         """
-        label = "/".join([d_species_convert_match[k] for k,v in self.matched_loci.items() if v>=self.match_threshold])
+        all_species_out = [d_species_convert_match[k] for k,v in self.matched_loci.items() if v>=self.match_threshold]
+
+        barcode_coverage = len([i for i in list(barcode) if i!="X"])
+        if barcode_coverage >= min_coverage and all_species_out and default_species not in all_species_out:
+            all_species_out.insert(0, default_species)
+
+        label = "/".join(sorted(all_species_out))
 
         if not label:
             label = "-"
