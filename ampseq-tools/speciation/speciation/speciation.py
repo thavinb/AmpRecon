@@ -136,7 +136,7 @@ class Speciate:
         #iterate through VCF object
         for record in self.vcf_file:
             #get "comboNUM" position from chrom_key
-            comboNum = self.chrom_key.get(record.CHROM).get(str(record.POS))
+            comboNum = self.chrom_key.get(record.CHROM,{}).get(str(record.POS))
 
             #get ref and alts and combine in to all_alleles list
             ref = record.REF
