@@ -191,6 +191,7 @@ class Speciate:
             #only apply if there is a total depth greater than 0
             #otherwise no modification will occur to that row
             maf=0
+            DP=0
             if totDepth>0:
                 if d_gt["Pf"]["DP"]>d_gt["Pv"]["DP"]:
                     species="Pf"
@@ -198,15 +199,16 @@ class Speciate:
                 elif d_gt["Pv"]["DP"]>d_gt["Pf"]["DP"]:
                     species="Pv"
                     DP=d_gt["Pv"]["DP"]
-            
-                #calculate MAF based on whichever species depth consists of the major allele
-                maf = self._calculate_maf(DP, totDepth)
-                #if maf<threshold then remove minor species allele (whether that is Pf or Pv)
-                if maf<self.min_maf:
-                    if species=="Pf":
-                        self.alleles_depth_dict[pos]["Pv"]["Allele"] = [] 
-                    elif species=="Pv":
-                        self.alleles_depth_dict[pos]["Pf"]["Allele"] = []
+                
+                if DP:
+                    #calculate MAF based on whichever species depth consists of the major allele
+                    maf = self._calculate_maf(DP, totDepth)
+                    #if maf<threshold then remove minor species allele (whether that is Pf or Pv)
+                    if maf<self.min_maf:
+                        if species=="Pf":
+                            self.alleles_depth_dict[pos]["Pv"]["Allele"] = [] 
+                        elif species=="Pv":
+                            self.alleles_depth_dict[pos]["Pf"]["Allele"] = []
                 #if no species set that indicates Pf and Pv have equal depths, set maf as 0.5
                 if not species:
                     maf=0.5
