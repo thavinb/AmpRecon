@@ -1,7 +1,6 @@
-import vcf
 import json
 from collections import defaultdict
-import re
+import pandas as pd
 
 d_species_convert = {
     "falciparum":"Pf",
@@ -19,34 +18,33 @@ d_species_convert_match = {
 class Speciate:
     def __init__(
         self,
-        vcf_file,
+        genotype_file,
         barcode,
-        chrom_key,
         species_ref,
+        keep_chroms=[
+            "Spec_1_falciparum",
+            "Spec_2_falciparum",
+            "Spec_1_vivax",
+            "Spec_2_vivax"
+        ],
         min_maf=0.01,
         match_threshold=0.95,
-        min_total_depth=10,
-        het_min_allele_depth=5,
         default_species="Pf",
         default_species_barcode_coverage=51,
         d_species_convert=d_species_convert,
         d_species_convert_match=d_species_convert_match
     ):
         #initialise variables
-        self.vcf_file = vcf.Reader(filename=vcf_file)
         self.sample = self.vcf_file.samples[0]
         self.min_maf = min_maf
         self.match_threshold = match_threshold
-        self.min_total_depth = min_total_depth
-        self.het_min_allele_depth = het_min_allele_depth
-        self.chrom_key = self._read_json(chrom_key)
         self.species_ref = self._read_json(species_ref)
         self.d_species_convert = d_species_convert
         self.d_species_convert_match = d_species_convert_match
         self.write_out = {}
 
         #run main logic flow
-        self.alleles_depth_dict = self._convert_coords_store_alleles_depth()
+        self.alleles_depth_dict = self._read_genotype_file(genotype_file, keep_chroms)
         self._manipulate_maf()
         self.merged_alleles = self._merge_alleles()
         self.matched_loci = self._match_loci()
@@ -57,7 +55,7 @@ class Speciate:
             )
 
     @staticmethod
-    def _read_json(fp):
+    def _read_json(fp) -> dict:
         """
         read in json object and return dictionary
         """
@@ -66,94 +64,23 @@ class Speciate:
         elif isinstance(fp, dict):
             return fp
 
-    def _get_call(self, call, all_alleles):
-        """
-        Replicates het filtering logic applied in core pipeline.
-        For a given call:
-        1) get total depth
-        2) if total depth > min total depth (10 from production)
-            a) get unique genotype bases
-            b) if call is het (alleles list length > 1)
-                i) get allele depth for each allele
-                ii) create alleles list from all allleles with AD greater than het_min_allele_depth (5 from production)
-            c) if call not het do not modify alleles list
-        3) if total depth less, empty alleles list and DP = 0
-        4) return alleles and DP
-        """
-        DP = call.data.DP
-        #check total depth above minimum threshold
-        if DP >= self.min_total_depth:
-            #split genotype irrespective of phasing, get genotyped positions
-            pattern = "/|\|"
-            gt = set([int(i) for i in re.split(pattern, call["GT"]) if i])
-
-            #place ad into a list whether is is a single value or not
-            if isinstance(call["AD"],list):
-                ad = [int(i) for i in call["AD"]]
-            else:
-                ad = [int(call["AD"])]
-            #create allele -> ad dictionary
-            d_ad = dict(zip(all_alleles, ad))
-            #create list of all genotyped alleles - indexes from gt
-            alleles = [str(all_alleles[i]) for i in gt]
-
-            #If allele not genotyped, remove from ad list, remove ad from total depth
-            for a in all_alleles:
-                if a not in alleles:
-                    ad1 = d_ad[a]
-                    ad.remove(ad1)
-                    DP-=ad1
-
-            alleles_out = alleles.copy()
-            for a in alleles:
-                ad1 = d_ad[a]
-                #if allele has depth below het_min_allele_depth, remove from alleles_out, remove AD for allele,
-                #subtract AD from DP
-                if ad1<self.het_min_allele_depth:
-                    alleles_out.remove(a)
-                    ad.remove(ad1)
-                    DP-=ad1
-        #Need to apply this check explicitely again here in case DP is 
-        #now below threshold after above manipulation
-        if not DP >= self.min_total_depth:
-            alleles_out = []
-            DP = 0
-        return alleles_out, DP
-
-
-    def _convert_coords_store_alleles_depth(self):
-        """
-        For each record in spec vcf file
-        1) get comboNum coord from chrom_key dict
-        2) ensure that record not filtered and that it has a genotype for the sample
-           (otherwise give empty list and DP = 0)
-        3. get called alleles and DP from _get_call
-        4. get the species name from the contig identifier, transalate with d_species_convert
-        5. add the called alleles and depth to the out dict
-        6. Set empty entries where either genotype is missing
-        """
+    def _read_genotype_file(
+        self, 
+        genotype_file: pd.DataFrame,
+        keep_chroms: list
+        ) -> dict:
+        genotype_file = genotype_file[
+            (genotype_file.Amplicon.isin(keep_chroms)) &
+            (genotype_file.Depth!="-")
+            ]
+        genotype_file.Depth = genotype_file.Depth.astype(int)
+        
         out = defaultdict(dict)
-        #iterate through VCF object
-        for record in self.vcf_file:
-            #get "comboNUM" position from chrom_key
-            comboNum = self.chrom_key.get(record.CHROM,{}).get(str(record.POS))
 
-            #get ref and alts and combine in to all_alleles list
-            ref = record.REF
-            alts = [i for i in record.ALT if i]
-            all_alleles = [str(i) for i in [ref]+alts]
-            try:
-                #get the genotype call for the record and send to get call method
-                call = record.genotype(self.sample)
-                called_alleles, DP = self._get_call(call, all_alleles)
-            except IndexError as e:
-                #if IndexError raised then sample missing genotype call at that position
-                called_alleles = []
-                DP = 0
-            
-            #get the aligned species simple name (Pf/Pv) and write to out dictionary
-            species = self.d_species_convert.get(record.CHROM.split("_")[-1])
-            out[comboNum][species] = {"Allele":called_alleles,"DP":DP}
+        for amplicon, df in genotype_file.groupby("Amplicon"):
+            species = self.d_species_convert[amplicon.split("_")[-1]]
+            for index, row in df.iterrows():
+                out[row.Loc][species] = {"Alleles":list(row.Gen), "DP":row.Depth}
 
         #Iterate through and apply empty rows to any position missing a species call
         out_copy = out.copy()

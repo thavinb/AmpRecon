@@ -17,15 +17,30 @@ class NoConfigError(Exception):
         self.message = message
         super().__init__(self.message)
 
+class NoGenotypeFilesError(Exception):
+    def __init__(self, message="""
+        You must specify input genotype files.
+    """):
+        self.message = message
+        super().__init__(self.message)
+
+class NoBarcodesError(Exception):
+    def __init__(self, message="""
+        You must specify a path to a valid barcodes file.
+    """):
+        self.message = message
+        super().__init__(self.message)
+
 def output_df(records, outdir, name, sep="\t"):
     Path(outdir).mkdir(parents=True, exist_ok=True)
     df = pd.DataFrame.from_records(records)
     outfile = os.path.join(outdir, name)
     df.to_csv(outfile, sep=sep, index=False)
 
-def main(vcf, base, barcode, outdir):
+def main(genotype_file, base, barcode, outdir):
+    df_genotype_file = pd.read_csv(genotype_file, sep="\t")
     speciate = Speciate(
-            vcf,
+            df_genotype_file,
             barcode,
             **config
         )
@@ -52,16 +67,13 @@ if __name__=="__main__":
         description = "A package to perform speciation based on the production amplicon pipeline"
     )
 
-    parser.add_argument("--input_vcfs", help="""
-        Input list of all vcfs to be run through the speciation program (default: all files in current directory ending with .vcf.gz)
+    parser.add_argument("input_genotype_files", help="""
+        Input list of all genotype files (TSV format) to be run through the speciation program
         """)
-    parser.add_argument("--suffix", help="""
-    Suffix for selecting all vcfs in current directory (default: vcf.gz)
+    parser.add_argument("barcodes", help="""
+        Path to barcodes output file for querying
     """)
-    parser.add_argument("--barcodes", help="""
-        Path to barcodes output file for querying (default: ./barcodes.tsv)
-    """)
-    parser.add_argument("--config", help="""
+    parser.add_argument("config", help="""
         Path to config json (default: config.json)
     """)
     parser.add_argument("--outdir", help="""
@@ -76,19 +88,19 @@ if __name__=="__main__":
 
     args = {k:v for k,v in vars(parser.parse_args()).items()}
 
-    if not args["input_vcfs"]:
-        args["input_vcfs"] = [i for i in os.listdir(".") if i.endswith(args.pop("suffix",".vcf.gz"))]
+    if args["input_genotype_files"]:
+        args["input_genotype_files"] = glob(args["input_genotype_files"])
     else:
-        args["input_vcfs"] = glob(args["input_vcfs"])
+        raise NoGenotypeFilesError
 
     if not args["barcodes"]:
-        args["barcodes"] = "./barcodes.tsv"
+        raise NoBarcodesError
 
     df_barcode = pd.read_csv(args["barcodes"], sep="\t")
     d_barcode = dict(zip(df_barcode.Sample, df_barcode.Barcode))
 
     if not args["config"]:
-        args["config"] = "config.json"
+        raise NoConfigError
 
     if not args["outdir"]:
         args["outdir"] = "."
@@ -103,29 +115,28 @@ if __name__=="__main__":
 
     if not args["ncpus"] or args["ncpus"]==1:
         if args["pbar"]:
-            iterator = tqdm(args["input_vcfs"])
+            iterator = tqdm(args["input_genotype_files"])
         else:
-            iterator = args["input_vcfs"]
+            iterator = args["input_genotype_files"]
 
         all_samples_out = []
-        for vcf in iterator:
-            base = os.path.basename(vcf.split(".")[0])
+        for genotype_file in iterator:
+            base = os.path.basename(genotype_file.split(".")[0])
             barcode = d_barcode[base]
-
-            out = main(vcf, base, barcode, args["outdir"])
+            out = main(genotype_file, base, barcode, args["outdir"])
 
             all_samples_out.append(out)
     else:
         all_args = [(
-            vcf,
-            os.path.basename(vcf.split(".")[0]),
-            d_barcode[os.path.basename(vcf.split(".")[0])],
+            genotype_file,
+            os.path.basename(genotype_file.split(".")[0]),
+            d_barcode[os.path.basename(genotype_file.split(".")[0])],
             args["outdir"]
-            ) for vcf in args["input_vcfs"]]
+            ) for genotype_file in args["input_genotype_files"]]
             
         with Pool(args["ncpus"]) as p:
             if args["pbar"]:
-                all_samples_out = list(tqdm(p.imap(map_main, all_args), total=len(args["input_vcfs"])))
+                all_samples_out = list(tqdm(p.imap(map_main, all_args), total=len(args["input_genotype_files"])))
             else:
                 all_samples_out = list(p.imap(map_main, all_args))
     
