@@ -1,5 +1,6 @@
 import json
 from collections import defaultdict
+from typing import Optional
 import pandas as pd
 
 d_species_convert = {
@@ -7,20 +8,12 @@ d_species_convert = {
     "vivax":"Pv"
 }
 
-d_species_convert_match = {
-    "Falciparum":"Pf",
-    "Vivax":"Pv",
-    "Knowlesi":"Pk",
-    "Ovale":"Po",
-    "Malariae":"Pm"
-}
-
 class Speciate:
     def __init__(
         self,
-        genotype_file,
-        barcode,
-        species_ref,
+        genotype_file: pd.DataFrame,
+        barcode:str,
+        species_ref:dict,
         keep_chroms=[
             "Spec_1_falciparum",
             "Spec_2_falciparum",
@@ -32,15 +25,12 @@ class Speciate:
         default_species="Pf",
         default_species_barcode_coverage=51,
         d_species_convert=d_species_convert,
-        d_species_convert_match=d_species_convert_match
-    ):
+    ) -> None:
         #initialise variables
-        self.sample = self.vcf_file.samples[0]
         self.min_maf = min_maf
         self.match_threshold = match_threshold
-        self.species_ref = self._read_json(species_ref)
+        self.species_ref = species_ref
         self.d_species_convert = d_species_convert
-        self.d_species_convert_match = d_species_convert_match
         self.write_out = {}
 
         #run main logic flow
@@ -55,14 +45,9 @@ class Speciate:
             )
 
     @staticmethod
-    def _read_json(fp) -> dict:
-        """
-        read in json object and return dictionary
-        """
-        if isinstance(fp, str):
-            return json.load(open(fp))
-        elif isinstance(fp, dict):
-            return fp
+    def _create_summed_depth(depth: str) -> list:
+        depth = sum([int(i) for i in depth.split(",")])
+        return depth
 
     def _read_genotype_file(
         self, 
@@ -73,14 +58,13 @@ class Speciate:
             (genotype_file.Amplicon.isin(keep_chroms)) &
             (genotype_file.Depth!="-")
             ]
-        genotype_file.Depth = genotype_file.Depth.astype(int)
-        
+        genotype_file.Depth = genotype_file.Depth.astype(str).apply(self._create_summed_depth)
         out = defaultdict(dict)
 
         for amplicon, df in genotype_file.groupby("Amplicon"):
             species = self.d_species_convert[amplicon.split("_")[-1]]
             for index, row in df.iterrows():
-                out[row.Loc][species] = {"Alleles":list(row.Gen), "DP":row.Depth}
+                out[row.Loc][species] = {"Allele":list(row.Gen), "DP":row.Depth}
 
         #Iterate through and apply empty rows to any position missing a species call
         out_copy = out.copy()
@@ -92,13 +76,13 @@ class Speciate:
         return out
 
     @staticmethod
-    def _calculate_maf(speciesDepth, totDepth):
+    def _calculate_maf(speciesDepth: int, totDepth: int) -> float:
         """
         Calculate Pf/Pv MAF
         """
         return 1-int(speciesDepth)/int(totDepth)
 
-    def _manipulate_maf(self):
+    def _manipulate_maf(self) -> None:
         """
         Iterate through each position in alleles_depth_dict
         1) get total depth for each position
@@ -150,7 +134,7 @@ class Speciate:
         #remove iterable for memory purposes
         iterable=None
 
-    def _merge_alleles(self):
+    def _merge_alleles(self) -> dict:
         """
         For each position in alleles depth dict iterate through each species
         1) add all unique alleles for that position from both species alignments
@@ -167,7 +151,7 @@ class Speciate:
                     self.write_out[pos]["Call"] = ",".join(list(out[pos]))
         return {k:sorted(list(v)) for k,v in out.items()}
 
-    def _match_loci(self):
+    def _match_loci(self) -> dict:
         """
         Calculate frequency of each species specific position called
 
@@ -197,7 +181,7 @@ class Speciate:
         out = {k:v/tot for k,v in out.items()}
         return out
     
-    def _get_species_tag(self, barcode, default_species, min_coverage):
+    def _get_species_tag(self, barcode:str, default_species:str, min_coverage: int) -> str:
         """
         Join together species tags which have a frequency greater than match_threshold (0.95 in production).
 
@@ -205,7 +189,7 @@ class Speciate:
         default species (Pf in production)
         """
         #obtain list of all species with matched loci greater than threshold
-        all_species_out = [self.d_species_convert_match[k] for k,v in self.matched_loci.items() if v>=self.match_threshold]
+        all_species_out = [k for k,v in self.matched_loci.items() if v>=self.match_threshold]
 
         #calculate barcode coverage as no. non missing positions in barcode
         barcode_coverage = len([i for i in list(barcode) if i!="X"])

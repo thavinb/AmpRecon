@@ -31,14 +31,34 @@ class NoBarcodesError(Exception):
         self.message = message
         super().__init__(self.message)
 
-def output_df(records, outdir, name, sep="\t"):
+def output_df(
+    records, 
+    outdir:str,
+    name:str,
+    sep="\t"
+    ) -> None:
+    """
+    Create dataframe from a list of records.
+    Output dataframe as TSV to outdir.
+    """
     Path(outdir).mkdir(parents=True, exist_ok=True)
     df = pd.DataFrame.from_records(records)
     outfile = os.path.join(outdir, name)
     df.to_csv(outfile, sep=sep, index=False)
 
-def main(genotype_file, base, barcode, outdir):
-    df_genotype_file = pd.read_csv(genotype_file, sep="\t")
+def main(
+    genotype_file_path:str,
+    base:str,
+    barcode:str,
+    outdir:str
+    ) -> dict:
+    """
+    1) Load genotype file from path into pandas dataframe
+    2) Create Speciate object with genotype file, barcode and config
+    3) Output tsv for MAF/Depth counts
+    4) dictionary with rows for species call and atched loci outputs
+    """
+    df_genotype_file = pd.read_csv(genotype_file_path, sep="\t")
     speciate = Speciate(
             df_genotype_file,
             barcode,
@@ -59,6 +79,10 @@ def main(genotype_file, base, barcode, outdir):
     }
 
 def map_main(args):
+    """
+    Return run of the main function with arguments
+    (Implementation of multiprocessing starmap)
+    """
     return main(*args)
 
 if __name__=="__main__":
