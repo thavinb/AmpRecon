@@ -54,17 +54,35 @@ class Speciate:
         genotype_file: pd.DataFrame,
         keep_chroms: list
         ) -> dict:
+        """
+        1) get genotype file dataframe
+        2) remove rows which aren't in keep_choms list
+        3) Remove rows where depth is -
+        4) Create summed depth from depth column
+        5) Group by amplicon, get speices, iterate through records recording alleles and depth in out
+        6) for each position in out if one species not present add dict with empty entries
+        """
+        #get genotype file, remove amplicons not needed, remove records with filtered depths
         genotype_file = genotype_file[
             (genotype_file.Amplicon.isin(keep_chroms)) &
             (genotype_file.Depth!="-")
             ]
+        #Transform depth column to summed depth (where there are comma separated values)
         genotype_file.Depth = genotype_file.Depth.astype(str).apply(self._create_summed_depth)
+        
         out = defaultdict(dict)
-
+        
+        #group by amplicon
         for amplicon, df in genotype_file.groupby("Amplicon"):
+            #get species label
             species = self.d_species_convert[amplicon.split("_")[-1]]
-            for index, row in df.iterrows():
-                out[row.Loc][species] = {"Allele":list(row.Gen), "DP":row.Depth}
+            #iterate through rows per amplicon
+            for _, row in df.iterrows():
+                #write records to out dict
+                out[row.Loc][species] = {
+                    "Allele":[i for i in list(row.Gen) if i!=","], #flexible to column being comma separated or not
+                    "DP":row.Depth
+                    }
 
         #Iterate through and apply empty rows to any position missing a species call
         out_copy = out.copy()
