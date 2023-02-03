@@ -29,11 +29,14 @@ class GenotypeFileWriter:
         for vcf_file in self.vcf_list:
             vcf_reader = vcf.Reader(filename=vcf_file)
 
+            # Match - Get row associated with record from chromKey file
+            records_and_chromKey_rows = [self._match_chromKey_row(record, chromKey_df) for record in vcf_reader]
+
             # Mask - Drop records at particular positions
-            non_masked_records  = [record for record in [self._mask_record(record, chromKey_df) for record in vcf_reader] if record != "Masked"]
+            non_masked_data  = [record for record in [self._mask_record(row[0], row[1]) for row in records_and_chromKey_rows] if record != "Masked"]
 
             # Lift over - Update record co-ordinates
-            lifted_over_records = [self._lift_over_record_coordinates(record, chromKey_df) for record in non_masked_records]
+            lifted_over_records = [self._lift_over_record_coordinates(row[0], row[1]) for row in non_masked_data]
 
             # Filter - Remove low coverage genotypes and adjust depths
             records_genotypes_depths = [self._filter_genotypes(record, vcf_reader) for record in lifted_over_records]
@@ -44,42 +47,40 @@ class GenotypeFileWriter:
         genotypes_df = pd.DataFrame(genotype_file_rows, columns = ["Chr", "Loc", "Gen", "Depth", "Filt"])
         genotypes_df.to_csv(self.output_file_name, sep="\t", encoding="utf-8", index=False)
 
-    def _mask_record(self, record, chromKey_df):
-        '''
-
-        Labels VCF records at specified positions as "Masked".
-        '''
-        chromKey_row = self._match_chromKey_row(record, chromKey_df)
-        if chromKey_row.iloc[0]["Mask"] == 1:
-            return "Masked"
-        else:
-            return record
-
-    def _lift_over_record_coordinates(self, record, chromKey_df):
-        '''
-        Updates the chromosome and locus of a supplied VCF record to match those in an associated data frame row.
-        '''
-        chromKey_row = self._match_chromKey_row(record, chromKey_df)
-        record.CHROM = chromKey_row.iloc[0]["Chromosome"]
-        record.POS = chromKey_row.iloc[0]["Locus"]
-        return record
-
     def _match_chromKey_row(self, record, chromKey_df):
         '''
         Matches a VCF record to its associated row in the chromKey data frame
         '''
         try:
             matching_chromKey_row = chromKey_df.loc[(chromKey_df["Chrom_ID"] == record.CHROM) & (chromKey_df["VarPos"] == int(record.POS))]
-            return matching_chromKey_row
+            return record, matching_chromKey_row
         except IndexError:
             logging.error(f"Failed retrieve matching row from chromKey file for record co-ordinates: {record.CHROM}:{record.POS}")
             exit(1)
+
+    def _mask_record(self, record, chromKey_row):
+        '''
+
+        Labels VCF records at specified positions as "Masked".
+        '''
+        if chromKey_row.iloc[0]["Mask"] == 1:
+            return "Masked"
+        else:
+            return record, chromKey_row
+
+    def _lift_over_record_coordinates(self, record, chromKey_row):
+        '''
+        Updates the chromosome and locus of a supplied VCF record to match those in an associated data frame row.
+        '''
+        record.CHROM = chromKey_row.iloc[0]["Chromosome"]
+        record.POS = chromKey_row.iloc[0]["Locus"]
+        return record
 
     def _filter_genotypes(self, record, vcf_reader):
         '''
         Returns only the VCF record alleles with enough coverage to make a call.
         '''
-        # If a genotype call and its depths exists for this position then continue filtering, otherwise call position as "missing".
+        # If a genotype call and its depths exists for this position then continue filtering, otherwise call position as "missing"
         try:
             sample = vcf_reader.samples
             call = record.genotype(sample[0])
