@@ -42,7 +42,7 @@ class TestSpeciate(unittest.TestCase):
             "Spec_1_falciparum\t93\tPfCombo_mito\tF95\tA\t-\tPASS", #should give no output record
             "Spec_1_falciparum\t94\tPfCombo_mito\tF96\tA\t798\tPASS", #should give Pf A DP 798
             "Spec_1_vivax\t96\tPfCombo_mito\tF96\tT\t798\tPASS", #should give Pv T DP 798
-            "Spec_1_vivax\t97\tPfCombo_mito\tF97\tAT\t788,10\tPASS" #should give Pv A,T DP 798
+            "Spec_1_vivax\t97\tPfCombo_mito\tF97\tA,T\t788,10\tPASS" #should give Pv A,T DP 798
         ]
         gt_file_str = "\n".join(gt_file_list)
         gt_file_io = StringIO(gt_file_str)
