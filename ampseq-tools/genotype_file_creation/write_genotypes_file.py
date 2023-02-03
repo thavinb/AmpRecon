@@ -89,7 +89,7 @@ class GenotypeFileWriter:
             genotype = call['GT'] or '.'
             depth = int(call['DP'] or 0)
             allele_depths = call['AD'] or [0, 0, 0, 0]
-            allele_depths = [allele_depths] if isinstance(allele_depths, list) == False else allele_depths
+            allele_depths = allele_depths if isinstance(allele_depths, list) else [allele_depths]
         except:
             return record, "-", "-"
         # Ensure read counts match the alleles
@@ -114,7 +114,8 @@ class GenotypeFileWriter:
             # Update allele count and repeat the coverage test
             read_count = 0
             for index in range(0, len(filtered_alleles)):
-                read_count += allele_depths[index]
+                read_count += filtered_allele_depths[index]
+                print(read_count)
             if int(read_count) < self.min_total_depth:
                 return record, "-", "-"
             alleles = filtered_alleles
