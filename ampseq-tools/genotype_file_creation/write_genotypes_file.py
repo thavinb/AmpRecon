@@ -41,12 +41,12 @@ class GenotypeFileWriter:
             # Format record
             genotype_file_rows.extend(self._format_record(filtered[0], filtered[1], filtered[2]) for filtered in records_genotypes_depths)
 
-        # Write to genotype file
         genotypes_df = pd.DataFrame(genotype_file_rows, columns = ["Chr", "Loc", "Gen", "Depth", "Filt"])
         genotypes_df.to_csv(self.output_file_name, sep="\t", encoding="utf-8", index=False)
 
     def _mask_record(self, record, chromKey_df):
         '''
+
         Labels VCF records at specified positions as "Masked".
         '''
         chromKey_row = self._match_chromKey_row(record, chromKey_df)
@@ -77,50 +77,60 @@ class GenotypeFileWriter:
 
     def _filter_genotypes(self, record, vcf_reader):
         '''
-        Applies filters to the VCF record genotypes and depths.
+        Returns only the VCF record alleles with enough coverage to make a call.
         '''
-        # If a genotype call exists for this position then continue filtering, otherwise call this position as "missing".
+        # If a genotype call and its depths exists for this position then continue filtering, otherwise call position as "missing".
         try:
-            # The sample name from this VCF reader
             sample = vcf_reader.samples
-            # The genotype call for this record under that sample name in the VCF reader
             call = record.genotype(sample[0])
-            # Retrieve genotype call and its associated depths
+
+            # Retrieve genotype and depths for this record
             genotype = call['GT'] or '.'
             depth = int(call['DP'] or 0)
             allele_depths = call['AD'] or [0, 0, 0, 0]
             allele_depths = allele_depths if isinstance(allele_depths, list) else [allele_depths]
+
+            # Get all alleles for this record - start with the reference
+            alleles = [allele for allele in ([record.REF] + record.ALT) if allele != None]
         except:
             return record, "-", "-"
-        # Ensure read counts match the alleles
 
-        # Get all alleles for that record - start with the reference
-        alleles = [allele for allele in ([record.REF] + record.ALT) if allele != None]
-        # Test if we have enough coverage to make a call
+        # Sanity Check: Ensure the number of allele depths match the number of alleles
+        if len(allele_depths) != len(alleles):
+            logging.error(f"Error parsing VCF {sample[0]}: at position {record.CHROM}:{record.POS} AD field contains {len(allele_depths)} values for {len(alleles)} alleles.")
+            exit(1)
+
+        # Test that this record hass enough coverage to make a call
         if int(depth) < self.min_total_depth:
             return record, "-", "-"
+
+        # If there are multiple alleles, filter out alleles with insufficient depths and or read proportions
         if len(alleles) > 1:
-            # If there are multiple alleles, filter out alleles with insufficient reads counts or read proportion
-            filtered_alleles = []
-            filtered_depth = 0
-            filtered_allele_depths = []
-            for index in range(0, len(alleles)):
-                allele_depth = allele_depths[index]
-                allele_proportion = allele_depth / depth
-                if (allele_depth >= self.het_min_allele_depth) and (allele_proportion >= self.het_min_allele_proportion):
-                    filtered_alleles.append(alleles[index])
-                    filtered_depth += allele_depth
-                    filtered_allele_depths.append(allele_depth)
-            # Update allele count and repeat the coverage test
-            read_count = 0
-            for index in range(0, len(filtered_alleles)):
-                read_count += filtered_allele_depths[index]
-                print(read_count)
-            if int(read_count) < self.min_total_depth:
+            alleles, allele_depths, updated_depth = self._filter_individual_alleles(alleles, allele_depths, depth)
+            # Test whether remaining alleles have enough coverage to make a call
+            if int(updated_depth) < self.min_total_depth:
                 return record, "-", "-"
-            alleles = filtered_alleles
-            allele_depths = filtered_allele_depths
+
         return record, alleles, allele_depths
+
+    def _filter_individual_alleles(self, alleles, allele_depths, depth):
+        '''
+        Return alleles and depths that exceed depth and proportion thresholds
+        '''
+        filtered_alleles = []
+        filtered_allele_depths = []
+        updated_depth = 0
+        # Iterate over each the alleles of this record
+        for index in range(0, len(alleles)):
+            # Retrieve allele depth and calculate what proportion of reads at this position it comprises
+            allele_depth = allele_depths[index]
+            allele_proportion = allele_depth / depth
+            if (allele_depth >= self.het_min_allele_depth) and (allele_proportion >= self.het_min_allele_proportion):
+                # Retain alleles with depths that exceed threshold and which comprise more than minimum proportion of all the reads at this position
+                filtered_alleles.append(alleles[index])
+                filtered_allele_depths.append(allele_depth)
+                updated_depth += allele_depth
+        return filtered_alleles, filtered_allele_depths, updated_depth
 
     def _format_record(self, record, genotypes, allele_depths):
         '''
