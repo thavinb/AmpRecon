@@ -100,7 +100,7 @@ class GenotypeFileWriter:
             logging.error(f"Error parsing VCF {sample[0]}: at position {record.CHROM}:{record.POS} AD field contains {len(allele_depths)} values for {len(alleles)} alleles.")
             exit(1)
 
-        # Test that this record hass enough coverage to make a call
+        # Test that this record has enough coverage to make a call
         if int(depth) < self.min_total_depth:
             return record, "-", "-"
 
