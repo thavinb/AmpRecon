@@ -1,0 +1,173 @@
+#!/usr/bin/env python
+
+from speciation.speciation import Speciate
+import os
+import json
+import pandas as pd
+import argparse
+from glob import glob
+from pathlib import Path
+from tqdm import tqdm
+from multiprocessing import Pool
+
+class NoConfigError(Exception):
+    def __init__(self, message="""
+        You must specify a path to a valid config file.
+    """):
+        self.message = message
+        super().__init__(self.message)
+
+class NoGenotypeFilesError(Exception):
+    def __init__(self, message="""
+        You must specify input genotype files.
+    """):
+        self.message = message
+        super().__init__(self.message)
+
+class NoBarcodesError(Exception):
+    def __init__(self, message="""
+        You must specify a path to a valid barcodes file.
+    """):
+        self.message = message
+        super().__init__(self.message)
+
+def output_df(
+    records, 
+    outdir:str,
+    name:str,
+    sep="\t"
+    ) -> None:
+    """
+    Create dataframe from a list of records.
+    Output dataframe as TSV to outdir.
+    """
+    Path(outdir).mkdir(parents=True, exist_ok=True)
+    df = pd.DataFrame.from_records(records)
+    outfile = os.path.join(outdir, name)
+    df.to_csv(outfile, sep=sep, index=False)
+
+def main(
+    genotype_file_path:str,
+    base:str,
+    barcode:str,
+    outdir:str
+    ) -> dict:
+    """
+    1) Load genotype file from path into pandas dataframe
+    2) Create Speciate object with genotype file, barcode and config
+    3) Output tsv for MAF/Depth counts
+    4) dictionary with rows for species call and atched loci outputs
+    """
+    df_genotype_file = pd.read_csv(genotype_file_path, sep="\t")
+    speciate = Speciate(
+            df_genotype_file,
+            barcode,
+            **config
+        )
+
+    species_out_row = {"Sample": base, "Species":speciate.species_label}
+
+    speciate.matched_loci["Sample"] = base
+    
+    df_maf = pd.DataFrame(speciate.write_out).T
+    df_maf = df_maf.reset_index().rename({"index":"Position"}, axis=1)
+    output_df(df_maf, outdir,f"{base}_maf.tsv")
+
+    return {
+        "species_out":species_out_row,
+        "matched_loci": speciate.matched_loci
+    }
+
+def map_main(args):
+    """
+    Return run of the main function with arguments
+    (Implementation of multiprocessing starmap)
+    """
+    return main(*args)
+
+if __name__=="__main__":
+    parser = argparse.ArgumentParser(
+        prog = "Amplicon Pipeline Speciation",
+        description = "A package to perform speciation based on the production amplicon pipeline"
+    )
+
+    parser.add_argument("input_genotype_files", help="""
+        Input list of all genotype files (TSV format) to be run through the speciation program
+        """)
+    parser.add_argument("barcodes", help="""
+        Path to barcodes output file for querying
+    """)
+    parser.add_argument("config", help="""
+        Path to config json (default: config.json)
+    """)
+    parser.add_argument("--outdir", help="""
+        Path to directory to output results (default: .)
+    """)
+    parser.add_argument("--pbar", action="store_true", help="""
+        Show a progress bar while running 
+    """)
+    parser.add_argument("--ncpus", type=int, help="""
+        No. cpus to use in processing
+    """)
+
+    args = {k:v for k,v in vars(parser.parse_args()).items()}
+
+    if args["input_genotype_files"]:
+        args["input_genotype_files"] = glob(args["input_genotype_files"])
+    else:
+        raise NoGenotypeFilesError
+
+    if not args["barcodes"]:
+        raise NoBarcodesError
+
+    df_barcode = pd.read_csv(args["barcodes"], sep="\t")
+    d_barcode = dict(zip(df_barcode.Sample, df_barcode.Barcode))
+
+    if not args["config"]:
+        raise NoConfigError
+
+    if not args["outdir"]:
+        args["outdir"] = "."
+    
+    scriptdir = os.path.dirname(os.path.realpath(__file__))
+    config_path = os.path.join(scriptdir, args["config"])
+
+    config = json.load(open(config_path))
+
+    species_out_records = []
+    sample_stats_records = []
+
+    if not args["ncpus"] or args["ncpus"]==1:
+        if args["pbar"]:
+            iterator = tqdm(args["input_genotype_files"])
+        else:
+            iterator = args["input_genotype_files"]
+
+        all_samples_out = []
+        for genotype_file in iterator:
+            base = os.path.basename(genotype_file.split(".")[0])
+            barcode = d_barcode[base]
+            out = main(genotype_file, base, barcode, args["outdir"])
+
+            all_samples_out.append(out)
+    else:
+        all_args = [(
+            genotype_file,
+            os.path.basename(genotype_file.split(".")[0]),
+            d_barcode[os.path.basename(genotype_file.split(".")[0])],
+            args["outdir"]
+            ) for genotype_file in args["input_genotype_files"]]
+            
+        with Pool(args["ncpus"]) as p:
+            if args["pbar"]:
+                all_samples_out = list(tqdm(p.imap(map_main, all_args), total=len(args["input_genotype_files"])))
+            else:
+                all_samples_out = list(p.imap(map_main, all_args))
+    
+    for record in all_samples_out:
+        species_out_records.append(record["species_out"])
+        sample_stats_records.append(record["matched_loci"])
+
+    output_df(species_out_records, args["outdir"], "species_out.tsv")
+    output_df(sample_stats_records, args["outdir"], "sample_stats.tsv")
+    
