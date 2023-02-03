@@ -1,6 +1,4 @@
-import json
 from collections import defaultdict
-from typing import Optional
 import pandas as pd
 
 d_species_convert = {
