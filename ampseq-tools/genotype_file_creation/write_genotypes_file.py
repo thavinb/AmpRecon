@@ -108,7 +108,7 @@ class GenotypeFileWriter:
         if int(depth) < self.min_total_depth:
             return record, "-", "-"
 
-        # If there are multiple alleles, filter out alleles with insufficient depths and or read proportions
+        # If there are multiple alleles, filter out alleles with insufficient depths and read proportions
         if len(alleles) > 1:
             alleles, allele_depths, updated_depth = self._filter_individual_alleles(alleles, allele_depths, depth)
             # Test whether remaining alleles have enough coverage to make a call
