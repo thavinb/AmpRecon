@@ -8,12 +8,15 @@ import vcf
 
 class GenotypeFileWriter:
     '''
-    Merges a list of VCF files into a single genotype .tsv file. Updates the co-ordinates of the rows. Drops rows at specified loci.
+    Merges a list of VCF files into a single genotype .tsv file.
+    Drops records at specified loci, updates the co-ordinates of the rows and filters out alleles with low coverage.
     '''
-    def __init__(self, vcf_file_path_list, out_file_name, chromKey_file_path, min_total_depth, het_min_allele_depth, het_min_allele_proportion):
+    def __init__(self, vcf_file_path_list, out_file_name, chromKey_file_path, chromosome_column, locus_column, min_total_depth, het_min_allele_depth, het_min_allele_proportion):
         self.vcf_list = vcf_file_path_list
         self.output_file_name = out_file_name
         self.chromKey_file = chromKey_file_path
+        self.chromosome_column = chromosome_column
+        self.locus_column = locus_column
         self.min_total_depth = float(min_total_depth)
         self.het_min_allele_depth = float(het_min_allele_depth)
         self.het_min_allele_proportion = float(het_min_allele_proportion)
@@ -52,7 +55,7 @@ class GenotypeFileWriter:
         Matches a VCF record to its associated row in the chromKey data frame
         '''
         try:
-            matching_chromKey_row = chromKey_df.loc[(chromKey_df["Chrom_ID"] == record.CHROM) & (chromKey_df["VarPos"] == int(record.POS))]
+            matching_chromKey_row = chromKey_df.loc[(chromKey_df[str(self.chromosome_column)] == record.CHROM) & (chromKey_df[str(self.locus_column)] == int(record.POS))]
             return record, matching_chromKey_row
         except IndexError:
             logging.error(f"Failed retrieve matching row from chromKey file for record co-ordinates: {record.CHROM}:{record.POS}")
@@ -147,9 +150,11 @@ if __name__ == "__main__":
     parser.add_argument("--input_vcf_list", "-i", help="List of VCF files to merge, mask SNPs in and update co-ordinates for.", required=True, type=str, nargs="+", default=[])
     parser.add_argument("--output_file_name", "-o", help="Base name (no extension) for the output genotypes file.", required=True)
     parser.add_argument("--chromKey_file", "-m", help="File containing SNPs to mask in merged VCF.", required=True)
-    parser.add_argument("--min_total_depth", "-c", help=".", required=True)
-    parser.add_argument("--het_min_allele_depth", "-a", help=".", required=True)
-    parser.add_argument("--het_min_allele_proportion", "-p", help=".", required=True)
+    parser.add_argument("--chromosome_column_name", "-c", help="Name of the column in the chromKey file to try to match chromosome to.", required=True)
+    parser.add_argument("--locus_column_name", "-l", help="Name of the column in the chromKey file to try to match position to.", required=True)
+    parser.add_argument("--min_total_depth", "-d", help="The number of reads at a record must exceed this value.", required=True)
+    parser.add_argument("--het_min_allele_depth", "-a", help="The number of reads for a particular allele at a heterozygous record must exceed this value.", required=True)
+    parser.add_argument("--het_min_allele_proportion", "-p", help="The proportion of reads for particular allele at a heterozygous record must exceed this value.", required=True)
     args = parser.parse_args()
-    liftover_genotypes_write_file = GenotypeFileWriter(args.input_vcf_list, args.output_file_name, args.chromKey_file, args.min_total_depth, args.het_min_allele_depth, args.het_min_allele_proportion)
+    liftover_genotypes_write_file = GenotypeFileWriter(args.input_vcf_list, args.output_file_name, args.chromKey_file, args.chromosome_column_name, args.locus_column_name, args.min_total_depth, args.het_min_allele_depth, args.het_min_allele_proportion)
     liftover_genotypes_write_file.write_genotype_file()
