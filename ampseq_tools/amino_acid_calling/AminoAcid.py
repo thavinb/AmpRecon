@@ -13,7 +13,6 @@ class AminoAcidCaller:
 		self.complement_bases = {'A': 'T', 'T': 'A', 'G': 'C', 'C': 'G'}
 		self.haplotypes = {}
 
-
 	@staticmethod
 	def _read_tsv_row_generator(file):
 		if not os.path.isfile(file):
@@ -65,6 +64,7 @@ class AminoAcidCaller:
 		for row in self._read_tsv_row_generator(filename):
 			if row['GeneName'] not in ret['pos']:
 				ret['pos'][row['GeneName']] = {}
+				ret['strand'][row['GeneName']] = {}
 			if row['AA_Pos'] not in ret['pos'][row['GeneName']]:
 				ret['pos'][row['GeneName']][row['AA_Pos']] = {'1' : row['pos1'], '2' : row['pos2'], '3' : row['pos3']}
 				genename_aapos = f"{row['GeneName']}:{row['AA_Pos']}"
@@ -78,7 +78,7 @@ class AminoAcidCaller:
 				ret['cons'][row['Chr']][row['pos2']] = row['key2']
 				ret['cons'][row['Chr']][row['pos3']] = row['key3']
 				ret['aa_loc'][genename_aapos] = row['Chr']
-				ret['strand'][row['GeneName']] = row['Strand']
+				ret['strand'][row['GeneName']][row['AA_Pos']] = row['Strand'] 
 			ret['genes'] = list(set(ret['genes']))
 		
 		return ret
@@ -106,7 +106,6 @@ class AminoAcidCaller:
 	def call_haplotypes(self):
 		drl = self.drl_info
 		core_genes = drl['core_order']
-		print(drl)
 		sample_id = self.sample_id
 
 		genotype_information = self.genotypes_files
@@ -114,6 +113,11 @@ class AminoAcidCaller:
 		for gene_amino in drl['exp_order']:
 
 			gene, amino = gene_amino.split(":")
+
+			if gene not in self.haplotypes:
+				self.haplotypes[gene] = ''
+			if gene_amino not in self.haplotypes:
+				self.haplotypes[gene_amino] = ''
 
 			if gene == 'PfCRT' and amino == '74':
 				self.haplotypes[gene] += 'V'
@@ -129,15 +133,11 @@ class AminoAcidCaller:
 
 			if position_1 not in genotype_information['key'][sample_id][chromosome]:
 				#this is horrible, change it
-				if gene not in self.haplotypes:
-					self.haplotypes[gene] = '-'
-				else:
+				if gene_amino in core_genes:
 					self.haplotypes[gene] += '-'
 				
-				if gene_amino not in self.haplotypes:
-					self.haplotypes[gene_amino] = '-'
-				else:
-					self.haplotypes[gene_amino] += '-'
+				self.haplotypes[gene_amino] = '-'
+				
 				continue
 			
 			if drl['cons'][chromosome][position_1] != '-':
@@ -154,36 +154,23 @@ class AminoAcidCaller:
 			if base_3 == '-':
 				base_3 == genotype_information['key'][sample_id][chromosome][position_3]
 
-			if drl['pos'] == "PfCRT" and drl['pos'][gene] == '74':
-				#do imputation
-				self.haplotypes[gene] += 'V'
-
-			if drl['strand'][gene] == '-':
+			if drl['strand'][gene][amino] == '-':
 				base_1 = self._complement(base_1)
 				base_2 = self._complement(base_2)
 				base_3 = self._complement(base_3)
 
 			if self.is_missing(base_1) or self.is_missing(base_2) or self.is_missing(base_3):
+				#this can go at some point
 				self.haplotypes[gene_amino] = '-'
-				if gene not in self.haplotypes:
-					self.haplotypes[gene] = '-'
-				else:
+				if gene_amino in core_genes:
 					self.haplotypes[gene] += '-'
 				continue
 
-			print(len(base_1))
-
 			if len(base_1) == 1 and len(base_2) == 1 and len(base_3) == 1:
 				aa = self.translate_codon(base_1, base_2, base_3)
-				print(aa)
-				if gene not in self.haplotypes:
-				 	self.haplotypes[gene] = aa 
-				else:
-				 	self.haplotypes[gene] += aa
-				if gene_amino not in self.haplotypes:
-				 	self.haplotypes[gene_amino] = aa
-				else:
-				 	self.haplotypes[gene_amino] = aa
+				if gene_amino in core_genes:
+					self.haplotypes[gene] += aa
+				self.haplotypes[gene_amino] = aa
 				continue
 
 			aa_1 = '-'
@@ -205,8 +192,6 @@ class AminoAcidCaller:
 				aa_1 = self.translate_codon(base_1, base_2, allel_1)
 				aa_2 = self.translate_codon(base_1, base_2, allel_2)
 
-			aa_call = '-'
-
 			if aa_1 != '-' and aa_2 != '-':
 				if aa_1 == aa_2:
 					aa_call = aa_1
@@ -217,19 +202,14 @@ class AminoAcidCaller:
 
 			if gene_amino in core_genes:
 				#when i get a chance move this code to the start of the loop so i don't re write it all the time
-				if gene not in self.haplotypes:
-					self.haplotypes[gene] = aa_call
-				else:
-					self.haplotypes[gene] += aa_call
+				self.haplotypes[gene] += aa_call
 
 			if 'PfCRT' in self.haplotypes and self.haplotypes['PfCRT'] == '-V---':
 				self.haplotypes['PfCRT'] == '-----' 
-				break
 
 		print(self.haplotypes)
 	
 		return self.haplotypes
-
 
 	def translate_codon(self, base_1, base_2, base_3):
 		amino_acid = '-'
@@ -244,4 +224,5 @@ class AminoAcidCaller:
 			if nucleotide in self.complement_bases:
 				complement_sequence.append(self.complement_bases[nucleotide])
 		return ''.join(complement_sequence)
+
 
