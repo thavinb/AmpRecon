@@ -1,0 +1,187 @@
+#!/usr/bin/env python
+
+import pandas as pd
+import argparse
+import json
+from glob import glob
+from tqdm import tqdm
+from pathlib import Path
+import os
+from multiprocessing import Pool
+
+keep_chroms = ['Pf3D7_01_v3',
+            'Pf3D7_02_v3',
+            'Pf3D7_03_v3',
+            'Pf3D7_04_v3',
+            'Pf3D7_05_v3',
+            'Pf3D7_06_v3',
+            'Pf3D7_07_v3',
+            'Pf3D7_08_v3',
+            'Pf3D7_09_v3',
+            'Pf3D7_10_v3',
+            'Pf3D7_11_v3',
+            'Pf3D7_12_v3',
+            'Pf3D7_13_v3',
+            'Pf3D7_14_v3']
+
+class NoConfigError(Exception):
+    def __init__(self, message="""
+        You must specify a path to a valid config file.
+    """):
+        self.message = message
+        super().__init__(self.message)
+
+class NoGenotypeFilesError(Exception):
+    def __init__(self, message="""
+        You must specify input genotype files.
+    """):
+        self.message = message
+        super().__init__(self.message)
+
+
+class Barcode:
+    def __init__(
+        self,
+        genotype_file: pd.DataFrame,
+        barcode_ref: dict,
+        keep_chroms=keep_chroms
+    ) -> None:
+        self.barcode_ref = barcode_ref
+        self.barcode_indicies = sorted(list(self.barcode_ref.keys()))
+        self.d_genotypes = self._filter_genotype_file(genotype_file, keep_chroms)
+        self.barcode = self._build_barcode()
+
+    def _filter_genotype_file(
+        self, 
+        genotype_file: pd.DataFrame,
+        keep_chroms: list
+        ) -> dict:
+        """
+        1) Filter genotype file to only chromosomes in the species ref
+        2) Transform genotype file data into nested dictionary with chromosome -> locus -> genotype
+        """
+        genotype_file = genotype_file[genotype_file.Chr.isin(keep_chroms)]
+        out = {chrom:dict(zip(df.Loc.astype(int),df.Gen)) for chrom, df in genotype_file.groupby("Chr")}
+        genotype_file = None
+        return out
+
+    def _build_barcode(self) -> str:
+        """
+        1) iterate through sorted barcode indices
+        2) at each position get barcode ref (chrom and locus)
+        3) get genotype for position from genotype file
+        4) Check if genotype missing or het and add to output string accordingly
+        5) return barcode string
+        """
+        out_barcode = ""
+
+        for index in self.barcode_indicies:
+            d_barcode_pos = self.barcode_ref[index]
+            gen = self.d_genotypes.get(d_barcode_pos["Chromosome"],{}).get(d_barcode_pos["Locus"])
+            if not gen or gen=="-":
+                gen = "X"
+            elif len(gen.split(","))>1:
+                gen = "N"
+            out_barcode+=gen
+        return out_barcode
+
+def output_df(
+    records, 
+    outdir:str,
+    name:str,
+    sep="\t"
+    ) -> None:
+    """
+    Create dataframe from a list of records.
+    Output dataframe as TSV to outdir.
+    """
+    Path(outdir).mkdir(parents=True, exist_ok=True)
+    df = pd.DataFrame.from_records(records)
+    outfile = os.path.join(outdir, name)
+    df.to_csv(outfile, sep=sep, index=False)
+
+def main(
+    genotype_file_path:str,
+    barcode_ref: dict,
+    keep_chroms: list
+    ) -> pd.Series:
+    """
+    1) Load genotype file from path into pandas dataframe
+    2) Create Barcode
+    3) Output pandas series with sample name and barcode
+    """
+    df_genotype_file = pd.read_csv(genotype_file_path, sep="\t")
+    barcoding = Barcode(df_genotype_file, barcode_ref, keep_chroms)
+    base = os.path.basename(genotype_file_path).split(".")[0]
+    return pd.Series({"Sample":base, "Barcode": barcoding.barcode})
+
+def map_main(args):
+    """
+    Return run of the main function with arguments
+    (Implementation of multiprocessing starmap)
+    """
+    return main(*args)
+
+
+if __name__=="__main__":
+    parser = argparse.ArgumentParser(
+        prog = "Amplicon Barcode Production",
+        description = "A package to perform barcode production based on the production amplicon pipeline"
+    )
+
+    parser.add_argument("genotype_files", help="""
+        Path to input genotype file(s)
+    """)
+    parser.add_argument("config", help="""
+        Path to config json file
+    """)
+    parser.add_argument("--outdir", help="""
+        Path to directory to output results (default: .)
+    """)
+    parser.add_argument("--pbar", action="store_true", help="""
+        Show a progress bar while running 
+    """)
+    parser.add_argument("--ncpus", type=int, help="""
+        No. cpus to use in processing
+    """)
+
+
+    args = {k:v for k,v in vars(parser.parse_args()).items()}
+
+    if args["config"]:
+        config = json.load(open(args.pop("config")))
+    else:
+        raise NoConfigError
+
+    barcode_ref = config.pop("barcode_ref")
+    keep_chroms = list(set([d_pos["Chromosome"] for d_pos in barcode_ref.values()]))
+    if args["genotype_files"]:
+        genotype_files = glob(args["genotype_files"])
+    else:
+        raise NoGenotypeFilesError
+
+    if not args["outdir"]:
+        args["outdir"] = "."
+
+    if not args["ncpus"] or args["ncpus"]==1:
+        if args["pbar"]:
+            iterator = tqdm(genotype_files)
+        else:
+            iterator = genotype_files
+
+        all_samples_out = []
+        for genotype_file in iterator:
+            out = main(genotype_file, barcode_ref, keep_chroms)
+
+            all_samples_out.append(out)
+    else:
+        all_args = [(genotype_file, barcode_ref, keep_chroms) for genotype_file in genotype_files]
+            
+        with Pool(args["ncpus"]) as p:
+            if args["pbar"]:
+                all_samples_out = list(tqdm(p.imap(map_main, all_args), total=len(genotype_files)))
+            else:
+                all_samples_out = list(p.imap(map_main, all_args))
+
+    output_df(all_samples_out, args["outdir"], "barcodes_out.tsv")
+
