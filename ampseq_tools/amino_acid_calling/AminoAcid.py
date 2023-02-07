@@ -9,7 +9,7 @@ class AminoAcidCaller:
 		self.sample_id = sample_id
 		self.drl_info = self._read_drl_info()
 		self.codon_key = self._read_codon_key()
-		self.genotypes_files = self._read_genotypes_file(genotypes_file) #could probably be a dict with structure {sample_id: df???}
+		self.genotypes_files = self._read_genotypes_file(genotypes_file) #could probably be a dict with structure {sample_id: data???}
 		self.complement_bases = {'A': 'T', 'T': 'A', 'G': 'C', 'C': 'G'}
 		self.haplotypes = {}
 
@@ -112,6 +112,8 @@ class AminoAcidCaller:
 
 		for gene_amino in drl['exp_order']:
 
+			double_het = false
+
 			gene, amino = gene_amino.split(":")
 
 			if gene not in self.haplotypes:
@@ -135,7 +137,6 @@ class AminoAcidCaller:
 				#this is horrible, change it
 				if gene_amino in core_genes:
 					self.haplotypes[gene] += '-'
-				
 				self.haplotypes[gene_amino] = '-'
 				
 				continue
@@ -192,6 +193,18 @@ class AminoAcidCaller:
 				aa_1 = self.translate_codon(base_1, base_2, allel_1)
 				aa_2 = self.translate_codon(base_1, base_2, allel_2)
 
+			else:
+				#do some double heterozygous logic here
+				double_het = true
+				bases = [base_1, base_2, base_3]
+
+				for base in bases:
+					if len(base) > 1:
+						allel_1 = list(base)[0]
+						allel_2 = list(base)[1]
+						
+
+
 			if aa_1 != '-' and aa_2 != '-':
 				if aa_1 == aa_2:
 					aa_call = aa_1
@@ -207,7 +220,6 @@ class AminoAcidCaller:
 			if 'PfCRT' in self.haplotypes and self.haplotypes['PfCRT'] == '-V---':
 				self.haplotypes['PfCRT'] == '-----' 
 
-		print(self.haplotypes)
 	
 		return self.haplotypes
 
@@ -224,5 +236,3 @@ class AminoAcidCaller:
 			if nucleotide in self.complement_bases:
 				complement_sequence.append(self.complement_bases[nucleotide])
 		return ''.join(complement_sequence)
-
-
