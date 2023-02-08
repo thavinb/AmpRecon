@@ -3,7 +3,6 @@
 import argparse
 import pandas as pd
 import logging
-import gzip
 import vcf
 
 class GenotypeFileWriter:
@@ -89,9 +88,9 @@ class GenotypeFileWriter:
             call = record.genotype(sample[0])
 
             # Retrieve genotype and depths for this record
-            genotype = call['GT'] or '.'
-            depth = int(call['DP'] or 0)
-            allele_depths = call['AD'] or [0, 0, 0, 0]
+            genotype = call['GT']
+            depth = int(call['DP'])
+            allele_depths = call['AD']
             allele_depths = allele_depths if isinstance(allele_depths, list) else [allele_depths]
 
             # Get all alleles for this record - start with the reference
@@ -101,7 +100,7 @@ class GenotypeFileWriter:
 
         # Sanity Check: Ensure the number of allele depths match the number of alleles
         if len(allele_depths) != len(alleles):
-            logging.error(f"Error parsing VCF {sample[0]}: at position {record.CHROM}:{record.POS} AD field contains {len(allele_depths)} values for {len(alleles)} alleles.")
+            logging.error(f"{call} Error parsing VCF {sample[0]}: at position {record.CHROM}:{record.POS} AD field contains {len(allele_depths)} values for {len(alleles)} alleles.")
             exit(1)
 
         # Test that this record has enough coverage to make a call
@@ -142,7 +141,7 @@ class GenotypeFileWriter:
         '''
         genotypes_formatted = ",".join(str(genotype) for genotype in genotypes)
         allele_depths_formatted = ",".join(str(depth) for depth in allele_depths) if isinstance(allele_depths, list) else allele_depths
-        filter_value = record.FILTER[0] if len(record.FILTER) != 0 else "PASS"
+        filter_value = ";".join(record.FILTER) if record.FILTER is not None else "PASS"
         return [record.CHROM, str(record.POS), str(genotypes_formatted), str(allele_depths_formatted), str(filter_value)]
 
 if __name__ == "__main__":
