@@ -12,9 +12,9 @@ For the AmpSeq pipeline, we (ARD) need to choose a high-level architecture patte
  
 Through investigation of several codebases and collaboration with the Parasite analysis team we have identified the following MVP components: <br>
 a. Drug Resistance <br> 
-    <p>a1. drug resistance genotyping and haplotype calculation <br> 
-    <p>a2. kelch13 genotyping <br>
-    <p>a3. plasmepsin <br> 
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;a1. drug resistance genotyping and haplotype calculation <br> 
+    a2. kelch13 genotyping <br>
+    a3. plasmepsin <br> 
 b. Barcode Generation <br> 
 c. Complexity of Infection (RealMcCOIL) <br> 
 d. Speciation <br> 
