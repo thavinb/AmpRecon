@@ -19,7 +19,7 @@ process assemble_genotype_file {
         tuple val(sample_tag), path("${output_file_name}")
 
     script:
-        output_file_name = "ampseq_${sample_tag}.txt"
+        output_file_name = "${sample_tag}.txt"
         chromsome_column = params.chromosome_column_name
         locus_column = params.locus_column_name
         min_depth = params.min_total_depth
