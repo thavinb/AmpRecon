@@ -28,25 +28,28 @@ class GenotypeFileWriter:
         '''
         chromKey_df = pd.read_csv(self.chromKey_file, sep="\t", header=0)
         genotype_file_rows = []
+
+        # Iterate over the supplied VCF files
         for vcf_file in self.vcf_list:
             vcf_reader = vcf.Reader(filename=vcf_file)
 
             # Match - Get row associated with record from chromKey file
-            records_and_chromKey_rows = [self._match_chromKey_row(record, chromKey_df) for record in vcf_reader]
+            records_matched_to_chromKey_rows = [self._match_chromKey_row(record, chromKey_df) for record in vcf_reader]
 
             # Mask - Drop records at particular positions
-            non_masked_data  = [record for record in [self._mask_record(row[0], row[1]) for row in records_and_chromKey_rows] if record != "Masked"]
+            remaining_records_and_rows  = [record for record in [self._mask_record(row[0], row[1]) for row in records_matched_to_chromKey_rows] if record != "Masked"]
 
             # Lift over - Update record co-ordinates
-            lifted_over_records = [self._lift_over_record_coordinates(row[0], row[1]) for row in non_masked_data]
+            lifted_over_records = [self._lift_over_record_coordinates(row[0], row[1]) for row in remaining_records_and_rows]
 
             # Filter - Remove low coverage genotypes and adjust depths
-            records_genotypes_depths = [self._filter_genotypes(record, vcf_reader) for record in lifted_over_records]
+            genotypes_depths = [self._filter_genotypes(record[0], vcf_reader) for record in lifted_over_records]
 
             # Format record
-            genotype_file_rows.extend(self._format_record(filtered[0], filtered[1], filtered[2]) for filtered in records_genotypes_depths)
+            genotype_file_rows.extend(self._format_record(record[1], record[0], value[1], value[2]) for record, value in zip(lifted_over_records, genotypes_depths))
 
-        genotypes_df = pd.DataFrame(genotype_file_rows, columns = ["Chr", "Loc", "Gen", "Depth", "Filt"])
+        # Write formatted records to genotype file
+        genotypes_df = pd.DataFrame(genotype_file_rows, columns = ["Amplicon", "Pos", "Chr", "Loc", "Gen", "Depth", "Filt"])
         genotypes_df.to_csv(self.output_file_name, sep="\t", encoding="utf-8", index=False)
 
     def _match_chromKey_row(self, record, chromKey_df):
@@ -68,15 +71,17 @@ class GenotypeFileWriter:
         if chromKey_row.iloc[0]["Mask"] == 1:
             return "Masked"
         else:
+
             return record, chromKey_row
 
     def _lift_over_record_coordinates(self, record, chromKey_row):
         '''
         Updates the chromosome and locus of a supplied VCF record to match those in an associated data frame row.
         '''
+        amplicon = [chromKey_row.iloc[0]["Chrom_ID"], chromKey_row.iloc[0]["VarPos"]] 
         record.CHROM = chromKey_row.iloc[0]["Chromosome"]
         record.POS = chromKey_row.iloc[0]["Locus"]
-        return record
+        return record, amplicon
 
     def _filter_genotypes(self, record, vcf_reader):
         '''
@@ -96,7 +101,7 @@ class GenotypeFileWriter:
             # Get all alleles for this record - start with the reference
             alleles = [allele for allele in ([record.REF] + record.ALT) if allele != None]
         except:
-            return record, "-", "-"
+            return "-", "-"
 
         # Sanity Check: Ensure the number of allele depths match the number of alleles
         if len(allele_depths) != len(alleles):
@@ -105,16 +110,16 @@ class GenotypeFileWriter:
 
         # Test that this record has enough coverage to make a call
         if int(depth) < self.min_total_depth:
-            return record, "-", "-"
+            return "-", "-"
 
         # If there are multiple alleles, filter out alleles with insufficient depths and read proportions
         if len(alleles) > 1:
             alleles, allele_depths, updated_depth = self._filter_individual_alleles(alleles, allele_depths, depth)
             # Test whether remaining alleles have enough coverage to make a call
             if int(updated_depth) < self.min_total_depth:
-                return record, "-", "-"
+                return "-", "-"
 
-        return record, alleles, allele_depths
+        return alleles, allele_depths
 
     def _filter_individual_alleles(self, alleles, allele_depths, depth):
         '''
@@ -123,26 +128,33 @@ class GenotypeFileWriter:
         filtered_alleles = []
         filtered_allele_depths = []
         updated_depth = 0
-        # Iterate over each the alleles of this record
+
+        # Iterate over the alleles of this record
         for index in range(0, len(alleles)):
-            # Retrieve allele depth and calculate what proportion of reads at this position it comprises
+
+            # Retrieve allele depth
+            # Calculate what proportion of the total depth at this position this allele's depth comprises
             allele_depth = allele_depths[index]
             allele_proportion = allele_depth / depth
+
+            # Retain alleles with depths that both:
+            # 1) Exceed minimum depth threshold
+            # 2) Comprise more than minimum proportion of all the reads at this position
             if (allele_depth >= self.het_min_allele_depth) and (allele_proportion >= self.het_min_allele_proportion):
-                # Retain alleles with depths that exceed threshold and which comprise more than minimum proportion of all the reads at this position
                 filtered_alleles.append(alleles[index])
                 filtered_allele_depths.append(allele_depth)
                 updated_depth += allele_depth
+
         return filtered_alleles, filtered_allele_depths, updated_depth
 
-    def _format_record(self, record, genotypes, allele_depths):
+    def _format_record(self, amplicon, record, genotypes, allele_depths):
         '''
         Creates a row for output to a genotype file.
         '''
         genotypes_formatted = ",".join(str(genotype) for genotype in genotypes)
         allele_depths_formatted = ",".join(str(depth) for depth in allele_depths) if isinstance(allele_depths, list) else allele_depths
-        filter_value = ";".join(record.FILTER) if record.FILTER is not None else "PASS"
-        return [record.CHROM, str(record.POS), str(genotypes_formatted), str(allele_depths_formatted), str(filter_value)]
+        filter_value = ";".join(record.FILTER) if record.FILTER is not None and len(record.FILTER) > 0 else "PASS"
+        return [amplicon[0], amplicon[1], record.CHROM, str(record.POS), str(genotypes_formatted), str(allele_depths_formatted), str(filter_value)]
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
