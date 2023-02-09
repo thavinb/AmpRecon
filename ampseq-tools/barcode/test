@@ -1,0 +1,117 @@
+#!/usr/bin/env python
+
+import unittest
+import os
+import pandas as pd
+import json
+from importlib.machinery import SourceFileLoader
+test_dir = os.path.dirname(os.path.realpath(__file__))
+test_files_dir = os.path.join(test_dir, "test_files")
+#load in barcoding as module (requires more complicated import)
+#because file does not have a .py suffix
+loader = SourceFileLoader('barcoding', os.path.join(
+        test_dir,
+        "barcoding"
+        ))
+barcoding = loader.load_module()
+Barcode = barcoding.Barcode
+
+#get barcode ref from config file
+barcode_ref = json.load(open(os.path.join(test_dir,"config.json")))["barcode_ref"]
+
+#read in all files in test_files directory as dataframe
+d_dfs = {f.split("_")[-1].strip(".txt"):pd.read_csv(
+    os.path.join(test_files_dir, f),
+    sep="\t"
+) for f in os.listdir(test_files_dir)}
+
+#set up keep_chroms list from barcode ref
+keep_chroms_1 = list(set([d_pos["Chromosome"] for d_pos in barcode_ref.values()]))
+#add extra chromosome to test keep_chroms logic
+keep_chroms_2 = keep_chroms_1.copy()+["Ag_2L"]
+
+class TestBarcode(unittest.TestCase):
+    def setUp(self):
+        """
+        Set up 3 objects for testing using the 3 input files in "test_files"
+
+        Use keep_chroms_1 for obj 1 and regress, 2 for obj 2
+        """
+        self.barcode_obj_1 = Barcode(d_dfs["1"], barcode_ref,keep_chroms=keep_chroms_1)
+        self.barcode_obj_2 = Barcode(d_dfs["2"], barcode_ref, keep_chroms=keep_chroms_2)
+        self.barcode_obj_regress = Barcode(d_dfs["regress"], barcode_ref, keep_chroms=keep_chroms_1)
+
+        self.d_objects = {
+            "1":self.barcode_obj_1,
+            "2":self.barcode_obj_2,
+            "regress":self.barcode_obj_regress
+        }
+
+    def test_filter_genotype_file(self):
+        """
+        Assert identity between test barcode outputs and their truth value
+        for barcode_obj_1 and 2.
+
+        For checking that Ag_2L line removed in 1 but not 2.
+        """
+
+        def __assert_equal_iterate(truth, query):
+            """
+            Iterate through all chromosomes in truth and check that value matches
+            query. If not get error message showing which chorm is deviant
+            """
+            for chrom, d_truth in truth.items():
+                d_query = query[chrom]
+                self.assertEqual(d_truth, d_query,chrom)
+
+        d_gen_1 = {
+            "Pf3D7_07_v3":{
+                403793:"A",
+                403794:"T",
+                403795:"A",
+                403796:"A"
+            },
+            "Pf3D7_04_v3":{
+                748410:"A",
+                748577:"A"
+            },
+            "Pf3D7_13_v3":{
+                1725940:"T"
+            }
+        }
+
+        d_gen_2 = {
+            "Pf3D7_02_v3":{
+                376222:"A",
+                470013:"G"
+            },
+            "Pf3D7_03_v3":{
+                656861:"T"
+            },
+            "Ag_2L":{
+                2414062:"T"
+            }
+        }
+
+        for d_truth, d_query in zip(
+            [d_gen_1, d_gen_2],
+            [self.barcode_obj_1.d_genotypes, self.barcode_obj_2.d_genotypes]
+        ):
+            __assert_equal_iterate(d_truth, d_query)
+
+    def test_build_barcode(self):
+        """
+        Iterate through all 3 objects and check that output barcode is correct
+        """
+        d_barcodes = {
+            "1":"XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
+            "2":"AGTXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
+            "regress":"AGTCAGTGCAAACGTCTAAANGTGACGGCTTATCATATTXATCTCAAGAAAAGATAXAGACTAACGCCGTCCGXAGGGTCATAGATXACCCCACTACAGGC"
+        }
+        
+        for k, truth_barcode in d_barcodes.items():
+            self.assertEqual(truth_barcode, self.d_objects[k].barcode)
+
+if __name__=="__main__":
+    unittest.main()
+        
