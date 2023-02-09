@@ -3,9 +3,10 @@ import os
 from codon_table import *
 import json
 
-class AminoAcidCaller:
+class AminoAcidCaller: #better name 
 
 	def __init__(self, sample_id, genotypes_file, config_file):
+		#need to think about how the process begins, does one file go in
 		with open(config_file) as conf:
 			self.config = json.load(conf)
 		self.sample_id = sample_id
@@ -13,7 +14,7 @@ class AminoAcidCaller:
 		self.codon_key = self._read_codon_key()
 		self.genotypes_files = self._read_genotypes_file(genotypes_file) #could probably be a dict with structure {sample_id: data???}
 		self.complement_bases = {'A': 'T', 'T': 'A', 'G': 'C', 'C': 'G'}
-		self.haplotypes = {}
+		self.haplotypes = {} #GRC1 grc2 
 
 	@staticmethod
 	def _read_tsv_row_generator(file):
@@ -26,8 +27,10 @@ class AminoAcidCaller:
 
 	def _get_call(self, row):
 		call = row['Gen']
-		if row['Filt'] != 'PASS':  #Not expecting this to ever be executed??
-			call = '-'
+		if len(call) > 1:
+			is_het = True
+		else:
+			is_het = False
 		return call
 
 	def _read_genotypes_file(self,file):
@@ -35,14 +38,14 @@ class AminoAcidCaller:
 		a method that takes in a list of genotype files and parses them to a dictionary
 		with {sample_id : {}}
 		'''
-		genotypes = { 'key' : {}, 'depth' : {} }
-		sample_id = self.sample_id
+		genotypes = { 'key' : {}, 'depth' : {} } #outer key 'key' is redundant
+		sample_id = self.sample_id #we will get the sample id from different means.. probably - may be read in from the file 
 
-		for row in self._read_tsv_row_generator(file):
+		for row in self._read_tsv_row_generator(file): #this is fine 
 			chr = row['Chr']
-			call = self._get_call(row)
+			call, is_het = self._get_call(row)
 
-			if sample_id not in genotypes['key']:
+		    if sample_id not in genotypes['key']:
 				genotypes['key'][sample_id] = {}
 				genotypes['depth'][sample_id] = {}
 
@@ -55,11 +58,12 @@ class AminoAcidCaller:
 
 			genotypes['key'][sample_id][chr][row['Loc']] = call
 			genotypes['depth'][sample_id][chr][row['Loc']] = int(row['Depth'])
-		return genotypes
+			return genotypes
 
 
 	def _read_drl_info(self):
 		"""Reads the DRL info file and returns a dict."""
+		#this is fine - may be able to rearrange it in a way which is more palatable to reference - don't think that is super important
 		ret = {'pos' : {}, 'core_order' : [], 'exp_order' : [], 'cons' : {}, 'aa_loc' : {}, 'strand' : {}, 'genes' : []}
 		filename = "./amplicon_data/DRLinfo.txt" #change later 
 		for row in self._read_tsv_row_generator(filename):
@@ -85,6 +89,7 @@ class AminoAcidCaller:
 		return ret
 
 	def _read_codon_key(self):
+		#think this has been superceeded by codon_table.py
 		filename = "./amplicon_data/codonKey.txt"
 		if not os.path.isfile(filename):
 			raise Exception(f"could not find {file}")
@@ -101,16 +106,18 @@ class AminoAcidCaller:
 		return ret
 
 	def is_missing(self, base):
+		# perhaps a bit pointless
 		return base == '-'
 
 	def call_haplotypes(self):
-		drl = self.drl_info
+		drl = self.drl_info # I don't like referencing instance variables directly, in case I do something that modifies them by accident 
 		core_genes = drl['core_order']
 		sample_id = self.sample_id
 
 		genotype_information = self.genotypes_files
 
 		for gene_amino in drl['exp_order']:
+			#Giant for loop
 
 			gene, amino = gene_amino.split(":")
 
@@ -132,11 +139,14 @@ class AminoAcidCaller:
 			base_3 = '-'
 
 			if position_1 not in genotype_information['key'][sample_id][chromosome]:
-				#this is horrible, change it
+				#this is horrible, change it - this is to check if an amino position had been filtered out in a previous step, but 
+				#is not clear what it is doing 
 				if gene_amino in core_genes:
 					self.haplotypes[gene] += '-'
 				self.haplotypes[gene_amino] = '-'	
 				continue
+
+			#FINE
 			
 			if drl['cons'][chromosome][position_1] != '-':
 				base_1 = drl['cons'][chromosome][position_1]
@@ -156,10 +166,20 @@ class AminoAcidCaller:
 				base_1 = self._complement(base_1)
 				base_2 = self._complement(base_2)
 				base_3 = self._complement(base_3)
+			#FINE
 
-			#concatenate
+			#concatenate - this bit is tricky, so the problem here is that checking if length 3 or length 4 goes against
+			#basic science. Also, hets are written as a comma separated list which currently isn't dealt with
+
+
+			#Checking for het without checking length.. can perhaps add it to the get_call method 
+
+
 			codon = f"{base_1}{base_2}{base_3}"
+
+
 	
+			#Het - comma separated list
 			if '-' in codon:
 				self.haplotypes[gene_amino] = '-'
 				if gene_amino in core_genes:
@@ -226,4 +246,7 @@ class AminoAcidCaller:
 			if nucleotide in self.complement_bases:
 				complement_sequence.append(self.complement_bases[nucleotide])
 		return ''.join(complement_sequence)
+
+
+
 
