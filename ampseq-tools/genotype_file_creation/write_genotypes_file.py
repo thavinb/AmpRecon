@@ -36,38 +36,40 @@ class GenotypeFileWriter:
         # Prepare output genotype file
         output_genotype_file = open(self.output_file_name, "a")
         output_genotype_file.write("Amplicon\tAmplicon_Pos\tChr\tChr_Loc\t\tGen\tDepth\tFilt\n")
-        genotype_file_rows = []
 
-        # Iterate over the supplied VCF files
+        # Iterate over the supplied VCF files and their records
         for vcf_file in self.vcf_list:
             vcf_reader = vcf.Reader(filename=vcf_file)
+            for record in vcf_reader:
 
-            # Match - Get row associated with record from chromKey file
-            records_matched_to_chromKey_rows = [self._match_chromKey_row(record, chromKey_dict) for record in vcf_reader]
+                # Match - Get row associated with record from chromKey file
+                chromKey_row = self._match_chromKey_row(record, chromKey_dict)
 
-            # Mask - Drop records at particular positions
-            remaining_records_and_rows  = [record for record in [self._mask_record(row[0], row[1]) for row in records_matched_to_chromKey_rows] if record != "Masked"]
+                # Mask - Drop records at particular positions
+                if self._mask_record(record, chromKey_row) == "Masked":
+                    next()
 
-            # Lift over - Update record co-ordinates
-            lifted_over_records = [self._lift_over_record_coordinates(row[0], row[1]) for row in remaining_records_and_rows]
+                # Lift over - Update record co-ordinates
+                record, amplicon = self._lift_over_record_coordinates(record, chromKey_row)
 
-            # Filter - Remove low coverage genotypes and adjust depths
-            genotypes_depths = [self._filter_genotypes(record[0], vcf_reader) for record in lifted_over_records]
+                # Filter - Remove low coverage genotypes and adjust depths
+                genotype, depth = self._filter_genotypes(record, vcf_reader)
 
-            # Format record
-            genotype_file_rows = [self._format_record(record[1], record[0], value[0], value[1]) for record, value in zip(lifted_over_records, genotypes_depths)]
+                # Format record
+                genotype_file_row = self._format_record(amplicon, record, genotype, depth)
 
-            # Write formatted records to genotype file
-            [output_genotype_file.write(line) for line in genotype_file_rows]
+                # Write formatted record to genotype file
+                output_genotype_file.write(genotype_file_row)
+
         output_genotype_file.close()
 
     def _match_chromKey_row(self, record, chromKey_dict):
         '''
-        Matches a VCF record to its associated dictionary in the chromKey dictionary
+        Matches a VCF record to its associated dictionary in the chromKey dictionary.
         '''
         try:
             matching_chromKey_row = chromKey_dict.get(f"{record.CHROM}:{record.POS}")
-            return record, matching_chromKey_row
+            return matching_chromKey_row
         except IndexError:
             logging.error(f"Failed retrieve matching row from chromKey file for record co-ordinates: {record.CHROM}:{record.POS}")
             exit(1)
@@ -75,7 +77,7 @@ class GenotypeFileWriter:
     def _mask_record(self, record, chromKey_row):
         '''
 
-        Labels VCF records at specified positions as "Masked".
+        Checks whether VCF records is to be "Masked".
         '''
         if chromKey_row.get("Mask") == 1:
             return "Masked"
@@ -133,7 +135,7 @@ class GenotypeFileWriter:
 
     def _filter_individual_alleles(self, alleles, allele_depths, depth):
         '''
-        Return alleles and depths that exceed depth and proportion thresholds
+        Return alleles and depths that exceed depth and proportion thresholds.
         '''
         filtered_alleles = []
         filtered_allele_depths = []
