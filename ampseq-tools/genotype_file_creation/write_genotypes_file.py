@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 
 import argparse
-import pandas as pd
 import logging
 import vcf
+import csv
 
 class GenotypeFileWriter:
     '''
@@ -23,10 +23,19 @@ class GenotypeFileWriter:
     def write_genotype_file(self):
         '''
         Merges supplied VCF files into a single genotype .tsv file.
-        Updates VCF record co-ordinates to match those found within ChromKey data frame.
+        Updates VCF record co-ordinates to match those found within ChromKey dictionary.
         SNPs to be masked are not written to the resulting file.
         '''
-        chromKey_df = pd.read_csv(self.chromKey_file, sep="\t", header=0)
+        # Read ChromKey file rows as dictionaries
+        chromKey_dict = {}
+        with open(self.chromKey_file, newline='') as chromKey_file:
+            for row in csv.DictReader(chromKey_file, delimiter='\t'):
+                key = f"{row[str(self.chromosome_column)]}:{row[str(self.locus_column)]}"
+                chromKey_dict[key] = dict(row)
+
+        # Prepare output genotype file
+        output_genotype_file = open(self.output_file_name, "a")
+        output_genotype_file.write("Amplicon\tAmplicon_Pos\tChr\tChr_Loc\t\tGen\tDepth\tFilt\n")
         genotype_file_rows = []
 
         # Iterate over the supplied VCF files
@@ -34,7 +43,7 @@ class GenotypeFileWriter:
             vcf_reader = vcf.Reader(filename=vcf_file)
 
             # Match - Get row associated with record from chromKey file
-            records_matched_to_chromKey_rows = [self._match_chromKey_row(record, chromKey_df) for record in vcf_reader]
+            records_matched_to_chromKey_rows = [self._match_chromKey_row(record, chromKey_dict) for record in vcf_reader]
 
             # Mask - Drop records at particular positions
             remaining_records_and_rows  = [record for record in [self._mask_record(row[0], row[1]) for row in records_matched_to_chromKey_rows] if record != "Masked"]
@@ -46,18 +55,18 @@ class GenotypeFileWriter:
             genotypes_depths = [self._filter_genotypes(record[0], vcf_reader) for record in lifted_over_records]
 
             # Format record
-            genotype_file_rows.extend(self._format_record(record[1], record[0], value[1], value[2]) for record, value in zip(lifted_over_records, genotypes_depths))
+            genotype_file_rows = [self._format_record(record[1], record[0], value[0], value[1]) for record, value in zip(lifted_over_records, genotypes_depths)]
 
-        # Write formatted records to genotype file
-        genotypes_df = pd.DataFrame(genotype_file_rows, columns = ["Amplicon", "Pos", "Chr", "Loc", "Gen", "Depth", "Filt"])
-        genotypes_df.to_csv(self.output_file_name, sep="\t", encoding="utf-8", index=False)
+            # Write formatted records to genotype file
+            [output_genotype_file.write(line) for line in genotype_file_rows]
+        output_genotype_file.close()
 
-    def _match_chromKey_row(self, record, chromKey_df):
+    def _match_chromKey_row(self, record, chromKey_dict):
         '''
-        Matches a VCF record to its associated row in the chromKey data frame
+        Matches a VCF record to its associated dictionary in the chromKey dictionary
         '''
         try:
-            matching_chromKey_row = chromKey_df.loc[(chromKey_df[str(self.chromosome_column)] == record.CHROM) & (chromKey_df[str(self.locus_column)] == int(record.POS))]
+            matching_chromKey_row = chromKey_dict.get(f"{record.CHROM}:{record.POS}")
             return record, matching_chromKey_row
         except IndexError:
             logging.error(f"Failed retrieve matching row from chromKey file for record co-ordinates: {record.CHROM}:{record.POS}")
@@ -68,7 +77,7 @@ class GenotypeFileWriter:
 
         Labels VCF records at specified positions as "Masked".
         '''
-        if chromKey_row.iloc[0]["Mask"] == 1:
+        if chromKey_row.get("Mask") == 1:
             return "Masked"
         else:
 
@@ -76,11 +85,12 @@ class GenotypeFileWriter:
 
     def _lift_over_record_coordinates(self, record, chromKey_row):
         '''
-        Updates the chromosome and locus of a supplied VCF record to match those in an associated data frame row.
+        Updates the chromosome and locus of a supplied VCF record to match those in an associated dictionary.
+        Also returns amplicon and amplicon position.
         '''
-        amplicon = [chromKey_row.iloc[0]["Chrom_ID"], chromKey_row.iloc[0]["VarPos"]] 
-        record.CHROM = chromKey_row.iloc[0]["Chromosome"]
-        record.POS = chromKey_row.iloc[0]["Locus"]
+        amplicon = [chromKey_row.get("Chrom_ID"), chromKey_row.get("VarPos")] 
+        record.CHROM = chromKey_row.get("Chromosome")
+        record.POS = chromKey_row.get("Locus")
         return record, amplicon
 
     def _filter_genotypes(self, record, vcf_reader):
@@ -154,7 +164,7 @@ class GenotypeFileWriter:
         genotypes_formatted = ",".join(str(genotype) for genotype in genotypes)
         allele_depths_formatted = ",".join(str(depth) for depth in allele_depths) if isinstance(allele_depths, list) else allele_depths
         filter_value = ";".join(record.FILTER) if record.FILTER is not None and len(record.FILTER) > 0 else "PASS"
-        return [amplicon[0], amplicon[1], record.CHROM, str(record.POS), str(genotypes_formatted), str(allele_depths_formatted), str(filter_value)]
+        return "\t".join([amplicon[0], amplicon[1], record.CHROM, str(record.POS), str(genotypes_formatted), str(allele_depths_formatted), str(filter_value)])+"\n"
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
