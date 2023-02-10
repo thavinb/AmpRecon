@@ -34,7 +34,7 @@ class GenotypeFileWriter:
                 chromKey_dict[key] = dict(row)
 
         # Prepare output genotype file
-        output_genotype_file = open(self.output_file_name, "a")
+        output_genotype_file = open(self.output_file_name, "w")
         output_genotype_file.write("Amplicon\tAmplicon_Pos\tChr\tChr_Loc\t\tGen\tDepth\tFilt\n")
 
         # Iterate over the supplied VCF files and their records
