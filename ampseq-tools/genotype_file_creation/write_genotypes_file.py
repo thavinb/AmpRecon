@@ -45,8 +45,8 @@ class GenotypeFileWriter:
                 # Match - Get row associated with record from chromKey file
                 chromKey_row = self._match_chromKey_row(record, chromKey_dict)
 
-                # Mask - Drop records at particular positions
-                if self._mask_record(record, chromKey_row) == "Masked":
+                # Mask - Drop records if its supposed to be masked
+                if chromKey_row.get("Mask") == 1:
                     next()
 
                 # Lift over - Update record co-ordinates
@@ -74,17 +74,6 @@ class GenotypeFileWriter:
             logging.error(f"Failed retrieve matching row from chromKey file for record co-ordinates: {record.CHROM}:{record.POS}")
             exit(1)
 
-    def _mask_record(self, record, chromKey_row):
-        '''
-
-        Checks whether VCF records is to be "Masked".
-        '''
-        if chromKey_row.get("Mask") == 1:
-            return "Masked"
-        else:
-
-            return record, chromKey_row
-
     def _lift_over_record_coordinates(self, record, chromKey_row):
         '''
         Updates the chromosome and locus of a supplied VCF record to match those in an associated dictionary.
@@ -105,7 +94,6 @@ class GenotypeFileWriter:
             call = record.genotype(sample[0])
 
             # Retrieve genotype and depths for this record
-            genotype = call['GT']
             depth = int(call['DP'])
             allele_depths = call['AD']
             allele_depths = allele_depths if isinstance(allele_depths, list) else [allele_depths]
