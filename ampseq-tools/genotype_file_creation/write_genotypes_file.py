@@ -35,7 +35,7 @@ class GenotypeFileWriter:
 
         # Prepare output genotype file
         output_genotype_file = open(self.output_file_name, "w")
-        output_genotype_file.write("Amplicon\tAmplicon_Pos\tChr\tChr_Loc\t\tGen\tDepth\tFilt\n")
+        output_genotype_file.write("Amplicon\tAmplicon_Pos\tChr\tChr_Loc\tGen\tDepth\tFilt\n")
 
         # Iterate over the supplied VCF files and their records
         for vcf_file in self.vcf_list:
