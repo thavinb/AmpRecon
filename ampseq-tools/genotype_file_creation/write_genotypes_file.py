@@ -45,9 +45,9 @@ class GenotypeFileWriter:
                 # Match - Get row associated with record from chromKey file
                 chromKey_row = self._match_chromKey_row(record, chromKey_dict)
 
-                # Mask - Drop records if its supposed to be masked
-                if chromKey_row.get("Mask") == 1:
-                    next()
+                # Mask - Ignore this record if its supposed to be masked
+                if chromKey_row.get("Mask") == "1":
+                    continue
 
                 # Lift over - Update record co-ordinates
                 record, amplicon = self._lift_over_record_coordinates(record, chromKey_row)
@@ -79,6 +79,7 @@ class GenotypeFileWriter:
         Updates the chromosome and locus of a supplied VCF record to match those in an associated dictionary.
         Also returns amplicon and amplicon position.
         '''
+        #Need to change this part with the amplicon
         amplicon = [chromKey_row.get("Chrom_ID"), chromKey_row.get("VarPos")] 
         record.CHROM = chromKey_row.get("Chromosome")
         record.POS = chromKey_row.get("Locus")
