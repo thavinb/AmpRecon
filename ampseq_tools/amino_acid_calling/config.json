@@ -1,0 +1,24 @@
+{
+
+	"GLOBAL" : {
+		"SPECIES" : "",
+		"CODON_KEY" : "codonKey.txt",
+		"DRL_INFORMATION" : "DRLinfo.txt",
+		"OUTPUT_FILE" : "" // this may be redundant - not sure 
+
+	},
+
+	"FALCIPARUM" : {
+		"DOUBLE_HETEROZYGOUS_INFORMATION" : { "cases": [
+            ["PfCRT" , "75","A,G","A","T,A","N","E"],
+            ["PfDHPS","540","A,G","-","A,T","E","N"],
+            ["PfDHPS","436","T,G","C,G","-","A","C"],
+            ["PfDHPS","436","T,G","C,T","-","A","F"],
+            ["PfDHPS","436","T,G","C,A","-","A","Y"],
+            ["PfDHPS","436","C,G","C,A","-","A","H"],
+            ["PfDHPS","540","A,T","-","A,T","K","N"]
+        ] 
+	}
+}
+
+}
