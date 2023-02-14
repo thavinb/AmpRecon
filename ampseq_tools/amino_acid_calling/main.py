@@ -1,4 +1,4 @@
-from AminoAcidCalling import AminoAcidCaller
+from AminoAcid import AminoAcidCaller
 
 def main():
 
