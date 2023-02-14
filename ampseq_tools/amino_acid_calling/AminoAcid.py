@@ -1,6 +1,5 @@
 import csv
 import os
-from codon_table import *
 import json
 
 class AminoAcidCaller: #better name 
