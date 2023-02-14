@@ -27,10 +27,6 @@ class AminoAcidCaller: #better name
 
 	def _get_call(self, row):
 		call = row['Gen']
-		if len(call) > 1:
-			is_het = True
-		else:
-			is_het = False
 		return call
 
 	def _read_genotypes_file(self,file):
@@ -43,9 +39,9 @@ class AminoAcidCaller: #better name
 
 		for row in self._read_tsv_row_generator(file): #this is fine 
 			chr = row['Chr']
-			call, is_het = self._get_call(row)
+			call = self._get_call(row)
 
-		    if sample_id not in genotypes['key']:
+			if sample_id not in genotypes['key']:
 				genotypes['key'][sample_id] = {}
 				genotypes['depth'][sample_id] = {}
 
@@ -58,7 +54,8 @@ class AminoAcidCaller: #better name
 
 			genotypes['key'][sample_id][chr][row['Loc']] = call
 			genotypes['depth'][sample_id][chr][row['Loc']] = int(row['Depth'])
-			return genotypes
+		
+		return genotypes
 
 
 	def _read_drl_info(self):
@@ -110,14 +107,17 @@ class AminoAcidCaller: #better name
 		return base == '-'
 
 	def call_haplotypes(self):
-		drl = self.drl_info # I don't like referencing instance variables directly, in case I do something that modifies them by accident 
+		drl = self.drl_info
 		core_genes = drl['core_order']
 		sample_id = self.sample_id
 
 		genotype_information = self.genotypes_files
 
+		print(genotype_information)
+
 		for gene_amino in drl['exp_order']:
-			#Giant for loop
+
+			double_het = False
 
 			gene, amino = gene_amino.split(":")
 
@@ -133,21 +133,18 @@ class AminoAcidCaller: #better name
 			position_2 = drl['pos'][gene][amino]['2']
 			position_3 = drl['pos'][gene][amino]['3']
 			chromosome = drl['aa_loc'][gene_amino]
-
 			base_1 = '-'
 			base_2 = '-'
 			base_3 = '-'
-
+			
 			if position_1 not in genotype_information['key'][sample_id][chromosome]:
-				#this is horrible, change it - this is to check if an amino position had been filtered out in a previous step, but 
-				#is not clear what it is doing 
+			#this is horrible, change it - this is to check if an amino position had been filtered out in a previous step, but 
+			#is not clear what it is doing 
 				if gene_amino in core_genes:
 					self.haplotypes[gene] += '-'
 				self.haplotypes[gene_amino] = '-'	
 				continue
 
-			#FINE
-			
 			if drl['cons'][chromosome][position_1] != '-':
 				base_1 = drl['cons'][chromosome][position_1]
 			if drl['cons'][chromosome][position_2] != '-':
@@ -161,83 +158,81 @@ class AminoAcidCaller: #better name
 				base_2 = genotype_information['key'][sample_id][chromosome][position_2]
 			if base_3 == '-':
 				base_3 = genotype_information['key'][sample_id][chromosome][position_3]
-		
+
 			if drl['strand'][gene][amino] == '-':
 				base_1 = self._complement(base_1)
 				base_2 = self._complement(base_2)
 				base_3 = self._complement(base_3)
-			#FINE
 
-			#concatenate - this bit is tricky, so the problem here is that checking if length 3 or length 4 goes against
-			#basic science. Also, hets are written as a comma separated list which currently isn't dealt with
-
-
-			#Checking for het without checking length.. can perhaps add it to the get_call method 
-
-
-			codon = f"{base_1}{base_2}{base_3}"
-
-
-	
-			#Het - comma separated list
-			if '-' in codon:
+			if self.is_missing(base_1) or self.is_missing(base_2) or self.is_missing(base_3):
+				#this can go at some point
 				self.haplotypes[gene_amino] = '-'
 				if gene_amino in core_genes:
 					self.haplotypes[gene] += '-'
 				continue
 
-			if len(codon) == 3:
-				aa = self.translate_codon(codon, is_het=False)
+			if len(base_1) == 1 and len(base_2) == 1 and len(base_3) == 1:
+				#basic case 
+				aa = self.translate_codon(base_1, base_2, base_3)
 				if gene_amino in core_genes:
 					self.haplotypes[gene] += aa
 				self.haplotypes[gene_amino] = aa
 				continue
 
-			elif len(codon) == 4:
-				codon = f"{base_1},{base_2},{base_3}"
-				het_call = self.translate_codon(codon, is_het=True)
+			aa_1 = '-'
+			aa_2 = '-'
 
-				if gene_amino in core_genes:
-					self.haplotypes[gene] += het_call
-				self.haplotypes[gene_amino] = het_call
-				continue
+			if len(base_1) > 1:
+				allel_1 = base_1.split(',')[0]
+				allel_2 = base_1.split(',')[1]
+				aa_1 = self.translate_codon(allel_1, base_2, base_3)
+				aa_2 = self.translate_codon(allel_2, base_2, base_3)
+			elif len(base_2) > 1:
+				allel_1 = base_2.split(',')[0]
+				allel_2 = base_2.split(',')[1]
+				aa_1 = self.translate_codon(base_1, allel_1, base_3)
+				aa_2 = self.translate_codon(base_1, allel_2, base_3)
+			if len(base_3) > 1:
+				allel_1 = base_3.split(',')[0]
+				allel_2 = base_3.split(',')[1]
+				print(allel_1)
+				print(allel_2)
+				aa_1 = self.translate_codon(base_1, base_2, allel_1)
+				aa_2 = self.translate_codon(base_1, base_2, allel_2)
 
-			if codon in self.config['run_options']['double_heterozygous_cases'][gene_amino]:
-				double_het_call = self.config['run_options']['double_heterozygous_cases'][gene_amino][codon]
-				if gene_amino in core_genes:
-					self.haplotypes[gene] += double_het_call
-				self.haplotypes[gene_amino] = double_het_call
+		if aa_1 != '-' and aa_2 != '-':
+			if aa_1 == aa_2:
+				aa_call = aa_1
+			else:
+				aa_call = f"[{aa_1}/{aa_2}]"
 
-		print(self.haplotypes)
+			self.haplotypes[gene_amino] = aa_call
+
+			if gene_amino in core_genes:
+				self.haplotypes[gene] += aa_call
+
+
 		return self.haplotypes
 
-	def translate_codon(self, codon, is_het):
+
+	def _get_het_match_from_config(self, gene, amino, base_1, base_2, base_3):
+
+		for het in self.config["FALCIPARUM"]['DOUBLE_HETEROZYGOUS_INFORMATION']['1']: #the one could very well be redundant here 
+			print(het[0], het[1], het[2], het[3], het[4], het[5], het[6])
+			try:
+				if het[0] == gene and het[1] == amino and het[2] == base_1 and het[3] == base_2 and het[4] == base_3:
+					print("here")
+					return f"[{het[5]}/{het[6]}]"
+			except:
+				print("woopsie something went wrong, check back for more informative exceptions later")
+
+
+	def translate_codon(self, base_1, base_2, base_3):
 		amino_acid = '-'
-		codon_translations = DNA_Codons
-
-		if is_het == False:
-			amino_acid = codon_translations[codon]
-			return amino_acid
-		else:
-			het_bases = codon.split(",")
-			codon_1 = []
-			codon_2 = []
-			for base in het_bases:
-				if len(base) > 1:
-					codon_1.append(list(base)[0])
-					codon_2.append(list(base)[1])
-				else:
-					codon_1.append(base)
-					codon_2.append(base)
-			
-			codon_1 = ''.join(codon_1)
-			codon_2 = ''.join(codon_2)
-
-			aa_1 = codon_translations[codon_1]
-			aa_2 = codon_translations[codon_2]
-
-			return f"[{aa_1}/{aa_2}]"
-
+		codon_translations = self.codon_key		
+		amino_acid = codon_translations[base_1][base_2][base_3]
+		return amino_acid
+		
 
 	def _complement(self, sequence):
 		complement_sequence = []
@@ -246,7 +241,4 @@ class AminoAcidCaller: #better name
 			if nucleotide in self.complement_bases:
 				complement_sequence.append(self.complement_bases[nucleotide])
 		return ''.join(complement_sequence)
-
-
-
 
