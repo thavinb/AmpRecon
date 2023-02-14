@@ -1,10 +1,9 @@
 
 {
-	"DR_HAPLOTYPE_SPECIAL_CASES" : {
-
+	"DR_DOUBLE_HETEROZYGOUS_CASES" : {
+		
 		"PfCRT" : [
-					["73", "V"],
-					["75", ["A,G", "-", "A,T"] "N/E"],	
+					["75", ["A,G", "-", "A,T"] "N/E"]	
 		],
 		"PfDHPS" : [ ["436", ["T,G", "C,G", "-"] "A/C"],
 		 			 ["436", ["T,G", "C,T", "-"] "A/F"],
@@ -13,5 +12,11 @@
 		 			 ["540", ["A,G", "-", "A,T"] "E/N"],
 		 			 ["540", ["A,T", "-", "A,T"] "K/N"] 
 		]
+	},
+
+	"DR_HAPLOTYPE_SPECIAL_CASES" : {
+
+		"PfCRT" : [["2", "V"]]
+
 	}
 }
