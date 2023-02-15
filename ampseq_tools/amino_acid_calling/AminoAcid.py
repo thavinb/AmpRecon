@@ -8,10 +8,10 @@ class AminoAcidCaller: #better name
 		#need to think about how the process begins, does one file go in
 		with open(config_file) as conf:
 			self.config = json.load(conf)
-		self.sample_id = sample_id
 		self.drl_info = self._read_drl_info()
 		self.codon_key = self._read_codon_key()
 		self.genotypes_files = self._read_genotypes_file(genotypes_file) #could probably be a dict with structure {sample_id: data???}
+		self.sample_ids = self._get_sample_id(genotypes_file)
 		self.complement_bases = {'A': 'T', 'T': 'A', 'G': 'C', 'C': 'G'}
 		self.haplotypes = {} #GRC1 grc2 
 
@@ -28,16 +28,24 @@ class AminoAcidCaller: #better name
 		call = row['Gen']
 		return call
 
+	def _get_sample_id(self, file):
+		sample_ids = set()
+		with open(file) as f:
+			for line in f:
+				sample_ids.add(line[0])
+		return sample_ids
+
 	def _read_genotypes_file(self,file):
 		'''
 		a method that takes in a list of genotype files and parses them to a dictionary
 		with {sample_id : {}}
 		'''
+
 		genotypes = { 'key' : {}, 'depth' : {} } #outer key 'key' is redundant
-		sample_id = self.sample_id #we will get the sample id from different means.. probably - may be read in from the file 
 
 		for row in self._read_tsv_row_generator(file): #this is fine 
 			chr = row['Chr']
+			sample_id = row['Sample_ID']
 			call = self._get_call(row)
 
 			if sample_id not in genotypes['key']:
@@ -112,8 +120,6 @@ class AminoAcidCaller: #better name
 
 		genotype_information = self.genotypes_files
 
-		print(genotype_information)
-
 		for gene_amino in drl['exp_order']:
 
 			double_het = False
@@ -181,7 +187,26 @@ class AminoAcidCaller: #better name
 			aa_1 = '-'
 			aa_2 = '-'
 
-			if len(base_1) > 1:
+			#the problem here is the double het cases cause the programme to crash, when checking if a single base is het yes it executes but we get a key error because we haven't
+			#sufficiently dealt with the second het base
+
+			#we should identify double het first
+
+			if len(base_1) > 1 and len(base_2) > 1 or len(base_2) > 1 and len(base_3) > 1:
+				double_het = True
+				try:
+					het_call = self._get_het_match_from_config(gene, amino, base_1, base_2, base_3)
+					if gene_amino in core_genes:
+						self.haplotypes[gene] += het_call
+					self.haplotypes[gene_amino] += het_call
+					continue
+				except (TypeError, KeyError):
+					if gene_amino in core_genes:
+						self.haplotypes[gene] += '-'
+					self.haplotypes[gene_amino] += '-'
+					print(f"Double heterozygous case present in data not in list of special cases accounted for by the pipeline, please check input data at the locus {gene_amino}")
+
+			elif len(base_1) > 1:
 				allel_1 = base_1.split(',')[0]
 				allel_2 = base_1.split(',')[1]
 				aa_1 = self.translate_codon(allel_1, base_2, base_3)
@@ -191,11 +216,9 @@ class AminoAcidCaller: #better name
 				allel_2 = base_2.split(',')[1]
 				aa_1 = self.translate_codon(base_1, allel_1, base_3)
 				aa_2 = self.translate_codon(base_1, allel_2, base_3)
-			if len(base_3) > 1:
-				allel_1 = base_3.split(',')[0]
-				allel_2 = base_3.split(',')[1]
-				print(allel_1)
-				print(allel_2)
+			elif len(base_3) > 1:
+				allel_3 = base_3.split(',')[0]
+				allel_4 = base_3.split(',')[1]
 				aa_1 = self.translate_codon(base_1, base_2, allel_1)
 				aa_2 = self.translate_codon(base_1, base_2, allel_2)
 
@@ -209,21 +232,26 @@ class AminoAcidCaller: #better name
 
 			if gene_amino in core_genes:
 				self.haplotypes[gene] += aa_call
-
-
 		return self.haplotypes
 
 
 	def _get_het_match_from_config(self, gene, amino, base_1, base_2, base_3):
+		aa_1 = '-'
+		aa_2 = '-'
 
-		for het in self.config["FALCIPARUM"]['DOUBLE_HETEROZYGOUS_INFORMATION']['1']: #the one could very well be redundant here 
-			print(het[0], het[1], het[2], het[3], het[4], het[5], het[6])
-			try:
-				if het[0] == gene and het[1] == amino and het[2] == base_1 and het[3] == base_2 and het[4] == base_3:
-					print("here")
-					return f"[{het[5]}/{het[6]}]"
-			except:
-				print("woopsie something went wrong, check back for more informative exceptions later")
+		for case in self.config["DR_DOUBLE_HETEROZYGOUS_CASES"][gene]:
+			
+			if case[0] == amino and case[1][0] == base_1 and case[1][1] == base_2 and case[1][2] == base_3:
+				aa_1 = case[2]
+				aa_2 = case[3]
+
+				if aa_1 != '-' and aa_2 != '-':
+					if aa_1 == aa_2:
+						aa_call = aa_1
+						return aa_call
+					else:
+						return f"[{aa_1}/{aa_2}]"
+				continue
 
 
 	def translate_codon(self, base_1, base_2, base_3):
@@ -241,3 +269,9 @@ class AminoAcidCaller: #better name
 				complement_sequence.append(self.complement_bases[nucleotide])
 		return ''.join(complement_sequence)
 
+
+class DoubleHeterozygousException(Exception):
+	"""
+	for when we encounter a double het that is not a special case 
+	"""
+	pass
