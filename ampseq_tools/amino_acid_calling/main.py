@@ -39,7 +39,7 @@ def write_out_grcs(haplotype_data:list, panel_design, extended=True):
 	for entry in haplotype_data:
 		sample_ids = list(entry.keys())
 		for id in sample_ids:
-			data = entry[id]
+			data = entry[id] #MODIFY BELOW TO REMOVE GENE HARDCODINGS
 			grc_1.write(f"{id}\t{data['PfCRT']}\t{data['PfDHFR']}\t{data['PfDHPS']}\t{data['PfEXO']}\t{data['PfMDR1']}\t{data['PGB']}\n")
 
 
