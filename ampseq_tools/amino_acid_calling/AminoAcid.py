@@ -1,10 +1,11 @@
 import csv
 import os
+from codon_table import *
 import json
 
 class AminoAcidCaller: #better name 
 
-	def __init__(self, sample_id, genotypes_file, config_file):
+	def __init__(self, genotypes_file, config_file):
 		#need to think about how the process begins, does one file go in
 		with open(config_file) as conf:
 			self.config = json.load(conf)
@@ -31,8 +32,10 @@ class AminoAcidCaller: #better name
 	def _get_sample_id(self, file):
 		sample_ids = set()
 		with open(file) as f:
-			for line in f:
-				sample_ids.add(line[0])
+			lines = f.readlines()[1:]
+			for line in lines:
+				words = line.split('\t')
+				sample_ids.add(words[0])
 		return sample_ids
 
 	def _read_genotypes_file(self,file):
@@ -116,122 +119,147 @@ class AminoAcidCaller: #better name
 	def call_haplotypes(self):
 		drl = self.drl_info
 		core_genes = drl['core_order']
-		sample_id = self.sample_id
+		sample_id = self.sample_ids
 
 		genotype_information = self.genotypes_files
 
-		for gene_amino in drl['exp_order']:
+		for ids in sample_id:
+			self.haplotypes[ids] = {}
+			for gene_amino in drl['exp_order']:
 
-			double_het = False
+				gene, amino = gene_amino.split(":")
+				#begin by creating empty dictionary entries for the gene (grc1)	and gene_amino (grc2)			
+				if gene not in self.haplotypes[ids]:
+					self.haplotypes[ids][gene] = ''
 
-			gene, amino = gene_amino.split(":")
+				if gene_amino not in self.haplotypes[ids]:
+					self.haplotypes[ids][gene_amino] = ''
 
-			if gene not in self.haplotypes:
-				self.haplotypes[gene] = ''
-			if gene_amino not in self.haplotypes:
-				self.haplotypes[gene_amino] = ''
+				#Impute pfCRT:73
+				if gene in self.config['DR_HAPLOTYPE_SPECIAL_CASES']:
+					if amino in self.config['DR_HAPLOTYPE_SPECIAL_CASES'][gene][0]:
+						aa = self.config['DR_HAPLOTYPE_SPECIAL_CASES'][gene][0][1]
+						if gene_amino in core_genes:
+							self.haplotypes[ids][gene] += aa
+						self.haplotypes[ids][gene_amino] = aa
+						continue
 
-			if gene == 'PfCRT' and amino == '74':
-				self.haplotypes[gene] += 'V'
+				#handle haplotype special cases
+				if gene in self.config['DR_HAPLOTYPE_SPECIAL_CASES'] and self.haplotypes[ids][gene] == self.config['DR_HAPLOTYPE_SPECIAL_CASES'][gene][1][0]:
+					self.haplotypes[ids][gene] = self.config['DR_HAPLOTYPE_SPECIAL_CASES'][gene][1][1]
 
-			position_1 = drl['pos'][gene][amino]['1']
-			position_2 = drl['pos'][gene][amino]['2']
-			position_3 = drl['pos'][gene][amino]['3']
-			chromosome = drl['aa_loc'][gene_amino]
-			base_1 = '-'
-			base_2 = '-'
-			base_3 = '-'
-			
-			if position_1 not in genotype_information['key'][sample_id][chromosome]:
-			#this is horrible, change it - this is to check if an amino position had been filtered out in a previous step, but 
-			#is not clear what it is doing 
-				if gene_amino in core_genes:
-					self.haplotypes[gene] += '-'
-				self.haplotypes[gene_amino] = '-'	
-				continue
+				#get nucleotide positions from drlinfo.txt
+				position_1 = drl['pos'][gene][amino]['1']
+				position_2 = drl['pos'][gene][amino]['2']
+				position_3 = drl['pos'][gene][amino]['3'] 
+				chromosome = drl['aa_loc'][gene_amino]
 
-			if drl['cons'][chromosome][position_1] != '-':
-				base_1 = drl['cons'][chromosome][position_1]
-			if drl['cons'][chromosome][position_2] != '-':
-				base_2 = drl['cons'][chromosome][position_2]
-			if drl['cons'][chromosome][position_3] != '-':
-				base_3 = drl['cons'][chromosome][position_3]
+				base_1 = '-'
+				base_2 = '-'
+				base_3 = '-'
 
-			if base_1 == '-':
-				base_1 = genotype_information['key'][sample_id][chromosome][position_1] #how can i get a sample id here
-			if base_2 == '-':
-				base_2 = genotype_information['key'][sample_id][chromosome][position_2]
-			if base_3 == '-':
-				base_3 = genotype_information['key'][sample_id][chromosome][position_3]
-
-			if drl['strand'][gene][amino] == '-':
-				base_1 = self._complement(base_1)
-				base_2 = self._complement(base_2)
-				base_3 = self._complement(base_3)
-
-			if self.is_missing(base_1) or self.is_missing(base_2) or self.is_missing(base_3):
-				#this can go at some point
-				self.haplotypes[gene_amino] = '-'
-				if gene_amino in core_genes:
-					self.haplotypes[gene] += '-'
-				continue
-
-			if len(base_1) == 1 and len(base_2) == 1 and len(base_3) == 1:
-				#basic case 
-				aa = self.translate_codon(base_1, base_2, base_3)
-				if gene_amino in core_genes:
-					self.haplotypes[gene] += aa
-				self.haplotypes[gene_amino] = aa
-				continue
-
-			aa_1 = '-'
-			aa_2 = '-'
-
-			#the problem here is the double het cases cause the programme to crash, when checking if a single base is het yes it executes but we get a key error because we haven't
-			#sufficiently dealt with the second het base
-
-			#we should identify double het first
-
-			if len(base_1) > 1 and len(base_2) > 1 or len(base_2) > 1 and len(base_3) > 1:
-				double_het = True
-				try:
-					het_call = self._get_het_match_from_config(gene, amino, base_1, base_2, base_3)
+				#check for missing position in genotypes file we do position one as a shorthand - if its missing it doesn't matter
+				#if the other bases are present or not
+				if chromosome not in genotype_information['key'][ids]:
 					if gene_amino in core_genes:
-						self.haplotypes[gene] += het_call
-					self.haplotypes[gene_amino] += het_call
+						self.haplotypes[ids][gene] += '-'
+					self.haplotypes[ids][gene_amino] = '-'
 					continue
-				except (TypeError, KeyError):
+
+				if position_1 not in genotype_information['key'][ids][chromosome]:
 					if gene_amino in core_genes:
-						self.haplotypes[gene] += '-'
-					self.haplotypes[gene_amino] += '-'
-					print(f"Double heterozygous case present in data not in list of special cases accounted for by the pipeline, please check input data at the locus {gene_amino}")
+						self.haplotypes[ids][gene] += '-'
+					self.haplotypes[ids][gene_amino] = '-'
+					continue
 
-			elif len(base_1) > 1:
-				allel_1 = base_1.split(',')[0]
-				allel_2 = base_1.split(',')[1]
-				aa_1 = self.translate_codon(allel_1, base_2, base_3)
-				aa_2 = self.translate_codon(allel_2, base_2, base_3)
-			elif len(base_2) > 1:
-				allel_1 = base_2.split(',')[0]
-				allel_2 = base_2.split(',')[1]
-				aa_1 = self.translate_codon(base_1, allel_1, base_3)
-				aa_2 = self.translate_codon(base_1, allel_2, base_3)
-			elif len(base_3) > 1:
-				allel_3 = base_3.split(',')[0]
-				allel_4 = base_3.split(',')[1]
-				aa_1 = self.translate_codon(base_1, base_2, allel_1)
-				aa_2 = self.translate_codon(base_1, base_2, allel_2)
+				#assign reference bases to positions, if they exist in the drlinfo.txt
+				if drl['cons'][chromosome][position_1] != '-':
+					base_1 = drl['cons'][chromosome][position_1]
+				if drl['cons'][chromosome][position_2] != '-':
+					base_2 = drl['cons'][chromosome][position_2]
+				if drl['cons'][chromosome][position_3] != '-':
+					base_3 = drl['cons'][chromosome][position_3]
 
-		if aa_1 != '-' and aa_2 != '-':
-			if aa_1 == aa_2:
-				aa_call = aa_1
-			else:
-				aa_call = f"[{aa_1}/{aa_2}]"
+				#we set the bases that are still missing after reassignment to the experimental data 
+				if base_1 == '-':
+					base_1 = genotype_information['key'][ids][chromosome][position_1]
+				if base_2 == '-':
+					base_2 = genotype_information['key'][ids][chromosome][position_2]
+				if base_3 == '-':
+					base_3 = genotype_information['key'][ids][chromosome][position_3]
 
-			self.haplotypes[gene_amino] = aa_call
+				#if the data is on the reverse strand, we change the base to its complement
+				if drl['strand'][gene][amino] == '-':
+					base_1 = self._complement(base_1)
+					base_2 = self._complement(base_2)
+					base_3 = self._complement(base_3)
 
-			if gene_amino in core_genes:
-				self.haplotypes[gene] += aa_call
+				#if any of the positions are missing, we call a missing aa and move on
+				if self.is_missing(base_1) or self.is_missing(base_2) or self.is_missing(base_3):
+					if gene_amino in core_genes:
+						self.haplotypes[ids][gene] += '-'
+					self.haplotypes[ids][gene_amino] += '-'
+					continue
+
+				#basic case of translating three homozygous bases
+				if len(base_1) == 1 and len(base_2) == 1 and len(base_3) == 1:
+					aa = self.translate_codon(base_1, base_2, base_3)
+					if gene_amino in core_genes:
+						self.haplotypes[ids][gene] += '-'
+					self.haplotypes[ids][gene_amino] = '-'
+					continue
+
+				#if we come here we must have a heterozguous
+
+				aa_1 = '-'
+				aa_2 = '-'
+
+				#do the double het first - and then do the single het 
+
+				#we should identify double het first
+
+				if len(base_1) > 1 and len(base_2) > 1 or len(base_1) > 1 and len(base_3) > 1 or len(base_2) > 1 and len(base_3) > 1:
+					double_het = True
+					try:
+						het_call = self._get_het_match_from_config(gene, amino, base_1, base_2, base_3)
+						if gene_amino in core_genes:
+							self.haplotypes[ids][gene] += het_call
+						self.haplotypes[ids][gene_amino] += het_call
+						continue
+					except (TypeError, KeyError):
+						if gene_amino in core_genes:
+							self.haplotypes[ids][gene] += '-'
+						self.haplotypes[ids][gene_amino] += '-'
+						print(f"Double heterozygous case present in data not in list of special cases accounted for by the pipeline, please check input data at the locus {gene_amino}")
+						continue
+
+				elif len(base_1) > 1:
+					allel_1 = base_1.split(',')[0]
+					allel_2 = base_1.split(',')[1]
+					aa_1 = self.translate_codon(allel_1, base_2, base_3)
+					aa_2 = self.translate_codon(allel_2, base_2, base_3)
+				elif len(base_2) > 1:
+					allel_1 = base_2.split(',')[0]
+					allel_2 = base_2.split(',')[1]
+					aa_1 = self.translate_codon(base_1, allel_1, base_3)
+					aa_2 = self.translate_codon(base_1, allel_2, base_3)
+				elif len(base_3) > 1:
+					allel_3 = base_3.split(',')[0]
+					allel_4 = base_3.split(',')[1]
+					aa_1 = self.translate_codon(base_1, base_2, allel_1)
+					aa_2 = self.translate_codon(base_1, base_2, allel_2)
+				else:
+					raise HaplotypeProcessingException
+
+				if aa_1 != '-' and aa_2 != '-':
+					if aa_1 == aa_2:
+						aa_call = aa_1
+					else:
+						aa_call = f"[{aa_1}/{aa_2}]"
+					self.haplotypes[ids][gene_amino] = aa_call
+					if gene_amino in core_genes:
+						self.haplotypes[ids][gene] += aa_call
+
 		return self.haplotypes
 
 
@@ -270,8 +298,9 @@ class AminoAcidCaller: #better name
 		return ''.join(complement_sequence)
 
 
-class DoubleHeterozygousException(Exception):
-	"""
-	for when we encounter a double het that is not a special case 
-	"""
-	pass
+class HaplotypeProcessingException(Exception):
+	def __init__(self, message= "Error in processing genotype information, please check the input data"):
+		self.message = message
+		super.__init__(self.message)
+
+
