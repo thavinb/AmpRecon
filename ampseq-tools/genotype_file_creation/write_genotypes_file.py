@@ -38,6 +38,8 @@ class GenotypeFileWriter:
         output_genotype_file = open(self.output_file_name, "w")
         output_genotype_file.write("Sample_ID\tAmplicon\tAmplicon_Pos\tChr\tChr_Loc\tGen\tDepth\tFilt\n")
 
+        genotype_file_rows = []
+
         # Iterate over the supplied VCF files and their records
         for vcf_file in self.vcf_list:
             vcf_reader = vcf.Reader(filename=vcf_file)
@@ -58,16 +60,20 @@ class GenotypeFileWriter:
 
                 # Format record
                 sample_id = self.sample_id or vcf_reader.samples[0]
-                genotype_file_row = self._format_record(sample_id, amplicon, record, genotype, depth)
+                genotype_file_rows.append(self._format_record(sample_id, amplicon, record, genotype, depth))
 
-                # Write formatted record to genotype file
-                output_genotype_file.write(genotype_file_row)
+        # Format each chromKey row and add any VCF record data at that position
+        genotypes_dict =  {f"{row[1]}:{row[2]}" : row for row in genotype_file_rows}
+        formatted_rows = [row for row in [self._format_chromKey_row(ck_row, genotypes_dict) for ck_row in chromKey_dict.items()] if row != None]
 
+        # Write formatted chromKey / VCF record rows to genotype file
+        output_genotype_file.writelines(formatted_rows)
         output_genotype_file.close()
 
     def _match_chromKey_row(self, record, chromKey_dict):
         '''
         Matches a VCF record to its associated dictionary in the chromKey dictionary.
+        Matches by supplied columns (default is the amplicon and amplicon position)
         '''
         try:
             matching_chromKey_row = chromKey_dict.get(f"{record.CHROM}:{record.POS}")
@@ -81,7 +87,6 @@ class GenotypeFileWriter:
         Updates the chromosome and locus of a supplied VCF record to match those in an associated dictionary.
         Also returns amplicon and amplicon position.
         '''
-        #Need to change this part with the amplicon
         amplicon = [chromKey_row.get("Chrom_ID"), chromKey_row.get("VarPos")] 
         record.CHROM = chromKey_row.get("Chromosome")
         record.POS = chromKey_row.get("Locus")
@@ -95,7 +100,6 @@ class GenotypeFileWriter:
         try:
             sample = vcf_reader.samples
             call = record.genotype(sample[0])
-
             # Retrieve genotype and depths for this record
             depth = int(call['DP'])
             allele_depths = call['AD']
@@ -157,7 +161,38 @@ class GenotypeFileWriter:
         genotypes_formatted = ",".join(str(genotype) for genotype in genotypes)
         allele_depths_formatted = ",".join(str(depth) for depth in allele_depths) if isinstance(allele_depths, list) else allele_depths
         filter_value = ";".join(record.FILTER) if record.FILTER is not None and len(record.FILTER) > 0 else "PASS"
-        return "\t".join([str(sample_id), amplicon[0], amplicon[1], record.CHROM, str(record.POS), str(genotypes_formatted), str(allele_depths_formatted), str(filter_value)])+"\n"
+        return [str(sample_id), amplicon[0], amplicon[1], record.CHROM, str(record.POS), str(genotypes_formatted), str(allele_depths_formatted), str(filter_value)]
+
+    def _format_chromKey_row(self, ck_row, genotypes_dict):
+        '''
+        Format a chromKey row and adds any VCF record data at that position
+        '''
+        # Ensure position is not to be masked
+        if ck_row[1].get("Mask") == '1':
+            return None
+
+        # If a genotype row taken from a VCF matches then use its values, otherwise use "-"
+        genotypes_row = genotypes_dict.get(ck_row[0])
+        if genotypes_row != None:
+            genotype = genotypes_row[5]
+            depth = genotypes_row[6]
+            filter = genotypes_row[7]
+            sample_id = genotypes_row[0]
+        else:
+            genotype = "-"
+            depth = "-"
+            filter = "-"
+            sample_id = "-"
+
+        # Retrieve location data from this chromKey row
+        amplicon = ck_row[1].get("Chrom_ID")
+        amplicon_pos = ck_row[1].get("VarPos")
+        chr = ck_row[1].get("Chromosome")
+        chr_loc = ck_row[1].get("Locus")
+
+        # Format row for the output file
+        row = [sample_id, amplicon, str(amplicon_pos), chr, str(chr_loc), genotype, depth, filter]
+        return "\t".join(row)+"\n"
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
