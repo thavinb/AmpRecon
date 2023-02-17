@@ -87,33 +87,35 @@ class Barcode:
 
 def output_df(
     records, 
-    outdir:str,
-    name:str,
+    outfile:str,
     sep="\t"
     ) -> None:
     """
     Create dataframe from a list of records.
-    Output dataframe as TSV to outdir.
+    Output dataframe as TSV to outfile.
     """
+    outdir = os.path.dirname(outfile)
     Path(outdir).mkdir(parents=True, exist_ok=True)
     df = pd.DataFrame.from_records(records)
-    outfile = os.path.join(outdir, name)
     df.to_csv(outfile, sep=sep, index=False)
 
 def main(
     genotype_file_path:str,
     barcode_ref: dict,
-    keep_chroms: list
-    ) -> pd.Series:
+    keep_chroms: list,
+    sample_col: str
+    ) -> list:
     """
     1) Load genotype file from path into pandas dataframe
     2) Create Barcode
     3) Output pandas series with sample name and barcode
     """
+    out_rows = []
     df_genotype_file = pd.read_csv(genotype_file_path, sep="\t")
-    barcoding = Barcode(df_genotype_file, barcode_ref, keep_chroms)
-    base = os.path.basename(genotype_file_path).split(".")[0]
-    return pd.Series({"Sample":base, "Barcode": barcoding.barcode})
+    for sample, df_sample_genotype in df_genotype_file.groupby(sample_col):
+        barcoding = Barcode(df_sample_genotype, barcode_ref, keep_chroms)
+        out_rows.append(pd.Series({"Sample":sample, "Barcode": barcoding.barcode}))
+    return out_rows
 
 def map_main(args):
     """
@@ -135,8 +137,8 @@ if __name__=="__main__":
     parser.add_argument("config", help="""
         Path to config json file
     """)
-    parser.add_argument("--outdir", help="""
-        Path to directory to output results (default: .)
+    parser.add_argument("--outfile", help="""
+        Path to directory to output results (default: barcode_results.txt)
     """)
     parser.add_argument("--pbar", action="store_true", help="""
         Show a progress bar while running 
@@ -144,26 +146,32 @@ if __name__=="__main__":
     parser.add_argument("--ncpus", type=int, help="""
         No. cpus to use in processing
     """)
+    parser.add_argument("--sample_col", help="""
+        Column to access for sample ID information in genotype file (default: SampleID)
+    """)
 
 
-    args = {k:v for k,v in vars(parser.parse_args()).items()}
+    args = {k:v for k,v in vars(parser.parse_args()).items() if v}
 
-    if args["config"]:
+    try:
         config = json.load(open(args.pop("config")))
-    else:
+    except KeyError:
         raise NoConfigError
 
     barcode_ref = config.pop("barcode_ref")
     keep_chroms = list(set([d_pos["Chromosome"] for d_pos in barcode_ref.values()]))
-    if args["genotype_files"]:
+    
+    try:
         genotype_files = glob(args["genotype_files"])
-    else:
+    except KeyError:
         raise NoGenotypeFilesError
 
-    if not args["outdir"]:
-        args["outdir"] = "."
+    outfile = os.path.abspath(args.get("outfile","barcodes.txt"))
+    sample_col = args.get("sample_col", "SampleID")
+    
+    ncpus = args.get("ncpus", 1)
 
-    if not args["ncpus"] or args["ncpus"]==1:
+    if ncpus==1:
         if args["pbar"]:
             iterator = tqdm(genotype_files)
         else:
@@ -171,17 +179,18 @@ if __name__=="__main__":
 
         all_samples_out = []
         for genotype_file in iterator:
-            out = main(genotype_file, barcode_ref, keep_chroms)
+            out = main(genotype_file, barcode_ref, keep_chroms, sample_col)
 
             all_samples_out.append(out)
     else:
-        all_args = [(genotype_file, barcode_ref, keep_chroms) for genotype_file in genotype_files]
+        all_args = [(genotype_file, barcode_ref, keep_chroms, sample_col) for genotype_file in genotype_files]
             
         with Pool(args["ncpus"]) as p:
             if args["pbar"]:
                 all_samples_out = list(tqdm(p.imap(map_main, all_args), total=len(genotype_files)))
             else:
                 all_samples_out = list(p.imap(map_main, all_args))
-
-    output_df(all_samples_out, args["outdir"], "barcodes_out.tsv")
+    
+    all_samples_out = [i for sublist in all_samples_out for i in sublist]
+    output_df(all_samples_out, outfile)
 
