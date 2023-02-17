@@ -160,7 +160,7 @@ class GenotypeFileWriter:
         '''
         genotypes_formatted = ",".join(str(genotype) for genotype in genotypes)
         allele_depths_formatted = ",".join(str(depth) for depth in allele_depths) if isinstance(allele_depths, list) else allele_depths
-        filter_value = ";".join(record.FILTER) if record.FILTER is not None and len(record.FILTER) > 0 else "PASS"
+        filter_value = ";".join(record.FILTER) if isinstance(record.FILTER, list) and len(record.FILTER) > 0 else ("." if record.FILTER == None else "PASS")
         return [str(sample_id), amplicon[0], amplicon[1], record.CHROM, str(record.POS), str(genotypes_formatted), str(allele_depths_formatted), str(filter_value)]
 
     def _format_chromKey_row(self, ck_row, genotypes_dict):
@@ -182,7 +182,7 @@ class GenotypeFileWriter:
             genotype = "-"
             depth = "-"
             filter = "-"
-            sample_id = "-"
+            sample_id = self.sample_id or "-"
 
         # Retrieve location data from this chromKey row
         amplicon = ck_row[1].get("Chrom_ID")
