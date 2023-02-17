@@ -19,7 +19,7 @@ process assemble_genotype_file {
         tuple val(sample_tag), path("${output_file_name}")
 
     script:
-        output_file_name = "${sample_tag}.txt"
+        output_file_name = "${sample_tag}.tsv"
         chromsome_column = params.chromosome_column_name
         locus_column = params.locus_column_name
         min_depth = params.min_total_depth
@@ -29,6 +29,7 @@ process assemble_genotype_file {
         """
         write_genotypes_file.py \
             --input_vcf_list ${vcf_file_list} \
+            --sample_id "${sample_tag}" \
             --output_file_name "${output_file_name}" \
             --chromKey_file "${chrom_key_file}" \
             --chromosome_column_name "${chromsome_column}" \
