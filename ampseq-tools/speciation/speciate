@@ -33,24 +33,23 @@ class NoBarcodesError(Exception):
 
 def output_df(
     records, 
-    outdir:str,
-    name:str,
+    outfile:str,
     sep="\t"
     ) -> None:
     """
     Create dataframe from a list of records.
-    Output dataframe as TSV to outdir.
+    Output dataframe as TSV to outfile.
     """
+    outdir = os.path.dirname(outfile)
     Path(outdir).mkdir(parents=True, exist_ok=True)
     df = pd.DataFrame.from_records(records)
-    outfile = os.path.join(outdir, name)
     df.to_csv(outfile, sep=sep, index=False)
 
 def main(
     genotype_file_path:str,
-    base:str,
-    barcode:str,
-    outdir:str
+    d_barcode:str,
+    maf_out:str,
+    sample_col:str
     ) -> dict:
     """
     1) Load genotype file from path into pandas dataframe
@@ -59,23 +58,31 @@ def main(
     4) dictionary with rows for species call and atched loci outputs
     """
     df_genotype_file = pd.read_csv(genotype_file_path, sep="\t")
-    speciate = Speciate(
-            df_genotype_file,
-            barcode,
-            **config
-        )
 
-    species_out_row = {"Sample": base, "Species":speciate.species_label}
+    out_species_labels = []
+    out_matched_loci = []
 
-    speciate.matched_loci["Sample"] = base
+    for sample, df_sample_genotype in df_genotype_file.groupby(sample_col):
+        speciate = Speciate(
+                df_sample_genotype,
+                barcode,
+                **config
+            )
+
+        out_species_label.append({"Sample": sample, "Species":speciate.species_label}
+)
+        speciate.matched_loci["Sample"] = sample
+        out_matched_loci.append(speciate.matched_loci)
     
-    df_maf = pd.DataFrame(speciate.write_out).T
-    df_maf = df_maf.reset_index().rename({"index":"Position"}, axis=1)
-    output_df(df_maf, outdir,f"{base}_maf.tsv")
+        df_maf = pd.DataFrame(speciate.write_out).T
+        df_maf = df_maf.reset_index().rename({"index":"Position"}, axis=1)
+
+        if maf_out:
+            output_df(df_maf, maf_out,f"{base}_maf.tsv")
 
     return {
-        "species_out":species_out_row,
-        "matched_loci": speciate.matched_loci
+        "species_out":out_species_label,
+        "matched_loci": out_matched_loci
     }
 
 def map_main(args):
@@ -100,8 +107,8 @@ if __name__=="__main__":
     parser.add_argument("config", help="""
         Path to config json (default: config.json)
     """)
-    parser.add_argument("--outdir", help="""
-        Path to directory to output results (default: .)
+    parser.add_argument("--outfile", help="""
+        Path to output file (default: ./barcodes.tsv)
     """)
     parser.add_argument("--pbar", action="store_true", help="""
         Show a progress bar while running 
@@ -109,45 +116,47 @@ if __name__=="__main__":
     parser.add_argument("--ncpus", type=int, help="""
         No. cpus to use in processing
     """)
+    parser.add_argument("--output_debug_path", help="""
+        Ouput directory to save debug files. If not provided files will not be output.
+    """)
+    parser.add_argument("--sample_col", help="""
+        Column to access for sample ID information in genotype file (default: SampleID)
+    """)
 
-    args = {k:v for k,v in vars(parser.parse_args()).items()}
+    args = {k:v for k,v in vars(parser.parse_args()).items() if v}
 
     if args["input_genotype_files"]:
-        args["input_genotype_files"] = glob(args["input_genotype_files"])
+        genotype_files = glob(args["input_genotype_files"])
     else:
         raise NoGenotypeFilesError
 
-    if not args["barcodes"]:
+    if args["barcodes"]:
+        df_barcode = pd.read_csv(args["barcodes"], sep="\t")
+        d_barcode = dict(zip(df_barcode.Sample, df_barcode.Barcode))
+    else:
         raise NoBarcodesError
 
-    df_barcode = pd.read_csv(args["barcodes"], sep="\t")
-    d_barcode = dict(zip(df_barcode.Sample, df_barcode.Barcode))
-
-    if not args["config"]:
+    if args["config"]:
+        config = json.load(open(args["config"]))["speciation"]
+    else:
         raise NoConfigError
 
-    if not args["outdir"]:
-        args["outdir"] = "."
-    
-    scriptdir = os.path.dirname(os.path.realpath(__file__))
-    config_path = os.path.join(scriptdir, args["config"])
-
-    config = json.load(open(config_path))
+    outfile = args.get("outfile","./species.tsv")
+    debug_outdir = args.get("output_debug_path","")
+    sample_col = args.get("sample_col", "SampleID")
 
     species_out_records = []
     sample_stats_records = []
 
-    if not args["ncpus"] or args["ncpus"]==1:
+    if args.get("ncpus",1) == 1:
         if args["pbar"]:
-            iterator = tqdm(args["input_genotype_files"])
+            iterator = tqdm(genotype_files)
         else:
-            iterator = args["input_genotype_files"]
+            iterator = genotype_files
 
         all_samples_out = []
         for genotype_file in iterator:
-            base = os.path.basename(genotype_file.split(".")[0])
-            barcode = d_barcode[base]
-            out = main(genotype_file, base, barcode, args["outdir"])
+            out = main(genotype_file, d_barcode, debug_outdir, sample_col)
 
             all_samples_out.append(out)
     else:
@@ -155,19 +164,23 @@ if __name__=="__main__":
             genotype_file,
             os.path.basename(genotype_file.split(".")[0]),
             d_barcode[os.path.basename(genotype_file.split(".")[0])],
-            args["outdir"]
-            ) for genotype_file in args["input_genotype_files"]]
+            debug_outdir,
+            sample_col
+            ) for genotype_file in genotype_files]
             
         with Pool(args["ncpus"]) as p:
             if args["pbar"]:
-                all_samples_out = list(tqdm(p.imap(map_main, all_args), total=len(args["input_genotype_files"])))
+                all_samples_out = list(tqdm(p.imap(map_main, all_args), total=len(genotype_files)))
             else:
                 all_samples_out = list(p.imap(map_main, all_args))
     
     for record in all_samples_out:
-        species_out_records.append(record["species_out"])
-        sample_stats_records.append(record["matched_loci"])
+        species_out_records.append([item for sublist in record["species_out"] for item in sublist])
+        sample_stats_records.append([item for sublist in record["matched_loci"] for item in sublist])
 
-    output_df(species_out_records, args["outdir"], "species_out.tsv")
-    output_df(sample_stats_records, args["outdir"], "sample_stats.tsv")
+
+    output_df(species_out_records, outfile)
+
+    if debug_outdir:
+        output_df(sample_stats_records, os.path.join(debug_outdir, "matched_loci.tsv"))
     
