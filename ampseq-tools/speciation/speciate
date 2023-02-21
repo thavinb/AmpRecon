@@ -65,11 +65,10 @@ def main(
     for sample, df_sample_genotype in df_genotype_file.groupby(sample_col):
         speciate = Speciate(
                 df_sample_genotype,
-                barcode,
+                d_barcode[sample],
                 **config
             )
-
-        out_species_label.append({"Sample": sample, "Species":speciate.species_label}
+        out_species_labels.append({"Sample": sample, "Species":speciate.species_label}
 )
         speciate.matched_loci["Sample"] = sample
         out_matched_loci.append(speciate.matched_loci)
@@ -81,7 +80,7 @@ def main(
             output_df(df_maf, maf_out,f"{base}_maf.tsv")
 
     return {
-        "species_out":out_species_label,
+        "species_out":out_species_labels,
         "matched_loci": out_matched_loci
     }
 
@@ -163,7 +162,7 @@ if __name__=="__main__":
         all_args = [(
             genotype_file,
             os.path.basename(genotype_file.split(".")[0]),
-            d_barcode[os.path.basename(genotype_file.split(".")[0])],
+            d_barcode,
             debug_outdir,
             sample_col
             ) for genotype_file in genotype_files]
@@ -175,9 +174,8 @@ if __name__=="__main__":
                 all_samples_out = list(p.imap(map_main, all_args))
     
     for record in all_samples_out:
-        species_out_records.append([item for sublist in record["species_out"] for item in sublist])
-        sample_stats_records.append([item for sublist in record["matched_loci"] for item in sublist])
-
+        species_out_records.extend(record["species_out"])
+        sample_stats_records.extend(record["matched_loci"])
 
     output_df(species_out_records, outfile)
 
