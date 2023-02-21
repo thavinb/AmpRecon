@@ -1,0 +1,9 @@
+{
+    "plasmepsin_loci" : [
+        {"Position": "Pf3D7_14_v3:289595", "Genotypes": ["CT", "T"], "Variant": "Copy"},
+        {"Position": "Pf3D7_14_v3:289601", "Genotypes": ["CT", "T"], "Variant": "Copy"},
+        {"Position": "Pf3D7_14_v3:289603", "Genotypes": ["TA", "A"], "Variant": "Copy"},
+        {"Position": "Pf3D7_14_v3:289610", "Genotypes": ["TC", "C"], "Variant": "Copy"}
+    ]
+}
+
