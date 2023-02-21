@@ -9,6 +9,8 @@ from glob import glob
 from pathlib import Path
 from tqdm import tqdm
 from multiprocessing import Pool
+import warnings
+warnings.filterwarnings("ignore")
 
 class NoConfigError(Exception):
     def __init__(self, message="""
@@ -27,6 +29,13 @@ class NoGenotypeFilesError(Exception):
 class NoBarcodesError(Exception):
     def __init__(self, message="""
         You must specify a path to a valid barcodes file.
+    """):
+        self.message = message
+        super().__init__(self.message)
+
+class InvalidNCPUsRequested(Exception):
+    def __init__(self, message="""
+        You cannot request less than 1 CPU.
     """):
         self.message = message
         super().__init__(self.message)
@@ -92,11 +101,13 @@ def map_main(args):
     return main(*args)
 
 if __name__=="__main__":
+    #initialise argument parser
     parser = argparse.ArgumentParser(
         prog = "Amplicon Pipeline Speciation",
         description = "A package to perform speciation based on the production amplicon pipeline"
     )
 
+    #create argparser arguments
     parser.add_argument("input_genotype_files", help="""
         Input list of all genotype files (TSV format) to be run through the speciation program
         """)
@@ -122,63 +133,86 @@ if __name__=="__main__":
         Column to access for sample ID information in genotype file (default: SampleID)
     """)
 
+    #get all arguments with a value and place into dictionary
     args = {k:v for k,v in vars(parser.parse_args()).items() if v}
 
+    #get list of genotype files from glob string, if genotype files not provided
+    #throw error
     if args["input_genotype_files"]:
         genotype_files = glob(args["input_genotype_files"])
     else:
         raise NoGenotypeFilesError
 
+    #check for barcodes file, if present read into dataframe and transform to dict
+    #for querying. If not present throw error
     if args["barcodes"]:
         df_barcode = pd.read_csv(args["barcodes"], sep="\t")
         d_barcode = dict(zip(df_barcode.Sample, df_barcode.Barcode))
     else:
         raise NoBarcodesError
 
+    #read in config json file provided at command line, get speciation portion
+    #if not provided throw error
     if args["config"]:
         config = json.load(open(args["config"]))["speciation"]
     else:
         raise NoConfigError
 
+    #get optional arguments if provided, if not return default value
     outfile = args.get("outfile","./species.tsv")
     debug_outdir = args.get("output_debug_path","")
     sample_col = args.get("sample_col", "SampleID")
+    ncpus = args.get("ncpus", 1)
+    pbar = args.get("pbar", False)
 
-    species_out_records = []
-    sample_stats_records = []
-
-    if args.get("ncpus",1) == 1:
-        if args["pbar"]:
+    #check if ncpus is one, if so run in serial (bypass multiprocessing)
+    if ncpus == 1:
+        #check if user has asked for pbar, if  so create iterator with tqdm
+        #otherwise return iterator as is
+        if pbar:
             iterator = tqdm(genotype_files)
         else:
             iterator = genotype_files
 
+        #initialise all_samples list to collect data for each genotype file
         all_samples_out = []
         for genotype_file in iterator:
+            #run a dingle genotype file through main
             out = main(genotype_file, d_barcode, debug_outdir, sample_col)
-
+            #append output to all_samples_out for output
             all_samples_out.append(out)
-    else:
+    elif ncpus > 1:
+        #if ncpus >1 set up argument tuples per sample
         all_args = [(
             genotype_file,
-            os.path.basename(genotype_file.split(".")[0]),
             d_barcode,
             debug_outdir,
             sample_col
             ) for genotype_file in genotype_files]
             
-        with Pool(args["ncpus"]) as p:
-            if args["pbar"]:
+        #create multiprocessing pool
+        with Pool(ncpus) as p:
+            #if pbar requested create iterator with tqdm, otherwise don't
+            if pbar:
                 all_samples_out = list(tqdm(p.imap(map_main, all_args), total=len(genotype_files)))
             else:
                 all_samples_out = list(p.imap(map_main, all_args))
+    else:
+        raise InvalidNCPUsRequested
+
+    #set up lists to record rows for output dataframe
+    species_out_records = []
+    sample_stats_records = []
     
+    #iterate over all genotype file outputs, extend relevant lists
     for record in all_samples_out:
         species_out_records.extend(record["species_out"])
         sample_stats_records.extend(record["matched_loci"])
 
+    #output species info to desired destination
     output_df(species_out_records, outfile)
 
+    #output matched loci information to outdir if requested
     if debug_outdir:
         output_df(sample_stats_records, os.path.join(debug_outdir, "matched_loci.tsv"))
     
