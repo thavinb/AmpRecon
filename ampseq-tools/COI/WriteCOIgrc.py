@@ -61,7 +61,9 @@ if __name__ == "__main__":
     parser.add_argument("-output_flnm", help="""
         Path for the grc containing the COI per sample to be written (default: ./coi.grc)
     """, default="./coi.grc")
-    
     args = {k:v for k,v in vars(parser.parse_args()).items()}
-    coi_out_dct = parseCOIout(args["mccoil_sum_fl"])
+    print(f"@ loading {args['mccoil_sum_fl']}")
+    coi_out_dct = parseCOIout(args['mccoil_sum_fl'])
+    print(f"@ writing {args['output_flnm']}...")
     writeCOIgrc(coi_out_dct,args["output_flnm"])
+    print(":: DONE ::")
