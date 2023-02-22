@@ -29,22 +29,20 @@ class AminoAcidCaller: #better name
 		return call
 
 	def _get_sample_id(self, file):
-		sample_ids = set()
-		with open(file) as f:
-			lines = f.readlines()[1:]
-			for line in lines:
-				words = line.split('\t')
-				sample_ids.add(words[0])
-		return sample_ids
+		sample_ids = set() #ordered set
+		for row in self._read_tsv_row_generator(file):
+			sample_id = row['Sample_ID']
+			sample_ids.add(sample_id)
+
+		ordered_sample_ids = list(dict.fromkeys(sorted(sample_ids)))
+		return ordered_sample_ids
 
 	def _read_genotypes_file(self,file):
 		'''
 		a method that takes in a list of genotype files and parses them to a dictionary
 		with {sample_id : {}}
 		'''
-
 		genotypes = { 'key' : {}, 'depth' : {} } #outer key 'key' is redundant
-
 		for row in self._read_tsv_row_generator(file): #this is fine 
 			chr = row['Chr']
 			sample_id = row['Sample_ID']
@@ -62,7 +60,6 @@ class AminoAcidCaller: #better name
 				row['Depth'] = 0
 
 			genotypes['key'][sample_id][chr][row['Loc']] = call
-			genotypes['depth'][sample_id][chr][row['Loc']] = int(row['Depth'])
 		
 		return genotypes
 
@@ -90,7 +87,8 @@ class AminoAcidCaller: #better name
 				ret['cons'][row['Chr']][row['pos3']] = row['key3']
 				ret['aa_loc'][genename_aapos] = row['Chr']
 				ret['strand'][row['GeneName']][row['AA_Pos']] = row['Strand'] 
-			ret['genes'] = list(set(ret['genes']))
+			ret['genes'] = list(dict.fromkeys(ret['genes']))
+
 		
 		return ret
 
@@ -113,6 +111,9 @@ class AminoAcidCaller: #better name
 
 	def is_missing(self, base):
 		# perhaps a bit pointless
+		# if base != 'A' or base != 'C' or base != 'T' or base != 'G' or base != '-':
+		# 	raise InputAmpliconFormattingException
+		#else:
 		return base == '-'
 
 	def call_haplotypes(self):
@@ -143,9 +144,11 @@ class AminoAcidCaller: #better name
 						self.haplotypes[ids][gene_amino] = aa
 						continue
 
-				#handle haplotype special cases
+				#handle haplotype special cases - replace 
 				if gene in self.config['DR_HAPLOTYPE_SPECIAL_CASES'] and self.haplotypes[ids][gene] == self.config['DR_HAPLOTYPE_SPECIAL_CASES'][gene][1][0]:
 					self.haplotypes[ids][gene] = self.config['DR_HAPLOTYPE_SPECIAL_CASES'][gene][1][1]
+					self.haplotypes[ids]["PfCRT:73"] = '-' #look into grc2 bug
+					continue
 
 				#get nucleotide positions from drlinfo.txt
 				position_1 = drl['pos'][gene][amino]['1']
@@ -165,12 +168,6 @@ class AminoAcidCaller: #better name
 					self.haplotypes[ids][gene_amino] = '-'
 					continue
 
-				if position_1 not in genotype_information['key'][ids][chromosome]:
-					if gene_amino in core_genes:
-						self.haplotypes[ids][gene] += '-'
-					self.haplotypes[ids][gene_amino] = '-'
-					continue
-
 				#assign reference bases to positions, if they exist in the drlinfo.txt
 				if drl['cons'][chromosome][position_1] != '-':
 					base_1 = drl['cons'][chromosome][position_1]
@@ -179,19 +176,20 @@ class AminoAcidCaller: #better name
 				if drl['cons'][chromosome][position_3] != '-':
 					base_3 = drl['cons'][chromosome][position_3]
 
-				#we set the bases that are still missing after reassignment to the experimental data 
-				if base_1 == '-':
+				if base_1 == '-' and position_1 in genotype_information['key'][ids][chromosome]:
 					base_1 = genotype_information['key'][ids][chromosome][position_1]
-				if base_2 == '-':
+					if drl['strand'][gene][amino] == '-':
+						base_1 = self._complement(base_1)
+				if base_2 == '-' and position_2 in genotype_information['key'][ids][chromosome]:
 					base_2 = genotype_information['key'][ids][chromosome][position_2]
-				if base_3 == '-':
+					if drl['strand'][gene][amino] == '-':
+						base_2 = self._complement(base_2)
+				if base_3 == '-' and position_3 in genotype_information['key'][ids][chromosome]:
 					base_3 = genotype_information['key'][ids][chromosome][position_3]
+					if drl['strand'][gene][amino] == '-':
+						base_3 = self._complement(base_3)
 
 				#if the data is on the reverse strand, we change the base to its complement
-				if drl['strand'][gene][amino] == '-':
-					base_1 = self._complement(base_1)
-					base_2 = self._complement(base_2)
-					base_3 = self._complement(base_3)
 
 				#if any of the positions are missing, we call a missing aa and move on
 				if self.is_missing(base_1) or self.is_missing(base_2) or self.is_missing(base_3):
@@ -201,11 +199,11 @@ class AminoAcidCaller: #better name
 					continue
 
 				#basic case of translating three homozygous bases
-				if len(base_1) == 1 and len(base_2) == 1 and len(base_3) == 1:
+				if len(base_1) == 1 and len(base_2) == 1 and len(base_3) == 1: 
 					aa = self.translate_codon(base_1, base_2, base_3)
 					if gene_amino in core_genes:
-						self.haplotypes[ids][gene] += '-'
-					self.haplotypes[ids][gene_amino] = '-'
+						self.haplotypes[ids][gene] += aa
+					self.haplotypes[ids][gene_amino] = aa
 					continue
 
 				#if we come here we must have a heterozguous
@@ -218,7 +216,7 @@ class AminoAcidCaller: #better name
 				#we should identify double het first
 
 				if len(base_1) > 1 and len(base_2) > 1 or len(base_1) > 1 and len(base_3) > 1 or len(base_2) > 1 and len(base_3) > 1:
-					double_het = True
+					
 					try:
 						het_call = self._get_het_match_from_config(gene, amino, base_1, base_2, base_3)
 						if gene_amino in core_genes:
@@ -290,10 +288,13 @@ class AminoAcidCaller: #better name
 
 	def _complement(self, sequence):
 		complement_sequence = []
-
 		for nucleotide in sequence:
+			if nucleotide == '-':
+					complement_sequence.append('-')
+					break
 			if nucleotide in self.complement_bases:
 				complement_sequence.append(self.complement_bases[nucleotide])
+
 		return ''.join(complement_sequence)
 
 
@@ -302,4 +303,7 @@ class HaplotypeProcessingException(Exception):
 		self.message = message
 		super.__init__(self.message)
 
-
+class InputAmpliconFormattingException(Exception):
+	def _init__(self, message= "Data contains nucleotide information that was not expected, expected base data is: A,T,G,C or '-'"):
+		self.message = message
+		super._init__(self.message)
