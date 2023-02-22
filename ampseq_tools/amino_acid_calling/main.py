@@ -14,24 +14,41 @@ def main():
 	parser = argparse.ArgumentParser()
 	parser.add_argument('--genotypes_file', nargs='+', required=True)
 	parser.add_argument('--species_config', required=True)
+	parser.add_argument('--output_file', required=True)
+
 	args = parser.parse_args()
 
 	if args.genotypes_file:
+		output_data =[]
 		for file in args.genotypes_file:
-			output_data =[]
 			caller = AminoAcidCaller(file, args.species_config)
 			out = caller.call_haplotypes()
 			output_data.append(out)
-			write_out_grcs(output_data, caller.config['AMPLICON_PANEL_DESIGN'])
+			write_out_grcs(output_data, caller.drl_info, args.output_file)
 
 
-def write_out_grcs(haplotype_data:list, panel_design, extended=True):
+def write_out_grcs(haplotype_data:list, drug_resistance_loci, output_file, extended=True):
 
-	grc_1 = open("grc_1.tsv", 'a')
-	grc_1.write("Sample_ID\t")
+	grc_1 = open(f"{output_file}", 'w')
+	grc_1.write("ID\t")
 
-	#write header 
-	for gene in panel_design["GENES"][0]:
+	if extended:
+		grc_2 = open(f"{output_file}.extended", 'w')
+		grc_2.write("ID\t")
+		positions = drug_resistance_loci['exp_order']
+		grc_2.write('\t'.join(positions) + '\n')
+		
+		for entry in haplotype_data:
+			line = []
+			sample_ids = list(entry.keys())
+			for id in sample_ids:
+				data = entry[id]
+				line.append(id)
+				for pos in positions:
+					line.append(data[pos])
+				grc_2.write('\t'.join(line) + '\n')
+
+	for gene in drug_resistance_loci['genes']:
 		grc_1.write(gene+'\t')
 
 	grc_1.write('\n')
@@ -39,15 +56,11 @@ def write_out_grcs(haplotype_data:list, panel_design, extended=True):
 	for entry in haplotype_data:
 		sample_ids = list(entry.keys())
 		for id in sample_ids:
-			data = entry[id] #MODIFY BELOW TO REMOVE GENE HARDCODINGS
-			grc_1.write(f"{id}\t{data['PfCRT']}\t{data['PfDHFR']}\t{data['PfDHPS']}\t{data['PfEXO']}\t{data['PfMDR1']}\t{data['PGB']}\n")
-
-
-	if extended:
-		grc_2 = open("grc_2.tsv", 'a')
-		
+			data = entry[id]
+			grc_1.write(id+'\t')
+			for gene in drug_resistance_loci['genes']:
+				grc_1.write(data[gene] + '\t')
+			grc_1.write('\n')
 
 if __name__ == "__main__":
 	main()
-
-	
