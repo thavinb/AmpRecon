@@ -95,10 +95,10 @@ class PlasmepsinVariantCaller:
         # Iterate over all of the plasmepsin loci
         for locus in plasmepsin_loci:
 
-            # Retrieve the relevant genotype call and update its format to match that of the locus
+            # Retrieve the relevant genotype call
             position = f"{sample_id}-{locus.get('Position')}"
             genotype_file_row = plasmepsin_genotype_rows.get(position)
-            called_genotype = genotype_file_row.get("Gen").replace(",", "")
+            called_genotype = genotype_file_row.get("Gen")
 
             # Retrieve the alternate allele genotypes for this plasmepsin locus.
             alternate_allele_genotypes = locus.get("Genotypes")
