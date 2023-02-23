@@ -3,14 +3,14 @@
 from speciation.speciation import Speciate
 import os
 import json
-import pandas as pd
 import argparse
 from glob import glob
 from pathlib import Path
 from tqdm import tqdm
 from multiprocessing import Pool
-import warnings
-warnings.filterwarnings("ignore")
+import csv
+from collections import defaultdict
+import re
 
 class NoConfigError(Exception):
     def __init__(self, message="""
@@ -41,39 +41,82 @@ class InvalidNCPUsRequested(Exception):
         super().__init__(self.message)
 
 def output_df(
-    records, 
+    records,
     outfile:str,
     sep="\t"
     ) -> None:
     """
-    Create dataframe from a list of records.
-    Output dataframe as TSV to outfile.
+    Write out barcodes to tsv file with a location provided by the user.
     """
-    outdir = os.path.dirname(outfile)
-    Path(outdir).mkdir(parents=True, exist_ok=True)
-    df = pd.DataFrame.from_records(records)
-    df.to_csv(outfile, sep=sep, index=False)
+    with open(outfile, "w+") as outBarcodes:
+        writer = None
+        for row in records:
+            if not writer:
+                fields = list(row.keys())
+                writer = csv.DictWriter(outBarcodes, fieldnames=fields, delimiter="\t")
+                writer.writeheader()
+            writer.writerow(row)
+        outBarcodes.close()
+
+def read_barcodes(tsv_path):
+    out = {}
+    with open(tsv_path) as tsvfile:
+        reader = csv.DictReader(tsvfile, delimiter="\t")
+        for row in reader:
+            out[row["Sample"]] = row["Barcode"]
+    return out
+
+def read_genotype_file(
+    genotype_file_path:str,
+    species_ref:list,
+    chrom_regex:str,
+    sample_col:str
+) -> dict:
+    with open(genotype_file_path) as genotypefile:
+        reader = csv.DictReader(genotypefile, delimiter="\t")
+        
+        d_out = defaultdict(lambda: defaultdict(dict))
+
+        for row in reader:
+            if (
+                re.match(chrom_regex, row["Amplicon"]) and
+                str(row["Loc"]) in species_ref and
+                row["Depth"]!="-"
+            ):
+                d_out[row[sample_col]][row["Amplicon"]][row["Loc"]] = {
+                    "Depth":row["Depth"],
+                    "Gen":row["Gen"]
+                }
+        
+    return dict(d_out)
 
 def main(
     genotype_file_path:str,
     d_barcode:str,
     maf_out:str,
-    sample_col:str
+    sample_col:str,
+    config: dict,
+    chrom_regex:str
     ) -> dict:
     """
-    1) Load genotype file from path into pandas dataframe
+    1) Load genotype file from path into a dictionary
     2) Create Speciate object with genotype file, barcode and config
     3) Output tsv for MAF/Depth counts
     4) dictionary with rows for species call and atched loci outputs
     """
-    df_genotype_file = pd.read_csv(genotype_file_path, sep="\t")
+    d_genotype_file = read_genotype_file(
+        genotype_file_path,
+        config["species_ref"],
+        chrom_regex,
+        sample_col
+    )
 
     out_species_labels = []
     out_matched_loci = []
 
-    for sample, df_sample_genotype in df_genotype_file.groupby(sample_col):
+    for sample, d_sample_genotype in d_genotype_file.items():
         speciate = Speciate(
-                df_sample_genotype,
+                d_sample_genotype,
                 d_barcode[sample],
                 **config
             )
@@ -82,11 +125,9 @@ def main(
         speciate.matched_loci["Sample"] = sample
         out_matched_loci.append(speciate.matched_loci)
     
-        df_maf = pd.DataFrame(speciate.write_out).T
-        df_maf = df_maf.reset_index().rename({"index":"Position"}, axis=1)
-
         if maf_out:
-            output_df(df_maf, maf_out,f"{base}_maf.tsv")
+            maf_rows = [{"Position":pos} | d for pos,d in speciate.write_out.items()]
+            output_df(maf_rows, maf_out,f"{sample}_maf.tsv")
 
     return {
         "species_out":out_species_labels,
@@ -132,6 +173,9 @@ if __name__=="__main__":
     parser.add_argument("--sample_col", help="""
         Column to access for sample ID information in genotype file (default: SampleID)
     """)
+    parser.add_argument("--chrom_regex", help="""
+        A regex for matching on spec panel chromosomes (default: "^Spec_[12]_(falciparum|vivax)$")
+    """)
 
     #get all arguments with a value and place into dictionary
     args = {k:v for k,v in vars(parser.parse_args()).items() if v}
@@ -146,8 +190,7 @@ if __name__=="__main__":
     #check for barcodes file, if present read into dataframe and transform to dict
     #for querying. If not present throw error
     if args["barcodes"]:
-        df_barcode = pd.read_csv(args["barcodes"], sep="\t")
-        d_barcode = dict(zip(df_barcode.Sample, df_barcode.Barcode))
+        d_barcode = read_barcodes(args["barcodes"])
     else:
         raise NoBarcodesError
 
@@ -164,6 +207,7 @@ if __name__=="__main__":
     sample_col = args.get("sample_col", "SampleID")
     ncpus = args.get("ncpus", 1)
     pbar = args.get("pbar", False)
+    chrom_regex = args.get("chrom_regex", "^Spec_[12]_(falciparum|vivax)$")
 
     #check if ncpus is one, if so run in serial (bypass multiprocessing)
     if ncpus == 1:
@@ -177,8 +221,8 @@ if __name__=="__main__":
         #initialise all_samples list to collect data for each genotype file
         all_samples_out = []
         for genotype_file in iterator:
-            #run a dingle genotype file through main
-            out = main(genotype_file, d_barcode, debug_outdir, sample_col)
+            #run a single genotype file through main
+            out = main(genotype_file, d_barcode, debug_outdir, sample_col, config, chrom_regex)
             #append output to all_samples_out for output
             all_samples_out.append(out)
     elif ncpus > 1:
@@ -187,7 +231,9 @@ if __name__=="__main__":
             genotype_file,
             d_barcode,
             debug_outdir,
-            sample_col
+            sample_col,
+            config, 
+            chrom_regex
             ) for genotype_file in genotype_files]
             
         #create multiprocessing pool
