@@ -5,7 +5,14 @@ import os
 from speciation.speciation import Speciate
 import pandas as pd
 import json
-from io import StringIO
+from importlib.machinery import SourceFileLoader
+test_dir = os.path.dirname(os.path.realpath(__file__))
+loader = SourceFileLoader('speciate', os.path.join(
+        test_dir,
+        "speciate"
+        ))
+speciate = loader.load_module()
+
 
 test_dir = os.path.dirname(os.path.realpath(__file__))
 
@@ -20,12 +27,18 @@ class TestSpeciate(unittest.TestCase):
             "test_files", 
             "unit_test.txt"
             )
-        input_file = pd.read_csv(input_file_path, sep="\t")
-        config = json.load(open(os.path.join(test_dir, "config.json")))
+        
+        config = json.load(open(os.path.join(test_dir, "config.json")))["speciation"]
+        input_file = speciate.read_genotype_file(
+            input_file_path,
+            config["species_ref"],
+            "^Spec_[12]_(falciparum|vivax)$",
+            "SampleID"
+            )
         barcode = "AGXTGXCGTAGGCGCXCATCTTTXGTACTTAXTCTCGTTGAATTCXXGCGGGAACGXGGCTAGGCGCTAACACTCAGGTTAGCAATAAXCXTGCAACGAGC"
 
         self.obj = Speciate(
-            input_file, 
+            input_file["Sample1"], 
             barcode,
             **config
             )
@@ -36,26 +49,33 @@ class TestSpeciate(unittest.TestCase):
         2) Run _read_genotype_file
         3) Check output per position matches
         """
-        gt_file_list = [
-            "Amplicon\tPos\tChr\tLoc\tGen\tDepth\tFilter",
-            "Spec_1_falciparum\t92\tPfCombo_mito\tF94\tA\t798\tPASS", #should give Pf A DP 798
-            "Spec_1_falciparum\t93\tPfCombo_mito\tF95\tA\t-\tPASS", #should give no output record
-            "Spec_1_falciparum\t94\tPfCombo_mito\tF96\tA\t798\tPASS", #should give Pf A DP 798
-            "Spec_1_vivax\t96\tPfCombo_mito\tF96\tT\t798\tPASS", #should give Pv T DP 798
-            "Spec_1_vivax\t97\tPfCombo_mito\tF97\tA,T\t788,10\tPASS" #should give Pv A,T DP 798
-        ]
-        gt_file_str = "\n".join(gt_file_list)
-        gt_file_io = StringIO(gt_file_str)
-        gt_file = pd.read_csv(gt_file_io, sep="\t")
-        keep_chroms = [
-            "Spec_1_falciparum",
-            "Spec_2_falciparum",
-            "Spec_1_vivax",
-            "Spec_2_vivax"
-        ]
+
+        d_gt_file = {
+            "Spec_1_falciparum":{
+                "F94":{
+                    "Gen":"A",
+                    "Depth":"798"
+                },
+                "F96":{
+                    "Gen":"A",
+                    "Depth":"798"
+                }
+            },
+            "Spec_1_vivax":{
+                "F96":{
+                    "Gen":"T",
+                    "Depth":"798"
+                },
+                "F97":{
+                    "Gen":"A,T",
+                    "Depth":"788,10"
+                }
+            }
+        }
+        
         #run file through genotype file reading
         allele_depth_dict = self.obj._read_genotype_file(
-            gt_file, keep_chroms
+            d_gt_file
         )
 
         truth = {
