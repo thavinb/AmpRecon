@@ -135,8 +135,34 @@ def assignSNPnumbers(barcodes_samples_dct:dict) -> None:
         barcodes_samples_dct[sample_i]["coi_in"] = coi_in_i
 
 # write RealMcCoil input
-def writeMcCOILat(out_flpath:str) -> None:
+def writeMcCOILat(out_flpath:str, barcode_def_dct:dict, barcodes_samples_dct:dict) -> None:
     """
+    wirte COI input file from barcode definition dictionary
+
+    Parameter:
+    ---
+
+    out_flpath:<str>
+        output filepath
+
+    barcode_def_dct:<dict>
+        barcode definition dictionary
+        ex:
+        {
+            1: {"Chromosome": "Pf3D7_02_v3", "Locus": 376222},
+            2: {"Chromosome": "Pf3D7_02_v3", "Locus": 470013},
+            2: {"Chromosome": "Pf3D7_03_v3", "Locus": 656861}
+            }
+        }
+
+    barcodes_samples_dct:<dict>
+        dictionary containing the barcodes 
+        ex:
+        {
+        'PT59269':{'coi_in:'[0,0,0]},
+        'SPT4416':{'coi_in':[-1,-1,-1]}
+        'SPT4417':{'coi_in':[0,0,1]}
+        }
     """
     with open(out_flpath, "w") as incoi_fl:
         # write col names
@@ -183,5 +209,5 @@ if __name__ == "__main__":
     assignSNPnumbers(barcodes_samples_dct)
 
     print("@ writing McCOIL input tsv file...")
-    writeMcCOILat(args["output_flnm"])
+    writeMcCOILat(args["output_flnm"], barcode_def_dct,barcodes_samples_dct)
     print(":: DONE ::")
