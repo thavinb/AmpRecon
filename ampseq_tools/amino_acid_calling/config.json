@@ -6,28 +6,20 @@
 		"PfCRT" : [
 					["75", ["A,G", "A", "A,T"], "N", "E"]	
 		],
-		"PfDHPS" : [ ["436", ["T,G", "C,G", "-"], "A", "C"],
-		 			 ["436", ["T,G", "C,T", "-"], "A", "F"],
-		 			 ["436", ["T,G", "C,A", "-"], "A", "Y"],
-		 			 ["436", ["C,G", "C,A", "-"], "A", "H"],
-		 			 ["540", ["A,G", "-", "A,T"], "E", "N"],
+		"PfDHPS" : [ ["436", ["T,G", "C,G", "T"], "A", "C"],
+		 			 ["436", ["T,G", "C,T", "T"], "A", "F"],
+		 			 ["436", ["T,G", "C,A", "T"], "A", "Y"],
+		 			 ["436", ["C,G", "C,A", "T"], "A", "H"],
+		 			 ["540", ["A,G", "A", "A,T"], "E", "N"],
 		 			 ["540", ["A,T", "-", "A,T"], "K", "N"] 
 		]
 	},
 
 	"DR_HAPLOTYPE_SPECIAL_CASES" : {
 
-		"PfCRT" : [["73", "V"], ["-V---", "-----"]]
-
-	},
-
-	"AMPLICON_PANEL_DESIGN" : {
-
-		"GENES" : [["PfCRT", "PfDHFR", "PfDHPS", "PfEXO", "PfMDR1", "PGB"]],
-		"GENE_AMINO_POSITIONS" : [["PfCRT:72", ]]
-
+		"PfCRT" : [["73", "V"]]
 
 	}
 
-
 }
+
