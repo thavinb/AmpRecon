@@ -25,19 +25,6 @@ class AminoAcidCaller: #better name
 			for row in reader:
 				yield row
 
-	def _get_call(self, row):
-		call = row['Gen']
-		return call
-
-	def _get_sample_id(self, file):
-		sample_id = set() #ordered set
-		for row in self._read_tsv_row_generator(file):
-			sample_id = row['Sample_ID']
-			sample_id.add(sample_id)
-
-		ordered_sample_id = list(dict.fromkeys(sorted(sample_id)))
-		return ordered_sample_id
-
 	def _read_genotypes_file(self, files: list):
 		'''
 		a method that takes in a list of genotype files and parses them to a dictionary
@@ -129,11 +116,11 @@ class AminoAcidCaller: #better name
 				gene, amino = gene_amino.split(":")
 				#begin by creating empty dictionary entries for the gene (grc1)	and gene_amino (grc2)			
 				if gene not in self.haplotypes[id]:
-					self.haplotypes[id][gene] = ''
+					self.haplotypes[id][gene] = []
 					imputation_tracker[gene] = ''
 
 				if gene_amino not in self.haplotypes[id]:
-					self.haplotypes[id][gene_amino] = ''
+					self.haplotypes[id][gene_amino] = []
 					imputation_tracker[gene_amino] = ''
 
 				#Impute pfCRT:73
@@ -141,10 +128,8 @@ class AminoAcidCaller: #better name
 					if amino in self.config['DR_HAPLOTYPE_SPECIAL_CASES'][gene][0]:
 						aa = self.config['DR_HAPLOTYPE_SPECIAL_CASES'][gene][0][1]
 						if gene_amino in core_genes:
-							self.haplotypes[id][gene] += aa
-							imputation_tracker[gene] += 'T'
-						self.haplotypes[id][gene_amino] = aa
-						imputation_tracker[gene_amino] += 'T'
+							self.haplotypes[id][gene].append(aa)
+						self.haplotypes[id][gene_amino].append(aa)
 						continue
 
 				#handle haplotype special cases - replace 
@@ -167,10 +152,8 @@ class AminoAcidCaller: #better name
 				#if the other bases are present or not
 				if chromosome not in genotype_information[id]:
 					if gene_amino in core_genes:
-						self.haplotypes[id][gene] += '-'
-						imputation_tracker[gene] += 'T'
-					self.haplotypes[id][gene_amino] = '-'
-					imputation_tracker[gene_amino] += 'T'
+						self.haplotypes[id][gene].append('-')
+					self.haplotypes[id][gene_amino].append('-')
 					continue
 
 				#assign reference bases to positions, if they exist in the drlinfo.txt
@@ -199,20 +182,16 @@ class AminoAcidCaller: #better name
 				#if any of the positions are missing, we call a missing aa and move on
 				if self.is_missing(base_1) or self.is_missing(base_2) or self.is_missing(base_3):
 					if gene_amino in core_genes:
-						self.haplotypes[id][gene] += '-'
-						imputation_tracker[gene] += 'T'
-					self.haplotypes[id][gene_amino] += '-'
-					imputation_tracker[gene_amino] += 'T'
+						self.haplotypes[id][gene].append('-')
+					self.haplotypes[id][gene_amino].append('-')
 					continue
 
 				#basic case of translating three homozygous bases
 				if len(base_1) == 1 and len(base_2) == 1 and len(base_3) == 1: 
 					aa = self.translate_codon(base_1, base_2, base_3)
 					if gene_amino in core_genes:
-						self.haplotypes[id][gene] += aa
-						imputation_tracker[gene] += 'F'
-					self.haplotypes[id][gene_amino] = aa
-					imputation_tracker[gene_amino] = 'F'
+						self.haplotypes[id][gene].append(aa)
+					self.haplotypes[id][gene_amino].append(aa)
 					continue
 
 				#if we come here we must have a heterozguous
@@ -228,17 +207,13 @@ class AminoAcidCaller: #better name
 					try:
 						het_call = self._get_het_match_from_config(gene, amino, base_1, base_2, base_3)
 						if gene_amino in core_genes:
-							self.haplotypes[id][gene] += het_call
-							imputation_tracker[gene] += 'F'
-						self.haplotypes[id][gene_amino] += het_call
-						imputation_tracker[gene_amino] += 'F'
+							self.haplotypes[id][gene].append(het_call)
+						self.haplotypes[id][gene_amino].append(het_call)
 						continue
 					except (TypeError, KeyError):
 						if gene_amino in core_genes:
-							self.haplotypes[id][gene] += '-'
-							imputation_tracker += 'T'
-						self.haplotypes[id][gene_amino] += '-'
-						imputation_tracker = 'T'
+							self.haplotypes[id][gene].append('-')
+						self.haplotypes[id][gene_amino].append('-')
 						print(f"Double heterozygous case present in data not in list of special cases accounted for by the pipeline, please check input data at the locus {gene_amino}")
 						continue
 
@@ -265,11 +240,9 @@ class AminoAcidCaller: #better name
 						aa_call = aa_1
 					else:
 						aa_call = f"[{aa_1}/{aa_2}]"
-					self.haplotypes[id][gene_amino] = aa_call
-					imputation_tracker[gene_amino] = 'F'
+					self.haplotypes[id][gene_amino].append(aa_call)
 					if gene_amino in core_genes:
-						self.haplotypes[id][gene] += aa_call
-						imputation_tracker[gene] = 'F'
+						self.haplotypes[id][gene].append(aa_call)
 
 
 		for gene in drl['genes']:
