@@ -91,7 +91,6 @@ def output_df(
 
 def read_genotype_file(
     genotype_file_path:str,
-    barcode_ref: dict,
     deconstruct_barcode_ref:dict,
     sample_col: str
 ) -> dict:
@@ -126,7 +125,6 @@ def main(
     out_rows = []
     d_genotype_file = read_genotype_file(
         genotype_file_path,
-        barcode_ref,
         deconstruct_barcode_ref,
         sample_col
     )
