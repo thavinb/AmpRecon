@@ -8,7 +8,7 @@ d_species_convert = {
 class Speciate:
     def __init__(
         self,
-        d_genotype_file: dict,
+        d_genotype_file:dict,
         barcode:str,
         species_ref:dict,
         min_maf=0.01,

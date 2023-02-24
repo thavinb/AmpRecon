@@ -59,6 +59,9 @@ def output_df(
         outBarcodes.close()
 
 def read_barcodes(tsv_path):
+    """
+    Read in barcodes file into a dictionary with key,value pairs of smapleID:Barcode
+    """
     out = {}
     with open(tsv_path) as tsvfile:
         reader = csv.DictReader(tsvfile, delimiter="\t")
@@ -72,12 +75,26 @@ def read_genotype_file(
     chrom_regex:str,
     sample_col:str
 ) -> dict:
+    """
+    Read in a genotype file as a TSV and output a dictionary in the format of:
+
+    {
+        sampleID:{
+            Amplicon:{
+                Locus:{
+                    Depth,
+                    Genotype
+                }
+            }
+        }
+    }
+    """
     with open(genotype_file_path) as genotypefile:
         reader = csv.DictReader(genotypefile, delimiter="\t")
         
         d_out = defaultdict(lambda: defaultdict(dict))
 
-        samples = set()
+        samples = defaultdict(bool)
 
         for row in reader:
             samples.add(row[sample_col])
@@ -90,8 +107,11 @@ def read_genotype_file(
                     "Depth":row["Depth"],
                     "Gen":row["Gen"]
                 }
-        if not d_out:
-            d_out = {sample:{} for sample in samples}
+                samples[row[sample_col]] = True
+        for sample, switch in samples.items():
+            if not switch:
+                d_out[sample] = {}
+
     return dict(d_out)
 
 def main(
