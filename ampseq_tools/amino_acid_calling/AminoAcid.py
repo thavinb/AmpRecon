@@ -125,15 +125,17 @@ class AminoAcidCaller: #better name
 
 		for ids in sample_id:
 			self.haplotypes[ids] = {}
+			imputation_tracker = {}
 			for gene_amino in drl['exp_order']:
-
 				gene, amino = gene_amino.split(":")
 				#begin by creating empty dictionary entries for the gene (grc1)	and gene_amino (grc2)			
 				if gene not in self.haplotypes[ids]:
 					self.haplotypes[ids][gene] = ''
+					imputation_tracker[gene] = ''
 
 				if gene_amino not in self.haplotypes[ids]:
 					self.haplotypes[ids][gene_amino] = ''
+					imputation_tracker[gene_amino] = ''
 
 				#Impute pfCRT:73
 				if gene in self.config['DR_HAPLOTYPE_SPECIAL_CASES']:
@@ -141,14 +143,16 @@ class AminoAcidCaller: #better name
 						aa = self.config['DR_HAPLOTYPE_SPECIAL_CASES'][gene][0][1]
 						if gene_amino in core_genes:
 							self.haplotypes[ids][gene] += aa
+							imputation_tracker[gene] += 'T'
 						self.haplotypes[ids][gene_amino] = aa
+						imputation_tracker[gene_amino] += 'T'
 						continue
 
 				#handle haplotype special cases - replace 
-				if gene in self.config['DR_HAPLOTYPE_SPECIAL_CASES'] and self.haplotypes[ids][gene] == self.config['DR_HAPLOTYPE_SPECIAL_CASES'][gene][1][0]:
-					self.haplotypes[ids][gene] = self.config['DR_HAPLOTYPE_SPECIAL_CASES'][gene][1][1]
-					self.haplotypes[ids]["PfCRT:73"] = '-' #look into grc2 bug
-					continue
+				# if gene in self.config['DR_HAPLOTYPE_SPECIAL_CASES'] and self.haplotypes[ids][gene] == self.config['DR_HAPLOTYPE_SPECIAL_CASES'][gene][1][0]:
+				# 	self.haplotypes[ids][gene] = self.config['DR_HAPLOTYPE_SPECIAL_CASES'][gene][1][1]
+				# 	self.haplotypes[ids]["PfCRT:73"] = '-' #look into grc2 bug
+				# 	continue
 
 				#get nucleotide positions from drlinfo.txt
 				position_1 = drl['pos'][gene][amino]['1']
@@ -165,7 +169,9 @@ class AminoAcidCaller: #better name
 				if chromosome not in genotype_information['key'][ids]:
 					if gene_amino in core_genes:
 						self.haplotypes[ids][gene] += '-'
+						imputation_tracker[gene] += 'T'
 					self.haplotypes[ids][gene_amino] = '-'
+					imputation_tracker[gene_amino] += 'T'
 					continue
 
 				#assign reference bases to positions, if they exist in the drlinfo.txt
@@ -195,7 +201,9 @@ class AminoAcidCaller: #better name
 				if self.is_missing(base_1) or self.is_missing(base_2) or self.is_missing(base_3):
 					if gene_amino in core_genes:
 						self.haplotypes[ids][gene] += '-'
+						imputation_tracker[gene] += 'T'
 					self.haplotypes[ids][gene_amino] += '-'
+					imputation_tracker[gene_amino] += 'T'
 					continue
 
 				#basic case of translating three homozygous bases
@@ -203,7 +211,9 @@ class AminoAcidCaller: #better name
 					aa = self.translate_codon(base_1, base_2, base_3)
 					if gene_amino in core_genes:
 						self.haplotypes[ids][gene] += aa
+						imputation_tracker[gene] += 'F'
 					self.haplotypes[ids][gene_amino] = aa
+					imputation_tracker[gene_amino] = 'F'
 					continue
 
 				#if we come here we must have a heterozguous
@@ -216,17 +226,20 @@ class AminoAcidCaller: #better name
 				#we should identify double het first
 
 				if len(base_1) > 1 and len(base_2) > 1 or len(base_1) > 1 and len(base_3) > 1 or len(base_2) > 1 and len(base_3) > 1:
-					
 					try:
 						het_call = self._get_het_match_from_config(gene, amino, base_1, base_2, base_3)
 						if gene_amino in core_genes:
 							self.haplotypes[ids][gene] += het_call
+							imputation_tracker[gene] += 'F'
 						self.haplotypes[ids][gene_amino] += het_call
+						imputation_tracker[gene_amino] += 'F'
 						continue
 					except (TypeError, KeyError):
 						if gene_amino in core_genes:
 							self.haplotypes[ids][gene] += '-'
+							imputation_tracker += 'T'
 						self.haplotypes[ids][gene_amino] += '-'
+						imputation_tracker = 'T'
 						print(f"Double heterozygous case present in data not in list of special cases accounted for by the pipeline, please check input data at the locus {gene_amino}")
 						continue
 
@@ -254,11 +267,36 @@ class AminoAcidCaller: #better name
 					else:
 						aa_call = f"[{aa_1}/{aa_2}]"
 					self.haplotypes[ids][gene_amino] = aa_call
+					imputation_tracker[gene_amino] = 'F'
 					if gene_amino in core_genes:
 						self.haplotypes[ids][gene] += aa_call
+						imputation_tracker[gene] = 'F'
 
+
+		for gene in drl['genes']:
+			impute_check = set()
+			for pos in imputation_tracker[gene]:
+				impute_check.add(pos)
+			if len(impute_check) > 1:
+				continue
+			else:
+				if "T" in impute_check:
+					for id in sample_id:
+						call = self.haplotypes[id][gene]
+						replace_imputation = '-'*len(call)
+						print(f"{gene} : {replace_imputation}")
+
+						for gene_amino in drl['exp_order']:
+							if "T" in impute_check:
+								call = self.haplotypes[id][gene_amino]
+								replace_imputation_2 = 
+
+			print(f"{gene}: {impute_check}")
+
+
+
+		print(self.haplotypes)
 		return self.haplotypes
-
 
 	def _get_het_match_from_config(self, gene, amino, base_1, base_2, base_3):
 		aa_1 = '-'
@@ -307,3 +345,5 @@ class InputAmpliconFormattingException(Exception):
 	def _init__(self, message= "Data contains nucleotide information that was not expected, expected base data is: A,T,G,C or '-'"):
 		self.message = message
 		super._init__(self.message)
+
+
