@@ -60,7 +60,7 @@ def output_df(
 
 def read_barcodes(tsv_path):
     """
-    Read in barcodes file into a dictionary with key,value pairs of smapleID:Barcode
+    Read in barcodes file into a dictionary with key,value pairs of sampleID:Barcode
     """
     out = {}
     with open(tsv_path) as tsvfile:
