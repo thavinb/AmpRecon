@@ -4,6 +4,19 @@ import argparse
 def parseCOIout(coiout_path:str)-> dict:
     """
     load McCOIL output summary file as dictionary
+
+    Parameters
+    ---
+
+    coiout_path:<str>
+        COI output summary file path
+    
+    coi output summary looks like:
+    file\tCorP\tname\tmean\tmedian\tsd\tquantile0.025\tquantile0.975
+    COIout\tC\tSPT59269\t1\t1\t0\t1\t1
+    COIout\tC\tSPT42677\t2\t2\t0.48162\t1\t2
+    COIout\tC\tSPT31022\t3\t3\t0.13761\t3\t3
+    COIout\tC\tSPT32861\t2\t2\t0.00636\t2\t2
     """
     with open(coiout_path, "r") as coi_output:
         dct_out = {}
@@ -37,6 +50,22 @@ def parseCOIout(coiout_path:str)-> dict:
 def writeCOIgrc(coi_out_dct:dict, grc_out_flpath:str) -> None:
     """
     write GRC file from McCOIL output data
+
+    Parameters
+    ---
+    coi_out_dct:<dict>
+        A dictionary containing COI output summary data
+        ex:{"SPT59269": {"CorP": "C", "name": "SPT59269", 
+                         "mean": "1", "median": "1", 
+                         "sd": "0", "quantile0.025": "1",
+                          "quantile0.975": "1"},
+            "SPT42677": {"CorP": "C", "name": "SPT42677", 
+                        "mean": "2", "median": "2",
+                        "sd": "0.48162","quantile0.025": "1",
+                        "quantile0.975": "2"}
+            }
+    grc_out_flpath:<str>
+        Path for the grc out file to be written
     """
     # get sample names
     samples_nms = list(coi_out_dct.keys())
