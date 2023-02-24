@@ -28,9 +28,12 @@ class PlasmepsinVariantCaller:
         Process the plasmepsin breakpoint call from each per-sample genotype file.
         Amplification is called if alternative genotype (homozygous / heterozygous) is seen at any of the supplied positions.
         """
-        plasmepsin_loci = json.loads(open(self.loci_genotypes_variants).read()).get(
-            "plasmepsin_loci"
-        )
+        # plasmepsin_loci = json.loads(open(self.loci_genotypes_variants).read()).get(
+        #    "plasmepsin_loci"
+        # )
+
+        with open(self.loci_genotypes_variants) as file:
+            plasmepsin_loci = json.load(file).get("plasmepsin_loci")
 
         output_file = open(self.output_file_name, "w")
         file_writer = csv.DictWriter(
@@ -52,7 +55,7 @@ class PlasmepsinVariantCaller:
             for sample_id in sample_id_list:
 
                 # Determine this sample's variant ("WT", "Copy" or "-")
-                variant = self._call_variant(
+                variant = self._determine_sample_variant(
                     sample_id, plasmepsin_genotype_rows, plasmepsin_loci
                 )
 
@@ -84,7 +87,9 @@ class PlasmepsinVariantCaller:
         genotype_file.close()
         return genotype_file_dict
 
-    def _call_variant(self, sample_id, plasmepsin_genotype_rows, plasmepsin_loci):
+    def _determine_sample_variant(
+        self, sample_id, plasmepsin_genotype_rows, plasmepsin_loci
+    ):
         """
         Uses the genotypes at specified loci to determine the variant for a sample.
         """
