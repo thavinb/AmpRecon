@@ -1,6 +1,8 @@
 import csv
 import os
 import json
+import argparse
+
 
 class AminoAcidCaller: #better name 
 
@@ -10,8 +12,7 @@ class AminoAcidCaller: #better name
 			self.config = json.load(conf)
 		self.drl_info = self._read_drl_info()
 		self.codon_key = self._read_codon_key()
-		self.genotypes_files = self._read_genotypes_file(genotypes_file) #could probably be a dict with structure {sample_id: data???}
-		self.sample_ids = self._get_sample_id(genotypes_file)
+		self.genotypes_files = genotypes_file
 		self.complement_bases = {'A': 'T', 'T': 'A', 'G': 'C', 'C': 'G'}
 		self.haplotypes = {} #GRC1 grc2 
 
@@ -29,37 +30,34 @@ class AminoAcidCaller: #better name
 		return call
 
 	def _get_sample_id(self, file):
-		sample_ids = set() #ordered set
+		sample_id = set() #ordered set
 		for row in self._read_tsv_row_generator(file):
 			sample_id = row['Sample_ID']
-			sample_ids.add(sample_id)
+			sample_id.add(sample_id)
 
-		ordered_sample_ids = list(dict.fromkeys(sorted(sample_ids)))
-		return ordered_sample_ids
+		ordered_sample_id = list(dict.fromkeys(sorted(sample_id)))
+		return ordered_sample_id
 
-	def _read_genotypes_file(self,file):
+	def _read_genotypes_file(self, files: list):
 		'''
 		a method that takes in a list of genotype files and parses them to a dictionary
 		with {sample_id : {}}
 		'''
-		genotypes = { 'key' : {}, 'depth' : {} } #outer key 'key' is redundant
-		for row in self._read_tsv_row_generator(file): #this is fine 
-			chr = row['Chr']
-			sample_id = row['Sample_ID']
-			call = self._get_call(row)
+		genotypes = {}
 
-			if sample_id not in genotypes['key']:
-				genotypes['key'][sample_id] = {}
-				genotypes['depth'][sample_id] = {}
+		for genotype_file in files:
+			for row in self._read_tsv_row_generator(genotype_file): #this is fine 
+				chr = row['Chr']
+				sample_id = row['Sample_ID']
+				call = row['Gen'] #get rid of sloppy method
 
-			if chr not in genotypes['key'][sample_id]:
-				genotypes['key'][sample_id][chr] = {}
-				genotypes['depth'][sample_id][chr] = {}
+				if sample_id not in genotypes:
+					genotypes[sample_id] = {}
 
-			if row['Depth'] == '-':
-				row['Depth'] = 0
+				if chr not in genotypes[sample_id]:
+					genotypes[sample_id][chr] = {}
 
-			genotypes['key'][sample_id][chr][row['Loc']] = call
+				genotypes[sample_id][chr][row['Loc']] = call
 		
 		return genotypes
 
@@ -119,22 +117,23 @@ class AminoAcidCaller: #better name
 	def call_haplotypes(self):
 		drl = self.drl_info
 		core_genes = drl['core_order']
-		sample_id = self.sample_ids
 
-		genotype_information = self.genotypes_files
+		genotype_information = self._read_genotypes_file(self.genotypes_files) 
+		sample_id = list(genotype_information.keys())
+		print(sample_id)
 
-		for ids in sample_id:
-			self.haplotypes[ids] = {}
+		for id in sample_id:
+			self.haplotypes[id] = {}
 			imputation_tracker = {}
 			for gene_amino in drl['exp_order']:
 				gene, amino = gene_amino.split(":")
 				#begin by creating empty dictionary entries for the gene (grc1)	and gene_amino (grc2)			
-				if gene not in self.haplotypes[ids]:
-					self.haplotypes[ids][gene] = ''
+				if gene not in self.haplotypes[id]:
+					self.haplotypes[id][gene] = ''
 					imputation_tracker[gene] = ''
 
-				if gene_amino not in self.haplotypes[ids]:
-					self.haplotypes[ids][gene_amino] = ''
+				if gene_amino not in self.haplotypes[id]:
+					self.haplotypes[id][gene_amino] = ''
 					imputation_tracker[gene_amino] = ''
 
 				#Impute pfCRT:73
@@ -142,16 +141,16 @@ class AminoAcidCaller: #better name
 					if amino in self.config['DR_HAPLOTYPE_SPECIAL_CASES'][gene][0]:
 						aa = self.config['DR_HAPLOTYPE_SPECIAL_CASES'][gene][0][1]
 						if gene_amino in core_genes:
-							self.haplotypes[ids][gene] += aa
+							self.haplotypes[id][gene] += aa
 							imputation_tracker[gene] += 'T'
-						self.haplotypes[ids][gene_amino] = aa
+						self.haplotypes[id][gene_amino] = aa
 						imputation_tracker[gene_amino] += 'T'
 						continue
 
 				#handle haplotype special cases - replace 
-				# if gene in self.config['DR_HAPLOTYPE_SPECIAL_CASES'] and self.haplotypes[ids][gene] == self.config['DR_HAPLOTYPE_SPECIAL_CASES'][gene][1][0]:
-				# 	self.haplotypes[ids][gene] = self.config['DR_HAPLOTYPE_SPECIAL_CASES'][gene][1][1]
-				# 	self.haplotypes[ids]["PfCRT:73"] = '-' #look into grc2 bug
+				# if gene in self.config['DR_HAPLOTYPE_SPECIAL_CASES'] and self.haplotypes[id][gene] == self.config['DR_HAPLOTYPE_SPECIAL_CASES'][gene][1][0]:
+				# 	self.haplotypes[id][gene] = self.config['DR_HAPLOTYPE_SPECIAL_CASES'][gene][1][1]
+				# 	self.haplotypes[id]["PfCRT:73"] = '-' #look into grc2 bug
 				# 	continue
 
 				#get nucleotide positions from drlinfo.txt
@@ -166,11 +165,11 @@ class AminoAcidCaller: #better name
 
 				#check for missing position in genotypes file we do position one as a shorthand - if its missing it doesn't matter
 				#if the other bases are present or not
-				if chromosome not in genotype_information['key'][ids]:
+				if chromosome not in genotype_information[id]:
 					if gene_amino in core_genes:
-						self.haplotypes[ids][gene] += '-'
+						self.haplotypes[id][gene] += '-'
 						imputation_tracker[gene] += 'T'
-					self.haplotypes[ids][gene_amino] = '-'
+					self.haplotypes[id][gene_amino] = '-'
 					imputation_tracker[gene_amino] += 'T'
 					continue
 
@@ -182,16 +181,16 @@ class AminoAcidCaller: #better name
 				if drl['cons'][chromosome][position_3] != '-':
 					base_3 = drl['cons'][chromosome][position_3]
 
-				if base_1 == '-' and position_1 in genotype_information['key'][ids][chromosome]:
-					base_1 = genotype_information['key'][ids][chromosome][position_1]
+				if base_1 == '-' and position_1 in genotype_information[id][chromosome]:
+					base_1 = genotype_information[id][chromosome][position_1]
 					if drl['strand'][gene][amino] == '-':
 						base_1 = self._complement(base_1)
-				if base_2 == '-' and position_2 in genotype_information['key'][ids][chromosome]:
-					base_2 = genotype_information['key'][ids][chromosome][position_2]
+				if base_2 == '-' and position_2 in genotype_information[id][chromosome]:
+					base_2 = genotype_information[id][chromosome][position_2]
 					if drl['strand'][gene][amino] == '-':
 						base_2 = self._complement(base_2)
-				if base_3 == '-' and position_3 in genotype_information['key'][ids][chromosome]:
-					base_3 = genotype_information['key'][ids][chromosome][position_3]
+				if base_3 == '-' and position_3 in genotype_information[id][chromosome]:
+					base_3 = genotype_information[id][chromosome][position_3]
 					if drl['strand'][gene][amino] == '-':
 						base_3 = self._complement(base_3)
 
@@ -200,9 +199,9 @@ class AminoAcidCaller: #better name
 				#if any of the positions are missing, we call a missing aa and move on
 				if self.is_missing(base_1) or self.is_missing(base_2) or self.is_missing(base_3):
 					if gene_amino in core_genes:
-						self.haplotypes[ids][gene] += '-'
+						self.haplotypes[id][gene] += '-'
 						imputation_tracker[gene] += 'T'
-					self.haplotypes[ids][gene_amino] += '-'
+					self.haplotypes[id][gene_amino] += '-'
 					imputation_tracker[gene_amino] += 'T'
 					continue
 
@@ -210,9 +209,9 @@ class AminoAcidCaller: #better name
 				if len(base_1) == 1 and len(base_2) == 1 and len(base_3) == 1: 
 					aa = self.translate_codon(base_1, base_2, base_3)
 					if gene_amino in core_genes:
-						self.haplotypes[ids][gene] += aa
+						self.haplotypes[id][gene] += aa
 						imputation_tracker[gene] += 'F'
-					self.haplotypes[ids][gene_amino] = aa
+					self.haplotypes[id][gene_amino] = aa
 					imputation_tracker[gene_amino] = 'F'
 					continue
 
@@ -229,16 +228,16 @@ class AminoAcidCaller: #better name
 					try:
 						het_call = self._get_het_match_from_config(gene, amino, base_1, base_2, base_3)
 						if gene_amino in core_genes:
-							self.haplotypes[ids][gene] += het_call
+							self.haplotypes[id][gene] += het_call
 							imputation_tracker[gene] += 'F'
-						self.haplotypes[ids][gene_amino] += het_call
+						self.haplotypes[id][gene_amino] += het_call
 						imputation_tracker[gene_amino] += 'F'
 						continue
 					except (TypeError, KeyError):
 						if gene_amino in core_genes:
-							self.haplotypes[ids][gene] += '-'
+							self.haplotypes[id][gene] += '-'
 							imputation_tracker += 'T'
-						self.haplotypes[ids][gene_amino] += '-'
+						self.haplotypes[id][gene_amino] += '-'
 						imputation_tracker = 'T'
 						print(f"Double heterozygous case present in data not in list of special cases accounted for by the pipeline, please check input data at the locus {gene_amino}")
 						continue
@@ -266,10 +265,10 @@ class AminoAcidCaller: #better name
 						aa_call = aa_1
 					else:
 						aa_call = f"[{aa_1}/{aa_2}]"
-					self.haplotypes[ids][gene_amino] = aa_call
+					self.haplotypes[id][gene_amino] = aa_call
 					imputation_tracker[gene_amino] = 'F'
 					if gene_amino in core_genes:
-						self.haplotypes[ids][gene] += aa_call
+						self.haplotypes[id][gene] += aa_call
 						imputation_tracker[gene] = 'F'
 
 
@@ -289,11 +288,9 @@ class AminoAcidCaller: #better name
 						for gene_amino in drl['exp_order']:
 							if "T" in impute_check:
 								call = self.haplotypes[id][gene_amino]
-								replace_imputation_2 = 
+								replace_imputation_2 = None
 
 			print(f"{gene}: {impute_check}")
-
-
 
 		print(self.haplotypes)
 		return self.haplotypes
@@ -347,3 +344,67 @@ class InputAmpliconFormattingException(Exception):
 		super._init__(self.message)
 
 
+def write_out_grcs(haplotype_data:list, drug_resistance_loci, output_file, extended=True):
+
+	grc_1 = open(f"{output_file}", 'w')
+	grc_1.write("ID\t")
+
+	if extended:
+		grc_2 = open(f"{output_file}.extended", 'w')
+		grc_2.write("ID\t")
+		positions = drug_resistance_loci['exp_order']
+		grc_2.write('\t'.join(positions) + '\n')
+		
+		for entry in haplotype_data:
+			line = []
+			sample_id = list(entry.keys())
+			for id in sample_id:
+				data = entry[id]
+				line.append(id)
+				for pos in positions:
+					line.append(data[pos])
+				grc_2.write('\t'.join(line) + '\n')
+
+	for gene in drug_resistance_loci['genes']:
+		grc_1.write(gene+'\t')
+
+	grc_1.write('\n')
+
+	for entry in haplotype_data:
+		sample_id = list(entry.keys())
+		for id in sample_id:
+			data = entry[id]
+			grc_1.write(id+'\t')
+			for gene in drug_resistance_loci['genes']:
+				grc_1.write(data[gene] + '\t')
+			grc_1.write('\n')
+
+
+if __name__ == "__main__":
+	#rudimentary implementation to run methods only 
+	#the pipeline should:
+	#take a list of unlimited length containing genotype files and iteratively process each one OR
+	#take directly from stdin - ie. cat g.txt
+	# how do we get sample id? this will be a column from the genotypes.txt file, but we need to parse it somehow 
+	# we also need to think about collating the output data into tsv at the end 
+	
+
+	parser = argparse.ArgumentParser()
+	parser.add_argument('--genotypes_file', nargs='+', required=True)
+	parser.add_argument('--species_config', required=True)
+	parser.add_argument('--output_file', required=True)
+	parser.add_argument('--drl_information_file', required=True)
+
+	args = parser.parse_args()
+
+	caller = AminoAcidCaller(args.genotypes_file, args.species_config)
+	caller.call_haplotypes()
+
+	# if args.genotypes_file:
+
+	# 	output_data =[]
+	# 	for file in args.genotypes_file: #change this so there is one class obj
+	# 		caller = AminoAcidCaller(file, args.species_config)
+	# 		out = caller.call_haplotypes()
+	# 		output_data.append(out)
+	# 		write_out_grcs(output_data, caller.drl_info, args.output_file)
