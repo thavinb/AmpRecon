@@ -245,10 +245,20 @@ class AminoAcidCaller: #better name
 						self.haplotypes[id][gene].append(aa_call)
 
 
-		for gene in drl['genes']:
+		for sample in self.haplotypes:
+			data = self.haplotypes[sample]
 			impute_check = set()
-			for pos in imputation_tracker[gene]:
-				impute_check.add(pos)
+			for gene in drl['genes']:
+				if gene in self.config['DR_HAPLOTYPE_SPECIAL_CASES']:
+					impute_check.add(self.config['DR_HAPLOTYPE_SPECIAL_CASES'][gene][0][1])
+				
+
+				for aa_idx in range(len(data[gene]) -1):
+					impute_check.add(data[gene][aa_idx])
+
+		for gene in drl['genes']:
+			impute_check = set() 
+			impute_check.add(pos)
 			if len(impute_check) > 1:
 				continue
 			else:
@@ -265,7 +275,7 @@ class AminoAcidCaller: #better name
 
 			print(f"{gene}: {impute_check}")
 
-		print(self.haplotypes)
+		
 		return self.haplotypes
 
 	def _get_het_match_from_config(self, gene, amino, base_1, base_2, base_3):
@@ -321,36 +331,35 @@ def write_out_grcs(haplotype_data:list, drug_resistance_loci, output_file, exten
 
 	grc_1 = open(f"{output_file}", 'w')
 	grc_1.write("ID\t")
+	sample_id = list(haplotype_data.keys())
 
 	if extended:
 		grc_2 = open(f"{output_file}.extended", 'w')
 		grc_2.write("ID\t")
 		positions = drug_resistance_loci['exp_order']
 		grc_2.write('\t'.join(positions) + '\n')
-		
-		for entry in haplotype_data:
+
+		for id in sample_id:
 			line = []
-			sample_id = list(entry.keys())
-			for id in sample_id:
-				data = entry[id]
-				line.append(id)
-				for pos in positions:
-					line.append(data[pos])
-				grc_2.write('\t'.join(line) + '\n')
+			data = haplotype_data[id]
+			line.append(id)
+			for pos in positions:
+				line.append(data[pos][0])
+			print(line)
+			grc_2.write('\t'.join(line) + '\n')
+		
 
 	for gene in drug_resistance_loci['genes']:
 		grc_1.write(gene+'\t')
 
 	grc_1.write('\n')
 
-	for entry in haplotype_data:
-		sample_id = list(entry.keys())
-		for id in sample_id:
-			data = entry[id]
-			grc_1.write(id+'\t')
-			for gene in drug_resistance_loci['genes']:
-				grc_1.write(data[gene] + '\t')
-			grc_1.write('\n')
+	for id in sample_id:
+		data = haplotype_data[id]
+		grc_1.write(id+'\t')
+		for gene in drug_resistance_loci['genes']:
+			grc_1.write(''.join(data[gene]) + '\t')
+		grc_1.write('\n')
 
 
 if __name__ == "__main__":
@@ -370,8 +379,11 @@ if __name__ == "__main__":
 
 	args = parser.parse_args()
 
+	grc_1 = open(f"{args.output_file}")
+	grc_2 = open(f"{args.output_file}.extended")
 	caller = AminoAcidCaller(args.genotypes_file, args.species_config)
-	caller.call_haplotypes()
+	output = caller.call_haplotypes()
+	write_out_grcs(output, caller.drl_info, args.output_file)
 
 	# if args.genotypes_file:
 
