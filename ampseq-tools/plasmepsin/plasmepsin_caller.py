@@ -65,7 +65,7 @@ class PlasmepsinVariantCaller:
     def _get_plasmepsin_rows(self, genotype_file_path, plasmepsin_loci):
         """
         Returns a dictionary created from the the provided genotype file.
-        Only adds to the dictionary genotype file rows that are at the
+        Only adds to the dictionary genotype file rows that are at the plasmepsin loci.
         """
         plasmepsin_positions = [locus.get("Position") for locus in plasmepsin_loci]
         genotype_file_dict = {}
