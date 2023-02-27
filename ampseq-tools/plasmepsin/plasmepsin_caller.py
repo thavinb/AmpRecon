@@ -18,21 +18,18 @@ class PlasmepsinVariantCaller:
     4) Genotyping at these nucleotides allows for amplification to be identified.
     """
 
-    def __init__(self, genotype_file_path_list, out_file_name, loci_genotypes_variants):
+    def __init__(self, genotype_file_path_list, out_file_name, config_loci_genotypes_variants):
         self.genotype_file_list = genotype_file_path_list
         self.output_file_name = out_file_name
-        self.loci_genotypes_variants = loci_genotypes_variants
+        self.config_loci_genotypes_variants = config_loci_genotypes_variants
 
     def call_plasmepsin_variants(self):
         """
         Process the plasmepsin breakpoint call from each per-sample genotype file.
         Amplification is called if alternative genotype (homozygous / heterozygous) is seen at any of the supplied positions.
         """
-        # plasmepsin_loci = json.loads(open(self.loci_genotypes_variants).read()).get(
-        #    "plasmepsin_loci"
-        # )
 
-        with open(self.loci_genotypes_variants) as file:
+        with open(self.config_loci_genotypes_variants) as file:
             plasmepsin_loci = json.load(file).get("plasmepsin_loci")
 
         output_file = open(self.output_file_name, "w")
@@ -145,9 +142,9 @@ if __name__ == "__main__":
     )
 
     parser.add_argument(
-        "--loci_genotypes_variants",
+        "--config_loci_genotypes_variants",
         "-l",
-        help="List of plasmepsin loci, genotypes and variants to call.",
+        help="Config JSON file containing a list of plasmepsin loci, genotypes and variants to call.",
         required=True,
         type=str,
     )
@@ -156,6 +153,6 @@ if __name__ == "__main__":
     plasmepsin_variants = PlasmepsinVariantCaller(
         args.input_genotype_file_list,
         args.output_file_name,
-        args.loci_genotypes_variants,
+        args.config_loci_genotypes_variants,
     )
     plasmepsin_variants.call_plasmepsin_variants()
