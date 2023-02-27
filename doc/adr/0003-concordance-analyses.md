@@ -11,14 +11,15 @@ For the ampseq pipeline we decided that an acceptance criteria for completion of
 ## Decision
 As a team we agreed that an acceptance criteria for any component would be as follows:
 
-1. CPP genotype files (/lustre/scratch125/gsu/malariagen/production/resources/pipeline_resources/plasmodium/falciparum/amplicon/datasets/genotype_tsvs/) will be used as inputs to be run through any given component. **All genotype files will be run through the component.**
+1. CPP genotype files (/lustre/scratch125/gsu/malariagen/production/resources/pipeline_resources/plasmodium/falciparum/amplicon/datasets/genotype_tsvs/) will be used as inputs to be run through any given component. **All genotype files will be run through the component.** 
+    * **N.B. If component provides non-GRC output then different inputs will need to be provided - e.g. VCF files for the genptype file creation**
 2. Pipeline outputs will be compared to the CPP outputs found in the megaGRC.
-    * Care must be taken to ensure that **all** sample IDs found within the megaGRC (or other CPP output files if the component provides a non-GRC output - e.g. genotype file production) are found within the pipeline output (e.g. if merging dataframes ensure an outer join is used to ensure records missing from one dataframe are included when datasets are merged, if iterating through datasets ensure that the input set is iterated and that a check is done to ensure a record is presne in the pipeline output).
-    * All records should be identical between the two implementations, if they are not they must be justified. Concordance analysis will not be approved unless records with different values are justified/corrected.
+    * Care must be taken to ensure that **all** sample IDs found within the megaGRC (or other CPP output files if the component provides a non-GRC output - e.g. genotype file production) are found within the pipeline output (e.g. if merging dataframes ensure an outer join is used to ensure records missing from one dataframe are included when datasets are merged, if iterating through datasets ensure that the input set is iterated and that a check is done to ensure a record is present in the pipeline output).
+    * All records should be identical between the two implementations, or if they are not they must be justified. Concordance analysis will not be approved unless records with different values are justified/corrected.
         * An example of a justifiable discordance: if the CPP outputs values in a different order to the development pipeline (as occurs in speciation), this could be corrected by sorting the values correctly within your analysis and the sorted values compared.
     * Concordance analyses will maintain the following standards
         * Notebook
-            * To the greatest extent possible analyses should be carried out and recorded inside jupyter notebooks
+            * To the greatest extent possible all analyses should be carried out and recorded inside jupyter notebooks, including data wrangling.
             * Where an operation which is not appropriate for a notebook is carried out, a markdown cell should be present which clearly lays out: the commands that were run (with full paths), the location the command was run in and any other pertinent information
         * Documented
             * A short explainer of the analysis should be present at the top of the notebook along with a short analysis plan
