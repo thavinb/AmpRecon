@@ -17,7 +17,7 @@
 
 	"DR_HAPLOTYPE_SPECIAL_CASES" : {
 
-		"PfCRT" : [["73", "V"]]
+		"PfCRT" : { "73" : "V"}
 
 	}
 
