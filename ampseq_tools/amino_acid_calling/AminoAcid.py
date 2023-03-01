@@ -44,7 +44,7 @@ class AminoAcidCaller: #better name
 				if chr not in genotypes[sample_id]:
 					genotypes[sample_id][chr] = {}
 
-				genotypes[sample_id][chr][row['Loc']] = call
+				genotypes[sample_id][chr][row['Chr_Loc']] = call
 		
 		return genotypes
 
