@@ -97,7 +97,7 @@ def read_genotype_file(
         samples = defaultdict(bool)
 
         for row in reader:
-            samples.add(row[sample_col])
+            samples[row[sample_col]] = True
             if (
                 re.match(chrom_regex, row["Amplicon"]) and
                 str(row["Loc"]) in species_ref and
