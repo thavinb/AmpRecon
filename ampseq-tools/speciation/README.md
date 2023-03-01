@@ -15,6 +15,15 @@ A module to perform speciation based on the current amplicon production pipeline
 <path_to_barcode_file> \
 <path_to_config_file>
 ```
+
+ex:
+
+```
+ampseq-pipeline/ampseq-tools/speciation/speciate "genotype_files/*" \
+          barcodes.txt ampseq-pipeline/ampseq-tools/speciation/config.json \
+          --sample_col MalGen_ID
+```
+
 # Run unit tests
 ```
 <ampseq_pipeline_repo_location>/ampseq-tools/speciation/test
@@ -22,12 +31,12 @@ A module to perform speciation based on the current amplicon production pipeline
 
 # Help Message
 ```
-usage: Amplicon Pipeline Speciation [-h] [--outfile OUTFILE] [--pbar]
-                                    [--ncpus NCPUS]
-                                    [--output_debug_path OUTPUT_DEBUG_PATH]
-                                    [--sample_col SAMPLE_COL]
-                                    [--chrom_regex CHROM_REGEX]
-                                    input_genotype_files barcodes config
+usage: speciate [-h] [--outfile OUTFILE] [--pbar]
+                [--ncpus NCPUS]
+                [--output_debug_path OUTPUT_DEBUG_PATH]
+                [--sample_col SAMPLE_COL]
+                [--chrom_regex CHROM_REGEX]
+                input_genotype_files barcodes config
 
 A package to perform speciation based on the production amplicon pipeline
 
