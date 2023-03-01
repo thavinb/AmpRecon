@@ -1,0 +1,12 @@
+Bootstrap: docker
+From: python:3.8.3-slim-buster
+Stage: spython-base
+
+%files
+requirements.txt /src/
+%post
+pip install -r /src/requirements.txt
+%runscript
+exec /bin/bash "$@"
+%startscript
+exec /bin/bash "$@"

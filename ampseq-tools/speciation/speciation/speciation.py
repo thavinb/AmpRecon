@@ -1,5 +1,4 @@
 from collections import defaultdict
-import pandas as pd
 
 d_species_convert = {
     "falciparum":"Pf",
@@ -9,15 +8,9 @@ d_species_convert = {
 class Speciate:
     def __init__(
         self,
-        genotype_file: pd.DataFrame,
+        d_genotype_file:dict,
         barcode:str,
         species_ref:dict,
-        keep_chroms=[
-            "Spec_1_falciparum",
-            "Spec_2_falciparum",
-            "Spec_1_vivax",
-            "Spec_2_vivax"
-        ],
         min_maf=0.01,
         match_threshold=0.95,
         default_species="Pf",
@@ -32,7 +25,7 @@ class Speciate:
         self.write_out = {}
 
         #run main logic flow
-        self.alleles_depth_dict = self._read_genotype_file(genotype_file, keep_chroms)
+        self.alleles_depth_dict = self._read_genotype_file(d_genotype_file)
         self._manipulate_maf()
         self.merged_alleles = self._merge_alleles()
         self.matched_loci = self._match_loci()
@@ -49,8 +42,7 @@ class Speciate:
 
     def _read_genotype_file(
         self, 
-        genotype_file: pd.DataFrame,
-        keep_chroms: list
+        d_genotype_file: dict
         ) -> dict:
         """
         1) get genotype file dataframe
@@ -60,27 +52,16 @@ class Speciate:
         5) Group by amplicon, get speices, iterate through records recording alleles and depth in out
         6) for each position in out if one species not present add dict with empty entries
         """
-        #get genotype file, remove amplicons not needed, remove records with filtered depths
-        genotype_file = genotype_file[
-            (genotype_file.Amplicon.isin(keep_chroms)) &
-            (genotype_file.Depth!="-")
-            ]
-        #Transform depth column to summed depth (where there are comma separated values)
-        genotype_file.Depth = genotype_file.Depth.astype(str).apply(self._create_summed_depth)
-        
         out = defaultdict(dict)
         
-        #group by amplicon
-        for amplicon, df in genotype_file.groupby("Amplicon"):
-            #get species label
-            species = self.d_species_convert[amplicon.split("_")[-1]]
-            #iterate through rows per amplicon
-            for _, row in df.iterrows():
-                #write records to out dict
-                out[row.Loc][species] = {
-                    "Allele":[i for i in list(row.Gen) if i!=","], #flexible to column being comma separated or not
-                    "DP":row.Depth
-                    }
+        for chrom, d_chrom in d_genotype_file.items():
+            species = self.d_species_convert[chrom.split("_")[-1]]
+            for loc, d_loc in d_chrom.items():
+                summedDepth = self._create_summed_depth(d_loc["Depth"])
+                out[loc][species] = {
+                    "Allele":[i for i in list(d_loc["Gen"]) if i!=","], #flexible to column being comma separated or not
+                    "DP":summedDepth
+                }
 
         #Iterate through and apply empty rows to any position missing a species call
         out_copy = out.copy()
