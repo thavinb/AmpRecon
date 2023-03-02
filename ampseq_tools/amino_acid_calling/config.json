@@ -4,7 +4,7 @@
 	"DR_DOUBLE_HETEROZYGOUS_CASES" : {
 
 		"PfCRT" : [
-					["75", ["A,G", "A", "A,T"], "N", "E"]	
+					["75", ["A,G", "A", "T,A"], "N", "E"]	
 		],
 		"PfDHPS" : [ ["436", ["T,G", "C,G", "T"], "A", "C"],
 		 			 ["436", ["T,G", "C,T", "T"], "A", "F"],
