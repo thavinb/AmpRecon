@@ -252,8 +252,6 @@ class AminoAcidCaller: #better name
 				"data" : self.haplotypes
 
 		}
-
-		print(output_data)
 		return output_data
 
 	def _get_het_match_from_config(self, gene, amino, base_1, base_2, base_3):
@@ -320,13 +318,10 @@ def write_out_grcs(haplotype_data:list, drug_resistance_loci, output_grc1_file, 
 
 		for id in sample_id:
 			line = []
-			data = haplotype_data["data"]
+			data = haplotype_data["data"][id]
 			line.append(id)
 			for pos in positions:
-				if data[id][pos][0] == None:
-					print(id)
-					print(data[id][pos][0])
-				line.append(data[id][pos][0])
+				line.append(data[pos][0])
 			grc_2.write('\t'.join(line) + '\n')
 		
 	for gene in drug_resistance_loci['genes']:
@@ -335,13 +330,18 @@ def write_out_grcs(haplotype_data:list, drug_resistance_loci, output_grc1_file, 
 	grc_1.write('\n')
 
 	for id in sample_id:
+		line = []
 		data = haplotype_data["data"][id]
-		grc_1.write(id+'\t')
+		line.append(id)
 		for gene in drug_resistance_loci['genes']:
-			grc_1.write(''.join(data[gene]) + '\t')
-		grc_1.write('\n')
+			line.append(data[gene])
 
-
+		dat = []
+		for hap in line:
+			hap = ''.join(hap)
+			dat.append(hap)
+		grc_1.write('\t'.join(dat) + '\n')
+	
 if __name__ == "__main__":
 	#rudimentary implementation to run methods only 
 	#the pipeline should:
@@ -366,5 +366,3 @@ if __name__ == "__main__":
 	caller = AminoAcidCaller(args.genotype_files, args.config, args.drl_information_file, args.codon_key_file)
 	output = caller.call_haplotypes()
 	write_out_grcs(output, caller.drl_info, args.output_grc1_file, args.output_grc2_file)
-
-
