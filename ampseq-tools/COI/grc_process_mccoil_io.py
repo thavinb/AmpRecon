@@ -280,21 +280,23 @@ if __name__ == "__main__":
         action=argparse.BooleanOptionalAction)
     
     # inputs for write_mccoil_in mode
-    parser.add_argument("--barcodes_file", help="""
-        Path to input barcode tsv file
+    parser.add_argument("--barcodes_files", nargs='+', help="""
+        Path(s) to barcode tsv file for a batch of samples
     """, default=None)
     parser.add_argument("--barcode_def_file", help="""
         Path to a json file with barcodes definitions
     """, default=None)
 
     # inputs for write_coi_grc mode
-    parser.add_argument("--mccoil_sum_file", help="""
+    parser.add_argument("--mccoil_sum_file", nargs='+', help="""
         Path to McCOIL summary output file
     """, default=None)
-
     # output file name
     parser.add_argument("--output_file", default=None, help="""
-        Path for the McCOIl input file to be written (default: <./McCOIL_in.tsv | ./coi.grc >)
+        Path for the McCOIl input or grc file to be written 
+        (default: <./McCOIL_in.tsv | ./coi.grc >).
+        If more than one input file is provided, the output will have the same
+        name of the respective input file added of a suffix ("_mccoil_in.tsv" | "_coi.grc")  
     """)
     
     args = {k:v for k,v in vars(parser.parse_args()).items()}
@@ -303,7 +305,6 @@ if __name__ == "__main__":
     
     # handle modes
     try:
-
         assert((args["write_mccoil_in"]==None) or (args["write_coi_grc"]==None))
     except(AssertionError):
         print("ERROR: no mode of execution was specified. User must provide either '-write_mccoil_in' or '-write_coi_grc'.")
@@ -327,22 +328,34 @@ if __name__ == "__main__":
     if args["write_mccoil_in"]:
         # check if all required args were provided
         print(" -> Write McCOIL Input Mode On <-")
-        if args["barcodes_file"] == None:
-            print("    ERROR: 'barcodes_file' must be provided for this mode")
+        if args["barcodes_files"] == None:
+            print("    ERROR: 'barcodes_files' must be provided for this mode")
             exit(1)
         if args["barcode_def_file"] == None:
             print("     ERROR: 'barcodes_def_file' must be provided for this mode")
             exit(1)
         
-        # load input data
+        # if more than one, set output as same as input name
+        total_batchs = len(args["barcodes_files"])
         print("    @ loading barcode definition...")
         barcode_def_dct = loadBarcodeDef(args["barcode_def_file"])
-        print("    @ loading samples barcodes...")
-        barcodes_samples_dct = loadSamplesBarcode(args["barcodes_file"])
-        print("    @ assigning SNP numbers for McCOIL...")
-        assignSNPnumbers(barcodes_samples_dct)
-        print("    @ writing McCOIL input tsv file...")
-        writeMcCOILat(args["output_file"], barcode_def_dct,barcodes_samples_dct)
+            
+        for batch in args["barcodes_files"]:
+            # load input data
+            print(f"    @ loading samples barcodes ({batch})...")
+            barcodes_samples_dct = loadSamplesBarcode(batch)
+            print("    @ assigning SNP numbers for McCOIL...")
+            assignSNPnumbers(barcodes_samples_dct)
+            
+            print("    @ writing McCOIL input tsv file...")
+            if total_batchs == 1:
+                writeMcCOILat(args["output_file"], barcode_def_dct, barcodes_samples_dct)
+            
+            if total_batchs > 1:
+                # get batch simple file name (anything before the '.')
+                prefix = batch.split("/")[-1].split(".")[0]
+                # write COI input
+                writeMcCOILat(prefix+'_mccoil_in.tsv', barcode_def_dct, barcodes_samples_dct)
         print(":: DONE ::")
         exit(0)
 
@@ -352,9 +365,18 @@ if __name__ == "__main__":
         if args["mccoil_sum_file"] == None:
             print("    ERROR: No mccoil summary file was provided.")
             exit(1)
-        print(f"    @ loading {args['mccoil_sum_file']}")
-        coi_out_dct = parseCOIout(args['mccoil_sum_file'])
-        print(f"    @ writing {args['output_file']}...")
-        writeCOIgrc(coi_out_dct, args["output_file"])
+
+        total_batchs = len(args["mccoil_sum_file"])
+        for batch in args["mccoil_sum_file"]:
+            print(f"    @ loading {batch}")
+            coi_out_dct = parseCOIout(batch)
+            print(f"    @ writing {args['output_file']}...")
+            if total_batchs == 1:
+                writeCOIgrc(coi_out_dct, args["output_file"])
+            if total_batchs > 1:
+                # get batch simple file name (anything before the '.')
+                prefix = batch.split("/")[-1].split(".")[0]
+                # write COI grc
+                writeCOIgrc(coi_out_dct, prefix+"_coi.grc")
         print(":: DONE ::")
         exit(0)
