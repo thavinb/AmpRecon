@@ -35,7 +35,7 @@ class AminoAcidCaller: #better name
 		for genotype_file in files:
 			for row in self._read_tsv_row_generator(genotype_file):  
 				chr = row['Chr']
-				sample_id = row['Sample_ID']
+				sample_id = row['MalGen_ID']
 				call = row['Gen'] 
 
 				if sample_id not in genotypes:
@@ -44,7 +44,7 @@ class AminoAcidCaller: #better name
 				if chr not in genotypes[sample_id]:
 					genotypes[sample_id][chr] = {}
 
-				genotypes[sample_id][chr][row['Chr_Loc']] = call
+				genotypes[sample_id][chr][row['Loc']] = call
 		
 		return genotypes
 
@@ -190,15 +190,17 @@ class AminoAcidCaller: #better name
 				if len(base_1) > 1 and len(base_2) > 1 or len(base_1) > 1 and len(base_3) > 1 or len(base_2) > 1 and len(base_3) > 1:
 					try:
 						het_call = self._get_het_match_from_config(gene, amino, base_1, base_2, base_3)
+						assert(het_call != None)
 						if gene_amino in core_genes:
 							self.haplotypes[id][gene].append(het_call)
 						self.haplotypes[id][gene_amino].append(het_call)
 						continue
-					except (TypeError, KeyError):
+
+					except(AssertionError):
 						if gene_amino in core_genes:
 							self.haplotypes[id][gene].append('-')
 						self.haplotypes[id][gene_amino].append('-')
-						print(f"Double heterozygous case present in data not in list of special cases accounted for by the pipeline, please check input data at the locus {gene_amino}")
+						print(f"Double heterozygous case present in data not in list of special cases accounted for by the pipeline, please check input data at the locus: {gene_amino} for sample: {id}")
 						continue
 
 				elif len(base_1) > 1:
@@ -212,8 +214,8 @@ class AminoAcidCaller: #better name
 					aa_1 = self.translate_codon(base_1, allel_1, base_3)
 					aa_2 = self.translate_codon(base_1, allel_2, base_3)
 				elif len(base_3) > 1:
-					allel_3 = base_3.split(',')[0]
-					allel_4 = base_3.split(',')[1]
+					allel_1 = base_3.split(',')[0]
+					allel_2 = base_3.split(',')[1]
 					aa_1 = self.translate_codon(base_1, base_2, allel_1)
 					aa_2 = self.translate_codon(base_1, base_2, allel_2)
 				else:
@@ -251,6 +253,7 @@ class AminoAcidCaller: #better name
 
 		}
 
+		print(output_data)
 		return output_data
 
 	def _get_het_match_from_config(self, gene, amino, base_1, base_2, base_3):
@@ -302,14 +305,14 @@ class InputAmpliconFormattingException(Exception):
 		super._init__(self.message)
 
 
-def write_out_grcs(haplotype_data:list, drug_resistance_loci, output_file, extended=True):
+def write_out_grcs(haplotype_data:list, drug_resistance_loci, output_grc1_file, output_grc2_file, extended=True):
 
-	grc_1 = open(f"{output_file}", 'w')
+	grc_1 = open(f"{output_grc1_file}", 'w+')
 	grc_1.write("ID\t")
 	sample_id = list(haplotype_data['data'].keys())
 
 	if extended:
-		grc_2 = open(f"{output_file}.extended", 'w')
+		grc_2 = open(f"{output_grc2_file}", 'w+')
 		grc_2.write("ID\t")
 		positions = haplotype_data['grc_2_cols']
 		
@@ -320,6 +323,9 @@ def write_out_grcs(haplotype_data:list, drug_resistance_loci, output_file, exten
 			data = haplotype_data["data"]
 			line.append(id)
 			for pos in positions:
+				if data[id][pos][0] == None:
+					print(id)
+					print(data[id][pos][0])
 				line.append(data[id][pos][0])
 			grc_2.write('\t'.join(line) + '\n')
 		
@@ -346,17 +352,19 @@ if __name__ == "__main__":
 	
 
 	parser = argparse.ArgumentParser()
-	parser.add_argument('--genotypes_file', nargs='+', required=True)
-	parser.add_argument('--species_config', required=True)
-	parser.add_argument('--output_file', required=True)
+	parser.add_argument('--genotype_files', nargs='+', required=True)
+	parser.add_argument('--config', required=True)
+	parser.add_argument('--output_grc1_file', required=True) #add grc2 parameter 
+	parser.add_argument('--output_grc2_file', required=True)
 	parser.add_argument('--drl_information_file', required=True)
-	parser.add_argument('--codon_key', required=True)
+	parser.add_argument('--codon_key_file', required=True)
 
 	args = parser.parse_args()
 
-	grc_1 = open(f"{args.output_file}")
-	grc_2 = open(f"{args.output_file}.extended")
-	caller = AminoAcidCaller(args.genotypes_file, args.species_config, args.drl_information_file, args.codon_key)
+	grc_1 = open(f"{args.output_grc1_file}", 'w+')
+	grc_2 = open(f"{args.output_grc2_file}", 'w+')
+	caller = AminoAcidCaller(args.genotype_files, args.config, args.drl_information_file, args.codon_key_file)
 	output = caller.call_haplotypes()
-	write_out_grcs(output, caller.drl_info, args.output_file)
+	write_out_grcs(output, caller.drl_info, args.output_grc1_file, args.output_grc2_file)
+
 
