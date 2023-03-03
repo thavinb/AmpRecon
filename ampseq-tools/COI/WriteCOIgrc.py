@@ -84,15 +84,15 @@ if __name__ == "__main__":
         description = "A script to write McCOIL COI values as a GRC"
     )
 
-    parser.add_argument("-mccoil_sum_fl", help="""
+    parser.add_argument("-mccoil_sum_file", help="""
         Path to McCOIL summary output file
     """, required=True)
-    parser.add_argument("-output_flnm", help="""
+    parser.add_argument("-output_file", help="""
         Path for the grc containing the COI per sample to be written (default: ./coi.grc)
     """, default="./coi.grc")
     args = {k:v for k,v in vars(parser.parse_args()).items()}
-    print(f"@ loading {args['mccoil_sum_fl']}")
-    coi_out_dct = parseCOIout(args['mccoil_sum_fl'])
-    print(f"@ writing {args['output_flnm']}...")
-    writeCOIgrc(coi_out_dct,args["output_flnm"])
+    print(f"@ loading {args['mccoil_sum_file']}")
+    coi_out_dct = parseCOIout(args['mccoil_sum_file'])
+    print(f"@ writing {args['output_file']}...")
+    writeCOIgrc(coi_out_dct,args["output_file"])
     print(":: DONE ::")

@@ -188,13 +188,13 @@ if __name__ == "__main__":
         description = "A script to write McCOIL input from barcodes tsv files"
     )
 
-    parser.add_argument("-barcodes_in", help="""
+    parser.add_argument("-barcodes_file", help="""
         Path to input barcode tsv file
     """, required=True)
-    parser.add_argument("-barcode_def", help="""
+    parser.add_argument("-barcode_def_file", help="""
         Path to a json file with barcodes definitions
     """, required=True)
-    parser.add_argument("-output_flnm", default="./McCOIL_in.tsv", help="""
+    parser.add_argument("-output_file", default="./McCOIL_in.tsv", help="""
         Path for the McCOIl input file to be written (default: ./McCOIL_in.tsv)
     """)
     
@@ -202,12 +202,12 @@ if __name__ == "__main__":
     print(" >> Barcode2McCOILin.py <<")
     # load input data
     print("@ loading barcode definition...")
-    barcode_def_dct = loadBarcodeDef(args["barcode_def"])
+    barcode_def_dct = loadBarcodeDef(args["barcode_def_file"])
     print("@ loading samples barcodes...")
-    barcodes_samples_dct = loadSamplesBarcode(args["barcodes_in"])
+    barcodes_samples_dct = loadSamplesBarcode(args["barcodes_file"])
     print("@ assigning SNP numbers for McCOIL...")
     assignSNPnumbers(barcodes_samples_dct)
 
     print("@ writing McCOIL input tsv file...")
-    writeMcCOILat(args["output_flnm"], barcode_def_dct,barcodes_samples_dct)
+    writeMcCOILat(args["output_file"], barcode_def_dct,barcodes_samples_dct)
     print(":: DONE ::")
