@@ -4,7 +4,7 @@
 ```
 >> ./grc_barcoding.py --help
 
-usage: grc_bardoding.py [-h] [--genotype_files GENOTYPE_FILES]
+usage: grc_barcoding.py [-h] [--genotype_files GENOTYPE_FILES]
                         [--config CONFIG] [--output_file OUTPUT_FILE] [--pbar]
                         [--ncpus NCPUS]
 
