@@ -10,18 +10,10 @@ A module to perform speciation based on the current amplicon production pipeline
 
 # Run speciate on batch
 ```
-<ampseq_pipeline_repo_location>/ampseq-tools/speciation/speciate \
-"<path_to_input_genotype_files>" \
-<path_to_barcode_file> \
-<path_to_config_file>
-```
-
-ex:
-
-```
-ampseq-pipeline/ampseq-tools/speciation/speciate "genotype_files/*" \
-          barcodes.txt ampseq-pipeline/ampseq-tools/speciation/config.json \
-          --sample_col MalGen_ID
+<ampseq_pipeline_repo_location>/ampseq-tools/speciation/grc_speciation.py \
+--genotype_files "<path_to_input_genotype_files>" \
+--barcodes_file <path_to_barcode_file> \
+--config <path_to_config_file>
 ```
 
 # Run unit tests

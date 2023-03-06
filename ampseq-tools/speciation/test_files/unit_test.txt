@@ -1,4 +1,4 @@
-Amplicon	Pos	Chr	Loc	Gen	Depth	Filt	SampleID
+Amplicon	Pos	Chr	Loc	Gen	Depth	Filt	ID
 Agam_10_fp	163	Ag_2L	2388595	-	-	-	Sample1
 Agam_11_fp	118	Ag_2L	2399997	-	-	-	Sample1
 Agam_12_fp	153	Ag_2L	2403941	-	-	-	Sample1
