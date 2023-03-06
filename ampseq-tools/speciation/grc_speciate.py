@@ -171,7 +171,7 @@ def map_main(args):
 if __name__ == "__main__":
     # initialise argument parser
     parser = argparse.ArgumentParser(
-        prog="grc_speciate",
+        prog="grc_speciate.py",
         description="A package to perform speciation based on the production amplicon pipeline",
     )
 

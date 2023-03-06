@@ -23,7 +23,7 @@ A module to perform speciation based on the current amplicon production pipeline
 
 # Help Message
 ```
-usage: grc_speciate [-h] [--genotype_files GENOTYPE_FILES]
+usage: grc_speciate.py [-h] [--genotype_files GENOTYPE_FILES]
                     [--barcodes_file BARCODES_FILE] [--config CONFIG]
                     [--output_file OUTPUT_FILE] [--pbar] [--ncpus NCPUS]
                     [--output_debug_path OUTPUT_DEBUG_PATH]
