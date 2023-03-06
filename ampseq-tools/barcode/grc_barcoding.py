@@ -148,7 +148,7 @@ def map_main(args):
 if __name__ == "__main__":
     # initialise argument parser
     parser = argparse.ArgumentParser(
-        prog="grc_bardoding.py",
+        prog="grc_barcoding.py",
         description="A package to perform barcode production based on the production amplicon pipeline",
     )
 
