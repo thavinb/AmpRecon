@@ -1,4 +1,4 @@
-Amplicon	Pos	Chr	Loc	Gen	Depth	Filt	SampleID
+Amplicon	Pos	Chr	Loc	Gen	Depth	Filt	ID
 CRT_97	165	Pf3D7_07_v3	403793	A	63	PASS	Sample1
 CRT_97	166	Pf3D7_07_v3	403794	T	61	PASS	Sample1
 CRT_97	167	Pf3D7_07_v3	403795	A	62	PASS	Sample1

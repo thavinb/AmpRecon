@@ -1,4 +1,4 @@
-Amplicon	Pos	Chr	Loc	Gen	Depth	Filt	SampleID
+Amplicon	Pos	Chr	Loc	Gen	Depth	Filt	ID
 Pf3D7_02_v3_376222_K1929E_A	48	Pf3D7_02_v3	376222	A	19	PASS	Sample1
 Pf3D7_02_v3_470013_G75E_A	48	Pf3D7_02_v3	470013	G	45	PASS	Sample1
 Pf3D7_03_v3_656861_129V_A	148	Pf3D7_03_v3	656861	T	123	PASS	Sample1
