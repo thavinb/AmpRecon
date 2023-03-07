@@ -1,35 +1,39 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import unittest
 import os
-import pandas as pd
 import json
 from collections import defaultdict
-from importlib.machinery import SourceFileLoader
+
 test_dir = os.path.dirname(os.path.realpath(__file__))
 test_files_dir = os.path.join(test_dir, "test_files")
-#load in barcoding as module (requires more complicated import)
-#because file does not have a .py suffix
-loader = SourceFileLoader('barcoding', os.path.join(
-        test_dir,
-        "barcoding"
-        ))
-barcoding = loader.load_module()
-Barcode = barcoding.Barcode
+# #load in barcoding as module (requires more complicated import)
+# #because file does not have a .py suffix
+# loader = SourceFileLoader('barcoding', os.path.join(
+#         test_dir,
+#         "barcoding"
+#         ))
+# barcoding = loader.load_module()
+# Barcode = barcoding.Barcode
 
-#get barcode ref from config file
-barcode_ref = json.load(open(os.path.join(test_dir,"config.json")))["barcoding"]["barcode_ref"]
+import grc_barcoding as barcoding
+
+# get barcode ref from config file
+barcode_ref = json.load(open(os.path.join(test_dir, "config.json")))["grc_barcoding"][
+    "barcode_ref"
+]
 deconstruct_barcode_ref = defaultdict(list)
 for d in barcode_ref.values():
     deconstruct_barcode_ref[str(d["Locus"])].append(d["Chromosome"])
 
-#read in all files in test_files directory as dataframe
-d_dfs = {f.split("_")[-1].strip(".txt"):barcoding.read_genotype_file(
-    os.path.join(test_files_dir,f),
-    barcode_ref,
-    deconstruct_barcode_ref,
-    "SampleID"
-) for f in os.listdir(test_files_dir)}
+# read in all files in test_files directory as dataframe
+d_dfs = {
+    f.split("_")[-1].strip(".txt"): barcoding.read_genotype_file(
+        os.path.join(test_files_dir, f), deconstruct_barcode_ref
+    )
+    for f in os.listdir(test_files_dir)
+}
+
 
 class TestBarcode(unittest.TestCase):
     def setUp(self):
@@ -38,14 +42,20 @@ class TestBarcode(unittest.TestCase):
 
         Use keep_chroms_1 for obj 1 and regress, 2 for obj 2
         """
-        self.barcode_obj_1 = Barcode(d_dfs["1"].get("Sample1",{}), barcode_ref)
-        self.barcode_obj_2 = Barcode(d_dfs["2"].get("Sample1",{}), barcode_ref)
-        self.barcode_obj_regress = Barcode(d_dfs["regress"].get("Sample1",{}), barcode_ref)
+        self.barcode_obj_1 = barcoding.Barcode(
+            d_dfs["1"].get("Sample1", {}), barcode_ref
+        )
+        self.barcode_obj_2 = barcoding.Barcode(
+            d_dfs["2"].get("Sample1", {}), barcode_ref
+        )
+        self.barcode_obj_regress = barcoding.Barcode(
+            d_dfs["regress"].get("Sample1", {}), barcode_ref
+        )
 
         self.d_objects = {
-            "1":self.barcode_obj_1,
-            "2":self.barcode_obj_2,
-            "regress":self.barcode_obj_regress
+            "1": self.barcode_obj_1,
+            "2": self.barcode_obj_2,
+            "regress": self.barcode_obj_regress,
         }
 
     def test_build_barcode(self):
@@ -53,14 +63,14 @@ class TestBarcode(unittest.TestCase):
         Iterate through all 3 objects and check that output barcode is correct
         """
         d_barcodes = {
-            "1":"XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
-            "2":"AGTXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
-            "regress":"AGTCAGTGCAAACGTCTAAANGTGACGGCTTATCATATTXATCTCAAGAAAAGATAXAGACTAACGCCGTCCGXAGGGTCATAGATXACCCCACTACAGGC"
+            "1": "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
+            "2": "AGTXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
+            "regress": "AGTCAGTGCAAACGTCTAAANGTGACGGCTTATCATATTXATCTCAAGAAAAGATAXAGACTAACGCCGTCCGXAGGGTCATAGATXACCCCACTACAGGC",
         }
-        
+
         for k, truth_barcode in d_barcodes.items():
             self.assertEqual(truth_barcode, self.d_objects[k].barcode)
 
-if __name__=="__main__":
+
+if __name__ == "__main__":
     unittest.main()
-        

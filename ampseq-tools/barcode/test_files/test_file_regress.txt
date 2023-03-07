@@ -1,4 +1,4 @@
-Plate:Well	Sanger_ID	MalGen_ID	Amplicon	Pos	Chr	Loc	Gen	Depth	Filt	SampleID
+Plate:Well	Sanger_ID	MalGen_ID	Amplicon	Pos	Chr	Loc	Gen	Depth	Filt	ID
 DN824022Q:F10	6543STDY10458526	SPT59269	Agam_10_fp	163	Ag_2L	2388595	-	-	-	Sample1
 DN824022Q:F10	6543STDY10458526	SPT59269	Agam_11_fp	118	Ag_2L	2399997	-	-	-	Sample1
 DN824022Q:F10	6543STDY10458526	SPT59269	Agam_12_fp	153	Ag_2L	2403941	-	-	-	Sample1

@@ -1,48 +1,32 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import unittest
 import os
 from speciation.speciation import Speciate
-import pandas as pd
 import json
-from importlib.machinery import SourceFileLoader
-test_dir = os.path.dirname(os.path.realpath(__file__))
-loader = SourceFileLoader('speciate', os.path.join(
-        test_dir,
-        "speciate"
-        ))
-speciate = loader.load_module()
-
+import grc_speciate as speciate
 
 test_dir = os.path.dirname(os.path.realpath(__file__))
+
 
 class TestSpeciate(unittest.TestCase):
-    
     def setUp(self):
         """
         Set up input object for unit tests
         """
-        input_file_path = os.path.join(
-            test_dir, 
-            "test_files", 
-            "unit_test.txt"
-            )
-        
-        config = json.load(open(os.path.join(test_dir, "config.json")))["speciation"]
+        input_file_path = os.path.join(test_dir, "test_files", "unit_test.txt")
+
+        config = json.load(open(os.path.join(test_dir, "config.json")))[
+            "grc_speciation"
+        ]
+        chrom_regex = config.pop("chrom_regex", "^Spec_[12]_(falciparum|vivax)$")
         input_file = speciate.read_genotype_file(
-            input_file_path,
-            config["species_ref"],
-            "^Spec_[12]_(falciparum|vivax)$",
-            "SampleID"
-            )
+            input_file_path, config["species_ref"], chrom_regex
+        )
         barcode = "AGXTGXCGTAGGCGCXCATCTTTXGTACTTAXTCTCGTTGAATTCXXGCGGGAACGXGGCTAGGCGCTAACACTCAGGTTAGCAATAAXCXTGCAACGAGC"
 
-        self.obj = Speciate(
-            input_file["Sample1"], 
-            barcode,
-            **config
-            )
-    
+        self.obj = Speciate(input_file["Sample1"], barcode, **config)
+
     def test_read_genotype_file(self):
         """
         1) Create test input genotype file (gt_file)
@@ -51,69 +35,34 @@ class TestSpeciate(unittest.TestCase):
         """
 
         d_gt_file = {
-            "Spec_1_falciparum":{
-                "F94":{
-                    "Gen":"A",
-                    "Depth":"798"
-                },
-                "F96":{
-                    "Gen":"A",
-                    "Depth":"798"
-                }
+            "Spec_1_falciparum": {
+                "F94": {"Gen": "A", "Depth": "798"},
+                "F96": {"Gen": "A", "Depth": "798"},
             },
-            "Spec_1_vivax":{
-                "F96":{
-                    "Gen":"T",
-                    "Depth":"798"
-                },
-                "F97":{
-                    "Gen":"A,T",
-                    "Depth":"788,10"
-                }
-            }
+            "Spec_1_vivax": {
+                "F96": {"Gen": "T", "Depth": "798"},
+                "F97": {"Gen": "A,T", "Depth": "788,10"},
+            },
         }
-        
-        #run file through genotype file reading
-        allele_depth_dict = self.obj._read_genotype_file(
-            d_gt_file
-        )
+
+        # run file through genotype file reading
+        allele_depth_dict = self.obj._read_genotype_file(d_gt_file)
 
         truth = {
-            "F94":{
-                "Pf":{
-                    "Allele":["A"],
-                    "DP":798
-                },
-                "Pv":{
-                    "Allele":[],
-                    "DP":0
-                }
+            "F94": {"Pf": {"Allele": ["A"], "DP": 798}, "Pv": {"Allele": [], "DP": 0}},
+            "F96": {
+                "Pf": {"Allele": ["A"], "DP": 798},
+                "Pv": {"Allele": ["T"], "DP": 798},
             },
-            "F96":{
-                "Pf":{
-                    "Allele":["A"],
-                    "DP":798
-                },
-                "Pv":{
-                    "Allele":["T"],
-                    "DP":798
-                }
+            "F97": {
+                "Pf": {"Allele": [], "DP": 0},
+                "Pv": {"Allele": ["A", "T"], "DP": 798},
             },
-            "F97":{
-                "Pf":{
-                    "Allele":[],
-                    "DP":0
-                },
-                "Pv":{
-                    "Allele":["A","T"],
-                    "DP":798
-                }
-            }
         }
 
-        #compare each position and assert identity
+        # compare each position and assert identity
         for pos in truth.keys():
-            self.assertEqual(allele_depth_dict[pos], truth[pos],pos)
+            self.assertEqual(allele_depth_dict[pos], truth[pos], pos)
 
     def run_manipulate_maf(self, test, match):
         """
@@ -131,15 +80,21 @@ class TestSpeciate(unittest.TestCase):
         1) Ensure where MAF <0.01 Pf allele removed
         2) Ensure where MAF >0.01 Pf allele intact
         """
-        for dp, allele in zip([500, 50],[[],["A"]]):
+        for dp, allele in zip([500, 50], [[], ["A"]]):
             test = {
-            "F130":{'Pf': {'Allele': ["A"], 'DP': 1}, 'Pv': {'Allele': ['A'], 'DP': dp}}
+                "F130": {
+                    "Pf": {"Allele": ["A"], "DP": 1},
+                    "Pv": {"Allele": ["A"], "DP": dp},
+                }
             }
 
             match = {
-                "F130":{'Pf': {'Allele': allele, 'DP': 1}, 'Pv': {'Allele': ['A'], 'DP': dp}}
+                "F130": {
+                    "Pf": {"Allele": allele, "DP": 1},
+                    "Pv": {"Allele": ["A"], "DP": dp},
+                }
             }
-            
+
             self.run_manipulate_maf(test, match)
 
     def run_merge_alleles(self, test, match, key="F130"):
@@ -152,7 +107,6 @@ class TestSpeciate(unittest.TestCase):
         self.obj.merged_alleles = self.obj._merge_alleles()
         self.assertEqual(self.obj.merged_alleles[key], match)
 
-
     def test_merge_alleles(self):
         """
         Run test cases through run_merge_alleles
@@ -163,28 +117,40 @@ class TestSpeciate(unittest.TestCase):
         4) A + AT -> AT
         """
         test = {
-            "F130":{'Pf': {'Allele': ['A'], 'DP': 20}, 'Pv': {'Allele': ['A'], 'DP': 50}}
+            "F130": {
+                "Pf": {"Allele": ["A"], "DP": 20},
+                "Pv": {"Allele": ["A"], "DP": 50},
+            }
         }
         match = ["A"]
-        
+
         self.run_merge_alleles(test, match)
 
         test = {
-            "F130":{'Pf': {'Allele': ['A','T'], 'DP': 20}, 'Pv': {'Allele': ['A'], 'DP': 50}}
+            "F130": {
+                "Pf": {"Allele": ["A", "T"], "DP": 20},
+                "Pv": {"Allele": ["A"], "DP": 50},
+            }
         }
-        match = ["A","T"]
+        match = ["A", "T"]
         self.run_merge_alleles(test, match)
 
         test = {
-            "F130":{'Pf': {'Allele': ['A','T'], 'DP': 20}, 'Pv': {'Allele': ['A',"T"], 'DP': 50}}
+            "F130": {
+                "Pf": {"Allele": ["A", "T"], "DP": 20},
+                "Pv": {"Allele": ["A", "T"], "DP": 50},
+            }
         }
-        match = ["A","T"]
+        match = ["A", "T"]
         self.run_merge_alleles(test, match)
 
         test = {
-            "F130":{'Pf': {'Allele': ['A'], 'DP': 20}, 'Pv': {'Allele': ['A',"T"], 'DP': 50}}
+            "F130": {
+                "Pf": {"Allele": ["A"], "DP": 20},
+                "Pv": {"Allele": ["A", "T"], "DP": 50},
+            }
         }
-        match = ["A","T"]
+        match = ["A", "T"]
         self.run_merge_alleles(test, match)
 
     def test_match_loci(self):
@@ -195,26 +161,20 @@ class TestSpeciate(unittest.TestCase):
         4) assert equality between matched_loci and match
         """
         self.obj.species_ref = {
-            "F23": {"Pf": "T", "Pk": "A", "Pv": "A", "Po": "T", "Pm": "T"}, 
-            "F60": {"Pf": "A", "Pk": "A", "Pv": "A", "Po": "A", "Pm": "T"}, 
-            "F61": {"Pf": "A", "Pk": "A", "Pv": "A", "Po": "A", "Pm": "T"}, 
-            "F81": {"Pf": "A", "Pk": "G", "Pv": "A", "Po": "A", "Pm": "A"}
-            }
+            "F23": {"Pf": "T", "Pk": "A", "Pv": "A", "Po": "T", "Pm": "T"},
+            "F60": {"Pf": "A", "Pk": "A", "Pv": "A", "Po": "A", "Pm": "T"},
+            "F61": {"Pf": "A", "Pk": "A", "Pv": "A", "Po": "A", "Pm": "T"},
+            "F81": {"Pf": "A", "Pk": "G", "Pv": "A", "Po": "A", "Pm": "A"},
+        }
 
         self.obj.merged_alleles = {
-            "F23":["T","A"],
-            "F60":["A"],
-            "F61":["A"],
-            "F81":["A"]
+            "F23": ["T", "A"],
+            "F60": ["A"],
+            "F61": ["A"],
+            "F81": ["A"],
         }
 
-        match = {
-            "Pf":1,
-            "Pk":0.75,
-            "Pv":1,
-            "Po":1,
-            "Pm":0.5
-        }
+        match = {"Pf": 1, "Pk": 0.75, "Pv": 1, "Po": 1, "Pm": 0.5}
 
         matched_loci = self.obj._match_loci()
         self.assertEqual(matched_loci, match)
@@ -232,13 +192,13 @@ class TestSpeciate(unittest.TestCase):
            and barcode coverage below 51 (so do not call default species)
         """
         self.obj.matched_loci = {
-            'Pf': 1.0, 
-            'Pk': 0.7692307692307693, 
-            'Pv': 1.0, 
-            'Po': 0.8461538461538461, 
-            'Pm': 0.8653846153846154
-            }
-        barcode1="AGXTGXCGTAGGCGCXCATCTTTXGTACTTAXTCTCGTTGAATTCXXGCGGGAACGXGGCTAGGCGCTAACACTCAGGTTAGCAATAAXCXTGCAACGAGC"
+            "Pf": 1.0,
+            "Pk": 0.7692307692307693,
+            "Pv": 1.0,
+            "Po": 0.8461538461538461,
+            "Pm": 0.8653846153846154,
+        }
+        barcode1 = "AGXTGXCGTAGGCGCXCATCTTTXGTACTTAXTCTCGTTGAATTCXXGCGGGAACGXGGCTAGGCGCTAACACTCAGGTTAGCAATAAXCXTGCAACGAGC"
         args = (barcode1, "Pf", 51)
 
         label = self.obj._get_species_tag(*args)
@@ -252,12 +212,12 @@ class TestSpeciate(unittest.TestCase):
         label = self.obj._get_species_tag(*args)
         self.assertEqual(label, "-")
 
-        barcode2="XXTXXXXXTXXXXXXXXXXXTXTXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXGXXXXXXXCGXXXXXXXXXCXXXX"
+        barcode2 = "XXTXXXXXTXXXXXXXXXXXTXTXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXGXXXXXXXCGXXXXXXXXXCXXXX"
         args = (barcode2, "Pf", 51)
         self.obj.matched_loci["Pv"] = 1.0
         label = self.obj._get_species_tag(*args)
         self.assertEqual(label, "Pv")
 
 
-if __name__=="__main__":
+if __name__ == "__main__":
     unittest.main()
