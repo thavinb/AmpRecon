@@ -324,8 +324,7 @@ def write_out_grcs(haplotype_data:list, drug_resistance_loci, output_grc1_file, 
 				line.append(data[pos][0])
 			grc_2.write('\t'.join(line) + '\n')
 		
-	for gene in drug_resistance_loci['genes']:
-		grc_1.write(gene+'\t')
+	grc_1.write('\t'.join(drug_resistance_loci['genes']))
 
 	grc_1.write('\n')
 
