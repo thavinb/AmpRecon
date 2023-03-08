@@ -98,6 +98,8 @@ class AminoAcidCaller: #better name
 		genotype_information = self._read_genotypes_file(self.genotypes_files) 
 		sample_id = list(genotype_information.keys())
 
+		print(drl['exp_order'])
+
 		for id in sample_id:
 			self.haplotypes[id] = {}
 			grc_1_cols = {}
@@ -258,19 +260,20 @@ class AminoAcidCaller: #better name
 		aa_1 = '-'
 		aa_2 = '-'
 
-		for case in self.config["DR_DOUBLE_HETEROZYGOUS_CASES"][gene]:
-			
-			if case[0] == amino and case[1][0] == base_1 and case[1][1] == base_2 and case[1][2] == base_3:
-				aa_1 = case[2]
-				aa_2 = case[3]
+		if gene in self.config['DR_DOUBLE_HETEROZYGOUS_CASES']:
+			for case in self.config["DR_DOUBLE_HETEROZYGOUS_CASES"][gene]:
+				
+				if case[0] == amino and case[1][0] == base_1 and case[1][1] == base_2 and case[1][2] == base_3:
+					aa_1 = case[2]
+					aa_2 = case[3]
 
-				if aa_1 != '-' and aa_2 != '-':
-					if aa_1 == aa_2:
-						aa_call = aa_1
-						return aa_call
-					else:
-						return f"[{aa_1}/{aa_2}]"
-				continue
+					if aa_1 != '-' and aa_2 != '-':
+						if aa_1 == aa_2:
+							aa_call = aa_1
+							return aa_call
+						else:
+							return f"[{aa_1}/{aa_2}]"
+					continue
 
 
 	def translate_codon(self, base_1, base_2, base_3):
@@ -289,6 +292,9 @@ class AminoAcidCaller: #better name
 			if nucleotide in self.complement_bases:
 				complement_sequence.append(self.complement_bases[nucleotide])
 
+		if len(complement_sequence) > 1:
+			return ','.join(complement_sequence)
+			
 		return ''.join(complement_sequence)
 
 
@@ -324,8 +330,8 @@ def write_out_grcs(haplotype_data:list, drug_resistance_loci, output_grc1_file, 
 				line.append(data[pos][0])
 			grc_2.write('\t'.join(line) + '\n')
 		
-	grc_1.write('\t'.join(drug_resistance_loci['genes']))
 
+	grc_1.write('\t'.join(drug_resistance_loci['genes']))
 	grc_1.write('\n')
 
 	for id in sample_id:
