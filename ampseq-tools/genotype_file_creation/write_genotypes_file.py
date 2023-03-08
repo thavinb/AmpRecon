@@ -14,7 +14,7 @@ class GenotypeFileWriter:
 
     def __init__(
         self,
-        vcf_path_list,
+        vcf_list,
         out_file_name,
         sample_id,
         chromKey_file_path,
@@ -24,7 +24,7 @@ class GenotypeFileWriter:
         het_min_allele_depth,
         het_min_allele_proportion,
     ):
-        self.vcf_list = vcf_path_list
+        self.vcf_list = vcf_list
         self.output_file_name = out_file_name
         self.sample_id = sample_id
         self.chromKey_file = chromKey_file_path
@@ -92,11 +92,11 @@ class GenotypeFileWriter:
                 output_genotype_file,
                 delimiter="\t",
                 fieldnames=[
-                    "Sample_ID",
+                    "ID",
                     "Amplicon",
-                    "Amplicon_Pos",
+                    "Pos",
                     "Chr",
-                    "Chr_Loc",
+                    "Loc",
                     "Gen",
                     "Depth",
                     "Filt",
@@ -105,8 +105,8 @@ class GenotypeFileWriter:
             file_writer.writeheader()
 
             # Format each chromKey row and add any VCF record data at that position
-            for ck_row in filtered_chromKey_dict.items():
-                formatted_row = self._format_chromKey_row(ck_row, genotype_rows_dict)
+            for key, row in filtered_chromKey_dict.items():
+                formatted_row = self._format_chromKey_row(key, row, genotype_rows_dict)
 
                 # Write formatted chromKey / VCF rows to genotype file
                 file_writer.writerow(formatted_row)
@@ -231,13 +231,13 @@ class GenotypeFileWriter:
             str(filter_value),
         ]
 
-    def _format_chromKey_row(self, ck_row, genotypes_dict):
+    def _format_chromKey_row(self, key, row, genotypes_dict):
         """
         Format a chromKey row and adds any VCF record data at that position
         """
 
         # If a genotype row taken from a VCF matches then use its values, otherwise use "-"
-        genotypes_row = genotypes_dict.get(ck_row[0])
+        genotypes_row = genotypes_dict.get(key)
         if genotypes_row != None:
             genotype = genotypes_row[4]
             depth = genotypes_row[5]
@@ -248,17 +248,17 @@ class GenotypeFileWriter:
             filter = "-"
 
         # Retrieve location data from this chromKey row
-        amplicon = ck_row[1].get("Chrom_ID")
-        amplicon_pos = ck_row[1].get("VarPos")
-        chromosome = ck_row[1].get("Chromosome")
-        chr_loc = ck_row[1].get("Locus")
+        amplicon = row.get("Chrom_ID")
+        amplicon_pos = row.get("VarPos")
+        chromosome = row.get("Chromosome")
+        chr_loc = row.get("Locus")
 
         row = {
-            "Sample_ID": str(self.sample_id),
+            "ID": str(self.sample_id),
             "Amplicon": amplicon,
-            "Amplicon_Pos": str(amplicon_pos),
+            "Pos": str(amplicon_pos),
             "Chr": chromosome,
-            "Chr_Loc": str(chr_loc),
+            "Loc": str(chr_loc),
             "Gen": genotype,
             "Depth": depth,
             "Filt": filter,
@@ -269,7 +269,7 @@ class GenotypeFileWriter:
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "--input_vcf_list",
+        "--vcf_files",
         "-i",
         help="List of VCF files to merge, mask SNPs in and update co-ordinates for.",
         required=True,
@@ -278,9 +278,9 @@ if __name__ == "__main__":
         default=[],
     )
     parser.add_argument(
-        "--output_file_name",
+        "--output_file",
         "-o",
-        help="Base name (no extension) for the output genotypes file.",
+        help="Name of the output genotypes file.",
         type=str,
         required=True,
     )
@@ -334,8 +334,8 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
     liftover_genotypes_write_file = GenotypeFileWriter(
-        args.input_vcf_list,
-        args.output_file_name,
+        args.vcf_files,
+        args.output_file,
         args.sample_id,
         args.chromKey_file,
         args.chromosome_column_name,

@@ -1,1 +1,1 @@
-python3 test_plasmepsin_caller.py
+python3 test_grc_plasmepsin_cnv_caller.py

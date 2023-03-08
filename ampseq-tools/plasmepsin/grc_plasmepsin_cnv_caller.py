@@ -18,10 +18,10 @@ class PlasmepsinVariantCaller:
     4) Genotyping at these nucleotides allows for amplification to be identified.
     """
 
-    def __init__(self, genotype_file_path_list, out_file_name, config_loci_genotypes_variants):
-        self.genotype_file_list = genotype_file_path_list
+    def __init__(self, genotype_files, out_file_name, config):
+        self.genotype_file_list = genotype_files
         self.output_file_name = out_file_name
-        self.config_loci_genotypes_variants = config_loci_genotypes_variants
+        self.config = config
 
     def call_plasmepsin_variants(self):
         """
@@ -29,12 +29,13 @@ class PlasmepsinVariantCaller:
         Amplification is called if alternative genotype (homozygous / heterozygous) is seen at any of the supplied positions.
         """
 
-        with open(self.config_loci_genotypes_variants) as file:
-            plasmepsin_loci = json.load(file).get("plasmepsin_loci")
+        with open(self.config) as file:
+            plasmepsin_config = json.load(file).get("grc_plasmepsin")
+            plasmepsin_loci = plasmepsin_config.get("plasmepsin_loci")
 
         output_file = open(self.output_file_name, "w")
         file_writer = csv.DictWriter(
-            output_file, delimiter="\t", fieldnames=["Sample_ID", "Variant"]
+            output_file, delimiter="\t", fieldnames=["ID", "P23:BP"]
         )
         file_writer.writeheader()
 
@@ -47,7 +48,7 @@ class PlasmepsinVariantCaller:
             )
             # Iterate over all of the sample IDs in this genotype file
             sample_id_list = set(
-                row.get("Sample_ID") for row in plasmepsin_genotype_rows.values()
+                row.get("ID") for row in plasmepsin_genotype_rows.values()
             )
             for sample_id in sample_id_list:
 
@@ -57,7 +58,7 @@ class PlasmepsinVariantCaller:
                 )
 
                 # Write variant and sample ID to output file
-                row = {"Sample_ID": str(sample_id), "Variant": str(variant)}
+                row = {"ID": str(sample_id), "P23:BP": str(variant)}
                 file_writer.writerow(row)
 
         output_file.close()
@@ -73,10 +74,10 @@ class PlasmepsinVariantCaller:
         for row in csv.DictReader(genotype_file, delimiter="\t"):
 
             # If this row is not a plasmepsin locus then ignore it
-            if f"{row[str('Chr')]}:{row[str('Chr_Loc')]}" in plasmepsin_positions:
+            if f"{row[str('Chr')]}:{row[str('Loc')]}" in plasmepsin_positions:
 
                 # Key is chromosome:locus
-                key = f"{row[str('Sample_ID')]}-{row[str('Chr')]}:{row[str('Chr_Loc')]}"
+                key = f"{row[str('ID')]}-{row[str('Chr')]}:{row[str('Loc')]}"
 
                 # Value is a dictionary of that genotype file row
                 genotype_file_dict[key] = dict(row)
@@ -124,7 +125,7 @@ class PlasmepsinVariantCaller:
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "--input_genotype_file_list",
+        "--genotype_files",
         "-i",
         help="List of per-sample genotype files to call plasmepsin variants in.",
         required=True,
@@ -134,15 +135,15 @@ if __name__ == "__main__":
     )
 
     parser.add_argument(
-        "--output_file_name",
+        "--output_file",
         "-o",
-        help="Base name (no extension) for the output plasmepsin variants file.",
+        help="Name for the output plasmepsin variants file. Default is plasmepsin_cnv_calls.txt.",
         type=str,
-        required=True,
+        default="plasmepsin_cnv_calls.txt",
     )
 
     parser.add_argument(
-        "--config_loci_genotypes_variants",
+        "--config",
         "-l",
         help="Config JSON file containing a list of plasmepsin loci, genotypes and variants to call.",
         required=True,
@@ -151,8 +152,8 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
     plasmepsin_variants = PlasmepsinVariantCaller(
-        args.input_genotype_file_list,
-        args.output_file_name,
-        args.config_loci_genotypes_variants,
+        args.genotype_files,
+        args.output_file,
+        args.config,
     )
     plasmepsin_variants.call_plasmepsin_variants()
