@@ -1,0 +1,7 @@
+{
+    "grc_kelch13": {
+        "minimum_kelch13_WT_coverage":0.95,
+        "kelch13_regions": {"Pf3D7_13_v3": {"Start": "1724937", "End": "1725955"}
+        }
+    }
+}

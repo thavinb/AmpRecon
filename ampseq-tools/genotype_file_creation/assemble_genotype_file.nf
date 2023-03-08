@@ -13,7 +13,7 @@ process assemble_genotype_file {
 
     input:
         tuple val(sample_tag), path(vcf_file_list)
-        path(chrom_key_file)
+        val(chrom_key_file)
 
     output:
         tuple val(sample_tag), path("${output_file_name}")
@@ -28,9 +28,9 @@ process assemble_genotype_file {
 
         """
         write_genotypes_file.py \
-            --input_vcf_list ${vcf_file_list} \
+            --vcf_files ${vcf_file_list} \
             --sample_id "${sample_tag}" \
-            --output_file_name "${output_file_name}" \
+            --output_file "${output_file_name}" \
             --chromKey_file "${chrom_key_file}" \
             --chromosome_column_name "${chromsome_column}" \
             --locus_column_name "${locus_column}" \

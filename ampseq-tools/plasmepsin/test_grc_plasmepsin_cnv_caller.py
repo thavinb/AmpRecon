@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from plasmepsin_caller import PlasmepsinVariantCaller
+from grc_plasmepsin_cnv_caller import PlasmepsinVariantCaller
 import unittest
 import os
 import json
@@ -19,7 +19,7 @@ class TestPlasmepsinVariantCaller(unittest.TestCase):
 
         # Read in test data from testing config file
         with open(self.loci_genotypes_variants) as file:
-            config = json.load(file)
+            config = json.load(file).get("grc_plasmepsin")
             self.plasmepsin_loci = config.get("plasmepsin_loci")
             self.test_genotypes = config.get("test_genotypes")
             self.test_variants = config.get("test_variants")
@@ -44,7 +44,7 @@ class TestPlasmepsinVariantCaller(unittest.TestCase):
             [self.assertIn(key, self.genotype_file_column_names) for key in row.keys()]
 
             # Ensure that each genotype file row is a plasmepsin locus
-            position = f"{row[str('Chr')]}:{row[str('Chr_Loc')]}"
+            position = f"{row[str('Chr')]}:{row[str('Loc')]}"
             self.assertIn(position, plasmepsin_positions)
 
     def test_determine_sample_variant(self):
