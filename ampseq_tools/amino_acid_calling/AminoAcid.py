@@ -98,8 +98,6 @@ class AminoAcidCaller: #better name
 		genotype_information = self._read_genotypes_file(self.genotypes_files) 
 		sample_id = list(genotype_information.keys())
 
-		print(drl['exp_order'])
-
 		for id in sample_id:
 			self.haplotypes[id] = {}
 			grc_1_cols = {}
