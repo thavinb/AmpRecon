@@ -32,10 +32,11 @@ def loadBarcodeDef(barcode_json_path:str) -> dict:
     barcode_def_dct = json.load(open(barcode_json_path,"r"))
     # intify keys
     cur_keys = list(barcode_def_dct["barcoding"]["barcode_ref"].keys())
+    print(barcode_def_dct["barcoding"]["barcode_ref"])
     for d_i in cur_keys:
-        barcode_def_dct["barcode_ref"][int(d_i)] = barcode_def_dct["barcode_ref"].pop(d_i)
+        barcode_def_dct["barcoding"]["barcode_ref"][int(d_i)] = barcode_def_dct["barcoding"]["barcode_ref"].pop(d_i)
 
-    return barcode_def_dct['barcode_ref']
+    return barcode_def_dct["barcoding"]['barcode_ref']
 
 # load samples barcode file
 def loadSamplesBarcode(samples_brcd_path:str)-> dict:
@@ -104,11 +105,9 @@ def __getSNPnumbersFrom(barcode:str, barcode_def_dct:dict)-> list:
     ALLOWED_CHAR = ["X","N","A","T","C","G"]
     unique_char = list(set(barcode.upper())) 
     for char in unique_char:
-        try:
-            assert(char in ALLOWED_CHAR)
-        except(AssertionError):
-            print("ERROR: {char} is not a valid barcode character")
-            exit(1)
+        assert(char in ALLOWED_CHAR),f"ERROR: {char} is not a valid barcode character"
+            
+        
     coi_numbers = []
     for i, char_i in enumerate(barcode.upper()):
         pos_i = i+1

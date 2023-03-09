@@ -83,34 +83,39 @@ def test_homozygous_major_positions_are_assigned_one(barcode_def_dct):
 @pytest.fixture
 def barcode_def_json(tmp_path):
     # Set up a fixture for the barcode definition dictionary
-    barcode_def = {
-        "barcode_ref": {
+    barcode_def_txt = {"barcoding":{
+            "barcode_ref": {
             "001": {"Chromosome": "Pf3D7_02_v3", "Locus": 376222, "RefAllele": "A"},
-            "002": {"Chromosome": "Pf3D7_02_v3", "Locus": 470013, "RefAllele": "G"},
-            "003": {"Chromosome": "Pf3D7_03_v3", "Locus": 656861, "RefAllele": "T"}
+            "002": {"Chromosome": "Pf3D7_02_v3", "Locus": 376223, "RefAllele": "T"},
+            "003": {"Chromosome": "Pf3D7_02_v3", "Locus": 376224, "RefAllele": "C"},
+            "004": {"Chromosome": "Pf3D7_02_v3", "Locus": 376225, "RefAllele": "G"},
+            "005": {"Chromosome": "Pf3D7_02_v3", "Locus": 376226, "RefAllele": "T"},
+            }
         }
     }
     barcode_def_file = tmp_path / "barcode_def_test.json"
-    barcode_def_file.write_text(json.dumps(barcode_def))
+    barcode_def_file.write_text(json.dumps(barcode_def_txt))
 
-    return barcode_def["barcode_ref"]
+    return barcode_def_file
 
-def test_loadBarcodeDef(barcode_def_json, tmp_path):
+def test_loadBarcodeDef(barcode_def_json,barcode_def_dct, tmp_path):
     '''
     Test if loading a barcode definition dictionary from a JSON file
     returns the expected result
     '''
-    barcode_def_file = tmp_path / "barcode_def_test.json"
-    barcode_def_file.write_text(json.dumps({"barcode_ref": barcode_def_json}))
-    assert loadBarcodeDef(str(barcode_def_file)) == barcode_def_json
+    #barcode_def_file = tmp_path / "barcode_def_test.json"
+    #barcode_def_file.write_text(json.dumps({barcode_def_json}))
+    #print(barcode_def_file)
+    print(barcode_def_json)
+    assert loadBarcodeDef(str(barcode_def_json)) == barcode_def_dct
 
-def test_loadBarcodeDef(barcode_def_json, tmp_path):
-    barcode_def_file = tmp_path  / "barcode_def_test.json"
-    barcode_def_file.write_text(json.dumps({"barcode_ref":barcode_def_json}))
 
-    barcode_def = loadBarcodeDef(str(barcode_def_file))
+def test_loadBarcodeDef_2(barcode_def_json, barcode_def_dct):
+    
+    barcode_def = loadBarcodeDef(str(barcode_def_json))
+    assert barcode_def == barcode_def_dct
 
-    assert set(barcode_def.keys()) == set([1, 2, 3]), "Unexpected keys in barcode definition"
+    assert set(barcode_def.keys()) == set([1, 2, 3, 4, 5]), "Unexpected keys in barcode definition"
     assert all(isinstance(k, int) for k in barcode_def.keys()), "Keys should be integers"
     assert all(isinstance(v, dict) for v in barcode_def.values()), "Values should be dictionaries"
     assert all(isinstance(v['Chromosome'], str) for v in barcode_def.values()), "Chromosome values should be strings"
