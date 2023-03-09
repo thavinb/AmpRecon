@@ -110,9 +110,9 @@ class AminoAcidCaller: #better name
 					self.haplotypes[id][gene] = []
 					grc_1_cols[gene] = True
 				
-				if gene in self.config['DR_HAPLOTYPE_SPECIAL_CASES']:
-					if amino in self.config['DR_HAPLOTYPE_SPECIAL_CASES'][gene]:
-						aa = self.config['DR_HAPLOTYPE_SPECIAL_CASES'][gene][amino]
+				if gene in self.config['grc_amino_acid_caller']['DR_HAPLOTYPE_SPECIAL_CASES']:
+					if amino in self.config['grc_amino_acid_caller']['DR_HAPLOTYPE_SPECIAL_CASES'][gene]:
+						aa = self.config['grc_amino_acid_caller']['DR_HAPLOTYPE_SPECIAL_CASES'][gene][amino]
 						if gene_amino in core_genes:
 							self.haplotypes[id][gene].append(aa)
 						continue
@@ -234,8 +234,8 @@ class AminoAcidCaller: #better name
 			for gene_amino in drl['exp_order']:
 				gene, amino = gene_amino.split(":")
 				hap = self.haplotypes[sample][gene]
-				if gene in self.config['DR_HAPLOTYPE_SPECIAL_CASES']:
-					num_hc_for_gene_in_conf = len(self.config['DR_HAPLOTYPE_SPECIAL_CASES'][gene])
+				if gene in self.config['grc_amino_acid_caller']['DR_HAPLOTYPE_SPECIAL_CASES']:
+					num_hc_for_gene_in_conf = len(self.config['grc_amino_acid_caller']['DR_HAPLOTYPE_SPECIAL_CASES'][gene])
 					num_non_blank_for_gene = 0
 					for call in self.haplotypes[sample][gene]:
 						if call != '-':
@@ -258,8 +258,8 @@ class AminoAcidCaller: #better name
 		aa_1 = '-'
 		aa_2 = '-'
 
-		if gene in self.config['DR_DOUBLE_HETEROZYGOUS_CASES']:
-			for case in self.config["DR_DOUBLE_HETEROZYGOUS_CASES"][gene]:
+		if gene in self.config['grc_amino_acid_caller']['DR_DOUBLE_HETEROZYGOUS_CASES']:
+			for case in self.config['grc_amino_acid_caller']["DR_DOUBLE_HETEROZYGOUS_CASES"][gene]:
 				
 				if case[0] == amino and case[1][0] == base_1 and case[1][1] == base_2 and case[1][2] == base_3:
 					aa_1 = case[2]
@@ -369,3 +369,4 @@ if __name__ == "__main__":
 	caller = AminoAcidCaller(args.genotype_files, args.config, args.drl_information_file, args.codon_key_file)
 	output = caller.call_haplotypes()
 	write_out_grcs(output, caller.drl_info, args.output_grc1_file, args.output_grc2_file)
+
