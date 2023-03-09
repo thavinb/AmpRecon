@@ -1,7 +1,6 @@
 import pytest
 import json
-from grc_process_mccoil_io import __getSNPnumbersFrom, loadBarcodeDef, loadSamplesBarcode, writeMcCOILat
-from WriteCOIgrc import parseCOIout, writeCOIgrc
+from grc_process_mccoil_io import __getSNPnumbersFrom, loadBarcodeDef, loadSamplesBarcode, writeMcCOILat, parseCOIout
 import os
 
 # ---- BARCODE2McCOILin unit tests -----

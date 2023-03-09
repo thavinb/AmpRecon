@@ -29,7 +29,7 @@ def loadBarcodeDef(barcode_json_path:str) -> dict:
     dictionary with the barcode definitions
     """
     barcode_def_dct = json.load(open(barcode_json_path,"r"))
-
+    # TODO add new json layer (handle as global stuff) 
     # intify keys
     cur_keys = list(barcode_def_dct["barcode_ref"].keys())
     for d_i in cur_keys:
@@ -71,7 +71,7 @@ def loadSamplesBarcode(samples_brcd_path:str)-> dict:
 def __getSNPnumbersFrom(barcode:str, barcode_def_dct:dict)-> list:
     """
     For The Real McCOIL categorical method, for each site analysed
-    three four can be assigned:
+    four can be assigned:
         * -1 :if base is missing on a given individual/sample
         * 0.5: if base is heterozygous
         * 1 : if homozygous major allele
@@ -104,15 +104,18 @@ def __getSNPnumbersFrom(barcode:str, barcode_def_dct:dict)-> list:
     ALLOWED_CHAR = ["X","N","A","T","C","G"]
     unique_char = list(set(barcode.upper())) 
     for char in unique_char:
-        if char not in ALLOWED_CHAR:
-            raise 
+        try:
+            assert(char in ALLOWED_CHAR)
+        except(AssertionError):
+            print("ERROR: {char} is not a valid barcode character")
+            exit(1)
     coi_numbers = []
     for i, char_i in enumerate(barcode.upper()):
         pos_i = i+1
         # get barcode definition for pos_i
         ref_base_i = barcode_def_dct[pos_i]["RefAllele"]
         # sanity check
-        assert(ref_base_i != "N"),"ERROR: reference allele set as N is forbiden. Sorry, is the law"
+        assert(ref_base_i != "N"),"ERROR: reference allele set as N is forbidden. Sorry, it is the law!"
         
         # if "X" then is considered as a missing postitions, set -1
         # default assumption is assuming base is missing
@@ -256,7 +259,7 @@ def writeCOIgrc(coi_out_dct:dict, grc_out_flpath:str) -> None:
     # write grc lines 
     with open(grc_out_flpath,"w") as coi_grc_fl:
         # header
-        coi_grc_fl.write("Sample\tMcCOIL\n")
+        coi_grc_fl.write("ID\tMcCOIL\n")
         # rows
         for sample in samples_nms:
             coi_grc_fl.write(f"{sample}\t{coi_out_dct[sample]['mean']}\n")
