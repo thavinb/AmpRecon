@@ -1,4 +1,6 @@
+
 {
+	"grc_amino_acid_caller" : {
 
 	"DR_DOUBLE_HETEROZYGOUS_CASES" : {
 
@@ -19,6 +21,7 @@
 		"PfCRT" : { "73" : "V"}
 
 	}
+}
 
 }
 
