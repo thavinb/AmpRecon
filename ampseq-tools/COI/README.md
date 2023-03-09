@@ -37,7 +37,7 @@ A common usage of this component, assuming it is running The REALMcCOIL inside t
 ```
 # write McCOIL in
 python3 grc_process_mccoil_io.py -write_mccoil_in \
-            --barcodes_files $BARCODES_IN --barcode_def_file $BARCODE_DEF \
+            --barcodes_files $BARCODES_IN --config $BARCODE_DEF \
             --output_file $RUN_ID.tsv
 
 # run McCOIL

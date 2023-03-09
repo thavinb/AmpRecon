@@ -11,11 +11,12 @@ def loadBarcodeDef(barcode_json_path:str) -> dict:
     Load barcode defintion from a json file
 
     ex:
-    {
-    "barcode_ref": {
-        "001": {"Chromosome": "Pf3D7_02_v3", "Locus": 376222, "RefAllele": "A"},
-        "002": {"Chromosome": "Pf3D7_02_v3", "Locus": 470013, "RefAllele": "G"},
-        "003": {"Chromosome": "Pf3D7_03_v3", "Locus": 656861, "RefAllele": "T"}
+    { "barcoding":{
+        "barcode_ref": {
+            "001": {"Chromosome": "Pf3D7_02_v3", "Locus": 376222, "RefAllele": "A"},
+            "002": {"Chromosome": "Pf3D7_02_v3", "Locus": 470013, "RefAllele": "G"},
+            "003": {"Chromosome": "Pf3D7_03_v3", "Locus": 656861, "RefAllele": "T"}
+            }
         }
     }
 
@@ -29,9 +30,8 @@ def loadBarcodeDef(barcode_json_path:str) -> dict:
     dictionary with the barcode definitions
     """
     barcode_def_dct = json.load(open(barcode_json_path,"r"))
-    # TODO add new json layer (handle as global stuff) 
     # intify keys
-    cur_keys = list(barcode_def_dct["barcode_ref"].keys())
+    cur_keys = list(barcode_def_dct["barcoding"]["barcode_ref"].keys())
     for d_i in cur_keys:
         barcode_def_dct["barcode_ref"][int(d_i)] = barcode_def_dct["barcode_ref"].pop(d_i)
 
@@ -286,7 +286,7 @@ if __name__ == "__main__":
     parser.add_argument("--barcodes_files", nargs='+', help="""
         Path(s) to barcode tsv file for a batch of samples
     """, default=None)
-    parser.add_argument("--barcode_def_file", help="""
+    parser.add_argument("--config", help="""
         Path to a json file with barcodes definitions
     """, default=None)
 
