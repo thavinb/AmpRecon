@@ -4,7 +4,7 @@ Here a script to handle input and output for the REALMcCOIL and a container reci
 
 The `grc_process_mccoil_io.py` can:
 
-1) write input files for the REAL McCOIL from sample barcodes `tsv` and a barcode definition `json` file. Both should follow the same format as set fot the Barcode component of the `grc-tools`;
+1) write input files for the REAL McCOIL from sample barcodes `tsv` and a barcode definition `json` file. Both should follow the same format as set for the Barcode component of the `grc_tools`;
 2) write `coi.grc` from the `_summary.txt` output of the REAL McCOIL.
 
 PS: Inputs and outputs of the original The REAL McCOIL should work just fine, however, here we use a [custom version of The REAL McCOIL](https://github.com/AMarinhoSN/THEREALMcCOIL). Small tweeks were necessary to containarize this software and improve usability by adding a command line interface was necessary.
