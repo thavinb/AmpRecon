@@ -17,8 +17,8 @@ trap 'echo "\"${last_command}\" command filed with exit code $?."' EXIT
 echo "@ building bambi.sif"
 singularity build --fakeroot bambi.sif SingularityFile_bambi
 
-echo "@ building biobambam2.sif"
-singularity build --fakeroot biobambam2.sif SingularityFile_biobambam2
+echo "@ building biobambam2-2.0.79.sif"
+singularity build --fakeroot biobambam2-2.0.79.sif biobambam2-2.0.79.def
 
 echo "@ building staden.sif"
 singularity build --fakeroot staden.sif SingularityFile_staden
