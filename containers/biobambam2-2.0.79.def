@@ -1,0 +1,41 @@
+# Use docker as the base image
+Bootstrap: docker
+
+# Use the latest version of the Miniconda3 image from Docker Hub
+From: continuumio/miniconda3:latest
+
+# set up environment
+%environment
+	# Add the Miniconda3 binaries to the PATH
+	PATH=/opt/conda/bin:$PATH
+	
+	# Set the library path, include path, and pkg-config path to system default
+	# The aim of these values is to avoid issues with package installation
+	export LIBRARY_PATH=/usr/lib/x86_64-linux-gnu/
+	export C_INCLUDE_PATH=/usr/include/
+	export PKG_CONFIG_PATH=/usr/lib/x86_64-linux-gnu/pkgconfig/
+
+# Install necessary packages
+%post
+	# Update the package manager and install necessary packages
+	apt-get update && \
+	apt-get install -y libbz2-dev liblzma-dev libcurl4-openssl-dev libncurses-dev checkinstall
+
+	# Configure Conda to use the bioconda channel
+	# Order of these commands are significant
+	conda config --add channels defaults
+	conda config --add channels bioconda
+	conda config --add channels conda-forge
+	conda config --set channel_priority strict
+
+	# Install biobambam2 version 2.0.79
+	conda install -y biobambam=2.0.79-0
+
+# Add the biobambam2 binary to the environment path
+%environment
+	PATH=/opt/conda/envs/biobambam-2.0.79/bin:$PATH
+
+# Test the installation
+%test
+	# Verify that biobambam2 is installed and accessible in the PATH
+	bamsort -h	
