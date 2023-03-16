@@ -1,0 +1,51 @@
+#!/usr/bin/env python3
+
+import pandas as pd
+import argparse
+
+parser = argparse.ArgumentParser(
+    prog="grc_assemple.py",
+    description="""
+        This script mergea an arbitrary set of grcs/tsv files
+        """,
+)
+
+# inputs for write_mccoil_in mode
+parser.add_argument(
+    "-grcs_in",
+    nargs="+",
+    help="""
+    Path(s) to barcode tsv file for a batch of samples
+""",
+    default=None,
+    required=True,
+)
+
+parser.add_argument(
+    "-grc_out_name",
+    help="""
+    name of the grc output (default = final.grc)
+""",
+    default="final.grc",
+)
+
+args = {k: v for k, v in vars(parser.parse_args()).items()}
+
+
+# TODO sanity checks
+
+# Create an empty DataFrame to hold the merged data
+merged_data = pd.DataFrame()
+
+# Iterate through each TSV file and merge with the existing data
+for file in args["grcs_in"]:
+    # Read the TSV file into a DataFrame
+    df = pd.read_csv(file, sep="\t", index_col=0)
+    # Merge the DataFrame with the existing data
+    merged_data = pd.concat([merged_data, df], axis=1, sort=False)
+
+# fill NaN values with "-" and write final grc
+# -- handle special columns --
+# intify McCOIL columns (PS: min value for COI is 1, in this context 0 is NaN)
+merged_data["McCOIL"] = merged_data["McCOIL"].fillna(0).astype(int).replace(0, "-")
+merged_data.fillna("-").to_csv(args["grc_out_name"], sep="\t")

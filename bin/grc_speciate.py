@@ -181,6 +181,7 @@ if __name__ == "__main__":
         help="""
         Input list of all genotype files (TSV format) to be run through the speciation program
         """,
+        nargs="+",
     )
     parser.add_argument(
         "--barcodes_file",
@@ -224,12 +225,14 @@ if __name__ == "__main__":
     # get all arguments with a value and place into dictionary
     args = {k: v for k, v in vars(parser.parse_args()).items() if v}
 
-    # get list of genotype files from glob string, if genotype files not provided
-    # throw error
-    if args["genotype_files"]:
-        genotype_files = glob(args["genotype_files"])
-    else:
+    # if genotype files not provided throw error
+    if not args["genotype_files"]:
         raise NoGenotypeFilesError
+
+    # get list of genotype file paths and expand any glob string file paths
+    genotype_files = []
+    for path in args["genotype_files"]:
+        genotype_files.extend(glob(path))
 
     # check for barcodes file, if present read into dataframe and transform to dict
     # for querying. If not present throw error
