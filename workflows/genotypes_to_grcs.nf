@@ -54,7 +54,7 @@ workflow {
     genotype_files_ch = Channel.fromPath(params.genotype_files_path, checkIfExists: true).collect()
     kelch_reference_file = Channel.fromPath(params.kelch_reference_file_path, checkIfExists: true)
     codon_key_file = Channel.fromPath(params.codon_key_file_path, checkIfExists: true)
-    drl_information_file = Channel.fromPath(params.drl_information_file, checkIfExists: true)
+    drl_information_file = Channel.fromPath(params.drl_information_file_path, checkIfExists: true)
 
     GENOTYPES_TO_GRCS(genotype_files_ch, kelch_reference_file, codon_key_file, drl_information_file)
 }
