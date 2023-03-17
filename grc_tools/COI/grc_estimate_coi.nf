@@ -1,7 +1,7 @@
 params.coi_output_filename = "coi.tsv"
 
 process grc_estimate_coi {
-
+    label "grc_tools"
     input:
         val(barcodes_grc)
 

@@ -8,7 +8,7 @@ process grc_kelch13_mutation_caller {
     * It also uses the kelch13 region supplied in the configuration file.
     * Writes these kelch13 mutation calls to a single output tab-separated file.
     */
-
+    label "grc_tools"
     input:
         val(genotype_file_list)
         path(kelch_reference_file)

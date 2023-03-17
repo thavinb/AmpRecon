@@ -3,7 +3,7 @@ params.grc_2_filename = "GRC2.tsv"
 
 process grc_amino_acid_caller {
     publishDir "${params.results_dir}/", pattern: "${output_grc_2}", overwrite: true, mode: "copy"
-
+    label "grc_tools"
     input:
         val(genotype_files)
         path(drl_information_file)

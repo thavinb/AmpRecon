@@ -1,7 +1,7 @@
 params.barcode_output_filename = "barcode_output.tsv"
 
 process grc_barcoding {
-
+    label "grc_tools"
     input:
         val(genotype_file_list)
 
