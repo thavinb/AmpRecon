@@ -2,7 +2,7 @@ params.grc_1_name = "GRC1.tsv"
 
 process grc_assemble {
     publishDir "${params.results_dir}/", overwrite: true, mode: "copy"
-
+    label "grc_tools"
     input:
         val(grc_components_list)
 
