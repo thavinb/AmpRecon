@@ -6,6 +6,7 @@ process grc_plasmepsin_cnv_caller {
     * Uses plasmepsin genotypes, variants and loci supplied in the configuration file.
     * Writes these plasmepsin copy number variation calls to a single output tab-separated file.
     */
+    label "grc_tools"
 
     input:
         val(genotype_file_list)

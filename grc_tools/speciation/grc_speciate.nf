@@ -1,6 +1,7 @@
 params.speciation_output_filename = "speciation_output.tsv"
 
 process grc_speciate {
+    label "grc_tools"
 
     input:
         val(genotype_file_list)
