@@ -50,4 +50,8 @@ singularity build --fakeroot bcftools.sif SingularityFile_bcftools
 
 echo "@ building grc_tools.sif"
 singularity build --fakeroot grc_tools.sif SingularityFile_grctools
+
+echo "@ building coi.sif"
+singularity build --fakeroot coi.sif SingularityFile_coi
+
 echo ":: DONE ::"
