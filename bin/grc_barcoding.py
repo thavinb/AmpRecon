@@ -157,7 +157,9 @@ if __name__ == "__main__":
         "--genotype_files",
         help="""
         Path to input genotype file(s)
+        
     """,
+        nargs="+",
     )
     parser.add_argument(
         "--config",
@@ -207,12 +209,14 @@ if __name__ == "__main__":
     for d in barcode_ref.values():
         deconstruct_barcode_ref[str(d["Locus"])].append(d["Chromosome"])
 
-    # get list of genotype files from glob string, if genotype files not provided
-    # throw error
-    try:
-        genotype_files = glob(args["genotype_files"])
-    except KeyError:
+    # if genotype files not provided throw error
+    if not args["genotype_files"]:
         raise NoGenotypeFilesError
+
+    # get list of genotype file paths and expand any glob string file paths
+    genotype_files = []
+    for path in args["genotype_files"]:
+        genotype_files.extend(glob(path))
 
     # get optional arguments if provided, if not return default value
     output_file = os.path.abspath(args.get("output_file", "./barcoding_results.txt"))

@@ -10,7 +10,7 @@ process assemble_genotype_file {
     * Removes SNPs to be masked, updates co-ordinates to match those within supplied chromKey file and filtesr out alleles with low coverage.
     */
     publishDir "${params.results_directory}/", overwrite: true, mode: "copy"
-
+    label "grc_tools"
     input:
         tuple val(sample_tag), path(vcf_file_list)
         val(chrom_key_file)
