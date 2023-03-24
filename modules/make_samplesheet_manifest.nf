@@ -15,7 +15,7 @@ process make_samplesheet_manifest {
         samplesheet = "${bcl_dir}/SampleSheet.csv"
         manifest = "${run_id}_manifest.csv"
         """
-        samplesheet_parser.py ${samplesheet} -r ${run_id} -o ${run_id}_manifest.csv
+        samplesheet_parser.py ${samplesheet} -r ${run_id} -o ${manifest}
         """
 }
 
