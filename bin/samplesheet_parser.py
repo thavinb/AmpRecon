@@ -8,6 +8,7 @@ from collections import OrderedDict
 from csv import DictReader, DictWriter
 from os.path import dirname, join, split
 from typing import Optional
+import os
 
 
 def parse_args():
@@ -20,8 +21,12 @@ def parse_args():
         "--run",
         "-r",
         help="Force the run number. Useful if SampleSheet.csv is not inside a run folder",
-        default=None,
         type=int,
+    )
+    parser.add_argument(
+        "--output_file",
+        "-o",
+        help="The output path to save the manifest"
     )
     return parser.parse_args()
 
@@ -30,10 +35,10 @@ class SampleSheetParser:
     class MissingValueError(ValueError):
         pass
 
-    def __init__(self, samplesheet_path: str, run: Optional[int] = None):
+    def __init__(self, samplesheet_path: str, output_file, run: Optional[int] = None):
         self.path = samplesheet_path
-        self.run = run or split(dirname(self.path))[-1]
-        self.manifest_path = join(dirname(self.path), f"{self.run}_manifest.csv")
+        self.run = run
+        self.output_file = output_file
         self.reader = None
         self.writer = None
         self.well_iterator = self._well_iterator()
@@ -202,7 +207,7 @@ class SampleSheetParser:
     def __enter__(self):
         """Makes the class function like a context manager"""
         self._fileio = open(self.path)
-        self._manifest_io = open(self.manifest_path, "w")
+        self._manifest_io = open(self.output_file, "w")
         self._prepare()
         return self
 
@@ -214,5 +219,5 @@ class SampleSheetParser:
 
 if __name__ == "__main__":
     args = parse_args()
-    with SampleSheetParser(args.samplesheet_path, args.run) as s:
+    with SampleSheetParser(args.samplesheet_path, args.output_file, args.run) as s:
         s.process()
