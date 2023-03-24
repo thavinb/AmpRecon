@@ -21,7 +21,10 @@ workflow IRODS {
                               WG_lane = "${row.irods_path}".split('/')[-1].split('\\.')[0]
                               tuple(row.sample_id, row.primer_panel, WG_lane, row.irods_path) 
                             }
-                      | map { it -> tuple("${it[2]}_${it[0]}_${it[1]}", it[1], it[3])} // tuple (WG_lane_sample_id_panel_name, panel_name, irods_path)
+                      | map { it -> tuple("${it[2]}_${it[0]}_${it[1]}", it[1], it[3], it[0])} // tuple (WG_lane_sample_id_panel_name, panel_name, irods_path, sample_id)
+
+        // link file_id to sample_id
+        irods_ch.map{it -> tuple(it[0], it[3])}.set{file_id_to_sample_id_ch}
 
         // assign each sample tag the appropriate set of reference files
         irods_ch.map{it -> tuple(it[0], it[1])}.set{new_sample_tag_panel_ch} // tuple (new_sample_id, panel_name)
@@ -36,5 +39,6 @@ workflow IRODS {
     emit:
         bam_files_ch
         sample_tag_reference_files_ch // tuple (new_sample_id, panel_name, path/to/reference/genome, snp_list)
+	    file_id_to_sample_id_ch // tuple (file_id, sample_id)
 }
 

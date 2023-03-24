@@ -10,7 +10,8 @@ From: python:3.8-buster
     # Install required Python packages
     pip install python-csv \
         pytest \
-        pandas
+        pandas \
+        pyvcf
 
 # get TheRealMcCoil code
 mkdir /app/

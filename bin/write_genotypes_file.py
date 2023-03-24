@@ -4,19 +4,19 @@ import argparse
 import logging
 import vcf
 import csv
+from collections import defaultdict
 
 
 class GenotypeFileWriter:
     """
-    Merges a list of VCF files into a single genotype .tsv file.
+    Merges each of the VCF files read from a supplied manifest file into a single genotype .tsv file.
     Drops records at specified loci, updates the co-ordinates of the rows and filters out alleles with low coverage.
     """
 
     def __init__(
         self,
-        vcf_list,
+        manifest_file,
         out_file_name,
-        sample_id,
         chromKey_file_path,
         chromosome_column,
         locus_column,
@@ -24,9 +24,8 @@ class GenotypeFileWriter:
         het_min_allele_depth,
         het_min_allele_proportion,
     ):
-        self.vcf_list = vcf_list
+        self.manifest_file = manifest_file
         self.output_file_name = out_file_name
-        self.sample_id = sample_id
         self.chromKey_file = chromKey_file_path
         self.chromosome_column = chromosome_column
         self.locus_column = locus_column
@@ -48,68 +47,86 @@ class GenotypeFileWriter:
             chromKey_dict[key] = dict(row)
         chromKey_file.close()
 
-        formatted_vcf_rows = []
+        # Parse manifest of VCF file paths and sample IDs
+        ids_and_files = defaultdict(list)
+        manifest_file = open(self.manifest_file, newline="")
+        for row in csv.DictReader(manifest_file, delimiter=","):
+            sample_id = row["ID"]
+            vcf_path = row["vcf_path"]
+            ids_and_files[sample_id].append(vcf_path)
+        manifest_file.close()
 
-        # Iterate over the supplied VCF files and their records
-        for vcf_file in self.vcf_list:
-
-            vcf_reader = vcf.Reader(filename=vcf_file)
-            sample = vcf_reader.samples
-
-            for record in vcf_reader:
-
-                # Match - Get row associated with record from chromKey file
-                chromKey_row = self._match_chromKey_row(record, chromKey_dict)
-
-                # Mask - Ignore this record if its supposed to be masked
-                if chromKey_row.get("Mask") == "1":
-                    continue
-
-                # Lift over - Update record co-ordinates
-                record, amplicon = self._lift_over_record_coordinates(
-                    record, chromKey_row
-                )
-
-                # Filter - Remove low coverage genotypes and adjust depths
-                genotype, depth = self._filter_genotypes(record, sample)
-
-                # Format record
-                formatted_vcf_rows.append(
-                    self._format_record(amplicon, record, genotype, depth)
-                )
-
-        # Store formatted rows from the VCFs under a key of the chromosome:locus
-        genotype_rows_dict = {f"{row[0]}:{row[1]}": row for row in formatted_vcf_rows}
-
-        # Remove positions from chromKey that are to be masked
-        filtered_chromKey_dict = dict(
-            filter(lambda value: value[1].get("Mask") != "1", chromKey_dict.items())
+        # Open output genotype file
+        output_genotype_file = open(self.output_file_name, "w")
+        output_file_writer = csv.DictWriter(
+            output_genotype_file,
+            delimiter="\t",
+            fieldnames=[
+                "ID",
+                "Amplicon",
+                "Pos",
+                "Chr",
+                "Loc",
+                "Gen",
+                "Depth",
+                "Filt",
+            ],
         )
 
-        # Write output genotype file
-        with open(self.output_file_name, "w") as output_genotype_file:
-            file_writer = csv.DictWriter(
-                output_genotype_file,
-                delimiter="\t",
-                fieldnames=[
-                    "ID",
-                    "Amplicon",
-                    "Pos",
-                    "Chr",
-                    "Loc",
-                    "Gen",
-                    "Depth",
-                    "Filt",
-                ],
+        # Write output genotype file header
+        output_file_writer.writeheader()
+
+        # Iterate over the sample IDs
+        for sample_id, vcf_file_list in ids_and_files.items():
+
+            # Create list that will contain all of the per-sample formatted vcf rows
+            formatted_vcf_rows = []
+
+            # Iterate over associated VCF file records
+            for vcf_file in vcf_file_list:
+                vcf_reader = vcf.Reader(filename=vcf_file)
+                sample = vcf_reader.samples
+
+                for record in vcf_reader:
+
+                    # Match - Get row associated with record from chromKey file
+                    chromKey_row = self._match_chromKey_row(record, chromKey_dict)
+
+                    # Mask - Ignore this record if its supposed to be masked
+                    if chromKey_row.get("Mask") == "1":
+                        continue
+
+                    # Lift over - Update record co-ordinates
+                    record, amplicon = self._lift_over_record_coordinates(
+                        record, chromKey_row
+                    )
+
+                    # Filter - Remove low coverage genotypes and adjust depths
+                    genotype, depth = self._filter_genotypes(record, sample)
+
+                    # Format record
+                    formatted_vcf_rows.append(
+                        self._format_record(amplicon, record, genotype, depth)
+                    )
+
+            # Store formatted rows from the VCFs under a key of the chromosome:locus
+            genotype_rows_dict = {
+                f"{row[0]}:{row[1]}": row for row in formatted_vcf_rows
+            }
+
+            # Remove positions from chromKey that are to be masked
+            filtered_chromKey_dict = dict(
+                filter(lambda value: value[1].get("Mask") != "1", chromKey_dict.items())
             )
-            file_writer.writeheader()
 
             # Format each chromKey row and add any VCF record data at that position
             for key, row in filtered_chromKey_dict.items():
-                formatted_row = self._format_chromKey_row(key, row, genotype_rows_dict)
-
-                # Write formatted chromKey / VCF rows to genotype file
-                file_writer.writerow(formatted_row)
+                formatted_row = self._format_chromKey_row(
+                    key, row, genotype_rows_dict, sample_id
+                )
+                # Write this formatted chromKey row to the output genotype file
+                output_file_writer.writerow(formatted_row)
+        output_genotype_file.close()
 
     def _match_chromKey_row(self, record, chromKey_dict):
         """
@@ -231,7 +248,7 @@ class GenotypeFileWriter:
             str(filter_value),
         ]
 
-    def _format_chromKey_row(self, key, row, genotypes_dict):
+    def _format_chromKey_row(self, key, row, genotypes_dict, sample_id):
         """
         Format a chromKey row and adds any VCF record data at that position
         """
@@ -254,7 +271,7 @@ class GenotypeFileWriter:
         chr_loc = row.get("Locus")
 
         row = {
-            "ID": str(self.sample_id),
+            "ID": str(sample_id),
             "Amplicon": amplicon,
             "Pos": str(amplicon_pos),
             "Chr": chromosome,
@@ -269,25 +286,17 @@ class GenotypeFileWriter:
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "--vcf_files",
+        "--manifest_file",
         "-i",
-        help="List of VCF files to merge, mask SNPs in and update co-ordinates for.",
+        help="Manifest file containing paths to the VCF lanelet files and their sample ID values.",
         required=True,
         type=str,
-        nargs="+",
-        default=[],
     )
     parser.add_argument(
         "--output_file",
         "-o",
         help="Name of the output genotypes file.",
         type=str,
-        required=True,
-    )
-    parser.add_argument(
-        "--sample_id",
-        "-s",
-        help="Sample ID of the VCF files - output to genotype file.",
         required=True,
     )
     parser.add_argument(
@@ -334,9 +343,8 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
     liftover_genotypes_write_file = GenotypeFileWriter(
-        args.vcf_files,
+        args.manifest_file,
         args.output_file,
-        args.sample_id,
         args.chromKey_file,
         args.chromosome_column_name,
         args.locus_column_name,

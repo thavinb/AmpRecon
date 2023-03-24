@@ -35,7 +35,7 @@ def loadBarcodeDef(barcode_json_path: str) -> dict:
     barcode_def_dct = json.load(open(barcode_json_path, "r"))
     # intify keys
     cur_keys = list(barcode_def_dct["grc_barcoding"]["barcode_ref"].keys())
-    print(barcode_def_dct["grc_barcoding"]["barcode_ref"])
+    
     for d_i in cur_keys:
         barcode_def_dct["grc_barcoding"]["barcode_ref"][int(d_i)] = barcode_def_dct[
             "grc_barcoding"
@@ -142,11 +142,17 @@ def __getSNPnumbersFrom(barcode: str, barcode_def_dct: dict) -> list:
 
 
 def assignSNPnumbers(barcodes_samples_dct: dict) -> None:
+    c = 0
     for sample_i in barcodes_samples_dct.keys():
         barcode_i = barcodes_samples_dct[sample_i]["barcode"]
         coi_in_i = __getSNPnumbersFrom(barcode_i, barcode_def_dct)
+        miss_i = len([n for n in coi_in_i if (n == -1)])
+        
+        if (miss_i / len(barcode_i)) >= 0.8:
+            print(f"WARN: more than 80% of positions are missing for sample {sample_i}") 
+            c+=1
         barcodes_samples_dct[sample_i]["coi_in"] = coi_in_i
-
+    print(f"--> {c} / {len(list(barcodes_samples_dct.keys()))} have more than 80% of missing positions")
 
 # write RealMcCoil input
 def writeMcCOILat(
@@ -384,6 +390,13 @@ if __name__ == "__main__":
         total_batchs = len(args["barcodes_files"])
         print("    @ loading barcode definition...")
         barcode_def_dct = loadBarcodeDef(args["config"])
+        
+        # sanity checks
+        try:
+            assert(len(barcode_def_dct) > 0)
+        except(AssertionError):
+            print("ERROR: No values retrieved from the barcode definition file.")
+            exit(1)
 
         for batch in args["barcodes_files"]:
             # load input data
@@ -391,6 +404,13 @@ if __name__ == "__main__":
             barcodes_samples_dct = loadSamplesBarcode(batch)
             print("    @ assigning SNP numbers for McCOIL...")
             assignSNPnumbers(barcodes_samples_dct)
+
+            # sanity checks
+            try:
+                assert(len(barcodes_samples_dct) > 0)
+            except(AssertionError):
+                print(f"ERROR: No values retrieved from the samples barcodes file ({batch}).")
+                exit(1)
 
             print("    @ writing McCOIL input tsv file...")
             if total_batchs == 1:
