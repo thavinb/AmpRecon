@@ -3,7 +3,6 @@
 nextflow.enable.dsl=2
 
 process make_samplesheet_manifest {
-    publishDir "${params.results_dir}/", mode: 'copy', overwrite: true
     label 'pythonBox'
     input:
         tuple val(run_id), path(bcl_dir)
@@ -14,9 +13,9 @@ process make_samplesheet_manifest {
 
     script:
         samplesheet = "${bcl_dir}/SampleSheet.csv"
-        manifest = "${bcl_dir}/${run_id}_manifest.csv"
+        manifest = "${run_id}_manifest.csv"
         """
-        samplesheet_parser.py ${samplesheet} -r ${run_id}
+        samplesheet_parser.py ${samplesheet} -r ${run_id} -o ${manifest}
         """
 }
 
