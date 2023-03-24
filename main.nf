@@ -10,6 +10,7 @@ include { PARSE_PANEL_SETTINGS } from './workflows/parse_panels_settings.nf'
 include { IRODS } from './workflows/irods.nf'
 include { IN_COUNTRY } from './workflows/in_country.nf'
 include { COMMON } from './workflows/common.nf'
+include { GENOTYPES_TO_GRCS } from './workflows/genotypes_to_grcs.nf'
 include { validate_parameters } from './workflows/input_handling.nf'
 // logging info ----------------------------------------------------------------
 // This part of the code is based on the FASTQC PIPELINE (https://github.com/angelovangel/nxf-fastqc/blob/master/main.nf)
@@ -152,11 +153,19 @@ workflow {
   reference_ch = PARSE_PANEL_SETTINGS.out.reference_ch // tuple(reference_file, panel_name, snp_list)
   annotations_ch = PARSE_PANEL_SETTINGS.out.annotations_ch // tuple(panel_name, design_file)
 
+  // Files required for GRC creation
+  Channel.fromPath(params.grc_settings_file_path, checkIfExists: true)
+  chrom_key_file = Channel.fromPath(params.chrom_key_file_path, checkIfExists: true)
+  kelch_reference_file = Channel.fromPath(params.kelch_reference_file_path, checkIfExists: true)
+  codon_key_file = Channel.fromPath(params.codon_key_file_path, checkIfExists: true)
+  drl_information_file = Channel.fromPath(params.drl_information_file_path, checkIfExists: true)
+
   if (params.execution_mode == "in-country") {
     // process in country entry point
     IN_COUNTRY(reference_ch)
     bam_files_ch = IN_COUNTRY.out.bam_files_ch
     sample_tag_reference_files_ch = IN_COUNTRY.out.sample_tag_reference_files_ch
+    file_id_to_sample_id_ch = IN_COUNTRY.out.file_id_to_sample_id_ch
   }
 
   if (params.execution_mode == "irods") {
@@ -165,6 +174,7 @@ workflow {
     // setup channels for downstream processing
     bam_files_ch = IRODS.out.bam_files_ch // tuple (sample_tag, bam_file, run_id)
     sample_tag_reference_files_ch = IRODS.out.sample_tag_reference_files_ch
+    file_id_to_sample_id_ch = IRODS.out.file_id_to_sample_id_ch
   }
 
   if (params.execution_mode == "aligned_bams"){
@@ -182,7 +192,12 @@ workflow {
       | set { sample_tag_reference_files_ch}
   }
 
-  COMMON(bam_files_ch, sample_tag_reference_files_ch, annotations_ch)
+  // Reads to variants
+  COMMON(bam_files_ch, sample_tag_reference_files_ch, annotations_ch, file_id_to_sample_id_ch)
+  lanelet_manifest_file = COMMON.out.lanelet_manifest
+
+  // Variants to GRCs
+  GENOTYPES_TO_GRCS(lanelet_manifest_file, chrom_key_file, kelch_reference_file, codon_key_file, drl_information_file)
 
 }
 

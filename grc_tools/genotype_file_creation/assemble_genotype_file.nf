@@ -12,14 +12,14 @@ process assemble_genotype_file {
     publishDir "${params.results_directory}/", overwrite: true, mode: "copy"
     label "grc_tools"
     input:
-        tuple val(sample_tag), path(vcf_file_list)
+        path(vcf_manifest_file)
         val(chrom_key_file)
 
     output:
-        tuple val(sample_tag), path("${output_file_name}")
+        path("${output_file_name}")
 
     script:
-        output_file_name = "${sample_tag}.tsv"
+        output_file_name = "genotype_file.tsv"
         chromsome_column = params.chromosome_column_name
         locus_column = params.locus_column_name
         min_depth = params.min_total_depth
@@ -28,8 +28,7 @@ process assemble_genotype_file {
 
         """
         write_genotypes_file.py \
-            --vcf_files ${vcf_file_list} \
-            --sample_id "${sample_tag}" \
+            --manifest_file ${vcf_manifest_file} \
             --output_file "${output_file_name}" \
             --chromKey_file "${chrom_key_file}" \
             --chromosome_column_name "${chromsome_column}" \

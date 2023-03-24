@@ -54,4 +54,7 @@ singularity build --fakeroot grc_tools.sif SingularityFile_grctools
 echo "@ building coi.sif"
 singularity build --fakeroot coi.sif SingularityFile_coi
 
+echo "@ building pyvcf.sif"
+singularity build --fakeroot pyvcf.sif SingularityFile_pyvcf
+
 echo ":: DONE ::"

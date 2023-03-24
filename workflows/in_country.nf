@@ -64,7 +64,10 @@ workflow IN_COUNTRY {
                                      "barcode_sequence", "well", "plate"],
                                     skip: 18)
                   | map { row -> tuple(row.lims_id, row.assay, row.index) }
-                  | map{it -> tuple("${params.run_id}_${params.lane}#${it[2]}_${it[0]}", it[1])} // tuple (sample_tag, panel_name)
+                  | map{it -> tuple("${params.run_id}_${params.lane}#${it[2]}_${it[0]}", it[1], it[0])} // tuple (sample_tag, panel_name, lims_id)
+
+      // link file_id to sample_id
+      sample_tag_ch.map{it -> tuple("${it[0]}_${it[1]}", it[2])}.set{file_id_to_sample_id_ch}
 
       // add panel names to sample_tags
       panel_name_cram_ch = cram_ch.join(sample_tag_ch) // tuple (sample_tag, cram_fl, run_id, panel_name)
@@ -83,4 +86,5 @@ workflow IN_COUNTRY {
    emit:
       bam_files_ch // tuple (new_sample_tag, bam_file)
       sample_tag_reference_files_ch // tuple (new_sample_tag, panel_name, path/to/reference/genome, snp_list)
+      file_id_to_sample_id_ch // tuple (file_id, sample_id)
 }
