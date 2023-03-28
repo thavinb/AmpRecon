@@ -85,13 +85,13 @@ workflow REALIGNMENT {
     samtools_sort(add_read_group.out)
     samtools_index(samtools_sort.out)
 
-    // DO READCOUNTS 
-
     // make CSV file of bam file names with associated amplicon panel
     bam_file_names = samtools_index.out.map{it -> it[1].baseName}.collect() // amplicon panel now part of BAM name
-    files_and_panels_to_csv(bam_file_names)
+    panel_names = samtools_index.out.join(sample_tag_reference_files_ch).map{it -> it[4]}.collect()
+    files_and_panels_to_csv(bam_file_names, panel_names)
     bams_and_indices = samtools_index.out.map{it -> tuple(it[1], it[2])}.collect()
 
+    // determine read counts per amplicon region
     read_count_per_region(
         files_and_panels_to_csv.out,
         bams_and_indices,

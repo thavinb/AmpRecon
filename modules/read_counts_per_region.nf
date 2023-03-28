@@ -29,24 +29,25 @@ process read_count_per_region {
 }
 
 process files_and_panels_to_csv {
-  input:
-    val(file_names_list)
-  output:
-    path("file_names_panel_list.csv")
+    input:
+        val(file_names)
+        val(panel_names)
+
+    output:
+        path("file_names_panel_list.csv")
 $/
 #!/usr/bin/python3
 from pathlib import Path
 
 path_to_mnf = "file_names_panel_list.csv"
-names_list = list("${file_names_list}".strip("[]").replace(" ", "").split(","))
+file_names = list("${file_names}".strip("[]").replace(" ", "").split(","))
+panel_names = list("${panel_names}".strip("[]").replace(" ", "").split(","))
 
 out_mnf = open(f"{path_to_mnf}", "w")
-out_mnf.write("file_name\n")
+out_mnf.write("file_name,panel_name\n")
 
-for file_name in names_list:
-
-    out_mnf.write(f"{file_name}\n")
+for file_name, panel_name in zip(file_names, panel_names):
+    out_mnf.write(f"{file_name},{panel_name}\n")
 out_mnf.close()
 /$
 }
-
