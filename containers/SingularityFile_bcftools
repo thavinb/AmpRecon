@@ -2,14 +2,14 @@
 
 
 Bootstrap: docker
-From: ubuntu:bionic-20191029
+From: ubuntu:22.04
 Stage: spython-base
 
 %post
 
 
 apt-get update -y 
-apt-get install -y gcc make libbz2-dev zlib1g-dev \ 
+apt-get install -y gcc make libbz2-dev zlib1g-dev \
                 libncurses5-dev libncursesw5-dev \
                 liblzma-dev tar gzip wget xz-utils \
                 pip tabix
