@@ -2,6 +2,7 @@ process add_read_group {
     /*
     * Adds a read group from a BAM header to another BAM header
     */
+    label "samtools"
     input:
         tuple val(sample_tag), path(remapped_bam_file), path(bam_file)
 
