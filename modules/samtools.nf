@@ -5,6 +5,8 @@ nextflow.enable.dsl = 2
 
 process samtools_sort {
     publishDir "${params.results_dir}/", overwrite: true, mode: "copy"
+    label "samtools"
+    
     input:
         tuple val(sample_tag), path(input_bam)
 
@@ -24,6 +26,8 @@ process samtools_sort {
 process samtools_index {
     // saveAs argument to ensure that BQSR saved output has same name as when BQSR not run
     publishDir "${params.results_dir}/", overwrite: true, mode: "copy"
+    label "samtools"
+
     input:
         tuple val(sample_tag), path(input_bam)
 

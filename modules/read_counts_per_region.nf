@@ -29,6 +29,7 @@ process read_count_per_region {
 }
 
 process files_and_panels_to_csv {
+  label "pythonBox"
   input:
     val(file_names_list)
   output:
