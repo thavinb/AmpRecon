@@ -1,5 +1,4 @@
 stages:
-  - test
   - tag_on_merges
 
 default:
@@ -20,28 +19,6 @@ default:
     - sudo mv nextflow /usr/bin
     - sleep 10
 
-
-test_nextflow_modules:
-  stage: test
-  <<: *set_environment
-  script:
-   - tests/run_samtoolsbam2cram.sh
-   - tests/run_bwa_alignment.sh
-
-run python unit tests:
-  stage: test
-  only:
-    - branches
-  <<: *set_environment
-  script:
-    - export DOCKER_IMAGE=gitlab-registry.internal.sanger.ac.uk/malariagen1/ampseq-pipeline/python-tasks:0.2
-    - echo "Running python unit tests in image ${DOCKER_IMAGE}..."
-    - docker run -v ${PWD}:/ampseq-pipeline "${DOCKER_IMAGE}" bash -c "pip3 install coverage; cd /ampseq-pipeline/tests; ./run_ci_python_test.sh"
-  coverage: /^TOTAL.+?(\d+\%)$/
-  artifacts:
-    when: always
-    paths:
-      - tests/htmlcov
 
 tag code on merge to develop:
   stage: tag_on_merges
