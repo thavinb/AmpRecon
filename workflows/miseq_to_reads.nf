@@ -14,7 +14,7 @@ include { collate_alignments } from '../modules/collate_alignments.nf'
 include { bam_reset } from '../modules/bam_reset.nf'
 include { clip_adapters } from '../modules/clip_adapters.nf'
 include { bam_to_fastq } from '../modules/bam_to_fastq.nf'
-include { align_bam } from '../modules/align_bam.nf'
+include { bwa_alignment } from '../modules/bwa_alignment.nf'
 include { scramble_sam_to_bam } from '../modules/scramble.nf'
 include { mapping_reheader } from '../modules/mapping_reheader.nf'
 include { bam_split } from '../modules/bam_split.nf'
@@ -121,14 +121,14 @@ workflow CRAM_TO_BAM {
               // get panel resource files
               | join(sample_tag_reference_files_ch) // tuple (new_sample_tag, fastq_files, panel_name, ref_fasta)
               | map{it -> tuple(it[0], it[1], it[2], it[3])} // tuple (new_sample_tag, fastq, fasta, panel_name)
-              | set{align_bam_In_ch}
+              | set{ bwa_ch }
 
-        align_bam(align_bam_In_ch)
+        bwa_alignment(bwa_ch)
 
         // Convert SAM to BAM
-        //bambi_select(align_bam.out.sample_tag, align_bam.out.sam_file)
-        scramble_sam_to_bam(align_bam.out.sample_tag,
-                            align_bam.out.sam_file,
+     
+        scramble_sam_to_bam(bwa_alignment.out.sample_tag,
+                            bwa_alignment.out.sam_file,
         )
         
         // Merges the current headers with the old ones.
