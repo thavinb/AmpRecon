@@ -5,7 +5,7 @@ nextflow.enable.dsl = 2
 
 include { bam_reset } from '../modules/bam_reset.nf'
 include { bam_to_fastq } from '../modules/bam_to_fastq.nf'
-include { align_bam } from '../modules/align_bam.nf'
+include { bwa_alignment } from '../modules/bwa_alignment.nf'
 include { scramble_sam_to_bam } from '../modules/scramble.nf'
 include { add_read_group } from '../modules/add_read_group.nf'
 include { samtools_sort } from '../modules/samtools.nf'
@@ -66,13 +66,13 @@ workflow ALIGNMENT {
     // prepare channels to be used on join for input for other processes
     bam_to_fastq.out // tuple (sample_id, fastq_file)
           | join(sample_tag_reference_files_ch) //tuple (sample_id, fastq, fasta_file, panel_name)
-          | set{align_bam_In_ch}
+          | set{ bwa_ch }
 
      // do new alignment
-    align_bam(align_bam_In_ch)
+    bwa_alignment(bwa_ch)
 
     // convert sam to bam
-    scramble_sam_to_bam(align_bam.out.sample_tag, align_bam.out.sam_file)
+    scramble_sam_to_bam(bwa_alignment.out.sample_tag, bwa_alignment.out.sam_file)
 
     // add correct read group from reset bams into aligned bams
     scramble_sam_to_bam.out.join(bam_reset.out.bam_reset_tuple_ch).set{add_read_group_input_ch}
