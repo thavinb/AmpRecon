@@ -37,3 +37,30 @@ workflow GENOTYPING_GATK {
   emit:
     genotyped_vcf_ch
 }
+
+workflow BQSR {
+    take:
+        input_sample_tags_bams_indexes
+        sample_tag_reference_files_ch // tuple(sample_tag, fasta_file, snp_list)
+    
+    main:
+        // base quality score recalibration
+        input_sample_tags_bams_indexes // tuple (sample_tag, bam_file, bam_index)
+            | join(sample_tag_reference_files_ch) // tuple (sample_tag, bam_file, bam_index, fasta_file, snp_list)
+            | map{ it -> tuple(it[0], it[1], it[2], it[3], it[4])}
+            | set{bqsr_input} // tuple(sample_tag, bam_file, bam_index, fasta, snp_list)
+
+        if (!params.skip_bqsr) {
+            bqsr(bqsr_input)
+            samtools_index(bqsr.out)
+            
+            // haplotype caller
+            post_bqsr_output = samtools_index.out
+        }
+        else {
+            post_bqsr_output = input_sample_tags_bams_indexes
+        }
+    emit:
+        post_bqsr_output
+}
+
