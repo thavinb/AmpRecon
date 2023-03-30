@@ -1,4 +1,6 @@
 process write_vcfs_manifest {
+    label "pythonBox"
+    
     input:
         // this script assumes "all at once" will be provided to this process 
         val(IDs_list)
