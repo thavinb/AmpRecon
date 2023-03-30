@@ -7,7 +7,6 @@ nextflow.enable.dsl = 2
 include { ALIGNMENT } from './alignment.nf'
 include { GENOTYPING_GATK } from './genotyping_gatk.nf'
 include { GENOTYPING_BCFTOOLS } from './genotyping_bcftools.nf'
-include { bqsr } from '../modules/bqsr.nf' addParams(gatk:params.gatk3)
 include { samtools_index } from '../modules/samtools.nf'
 include { write_vcfs_manifest } from '../modules/write_vcfs_manifest.nf'
 /*
@@ -95,28 +94,3 @@ workflow READS_TO_VARIANTS {
         lanelet_manifest
 }
 
-workflow BQSR {
-    take:
-        input_sample_tags_bams_indexes
-        sample_tag_reference_files_ch // tuple(sample_tag, fasta_file, snp_list)
-    
-    main:
-        // base quality score recalibration
-        input_sample_tags_bams_indexes // tuple (sample_tag, bam_file, bam_index)
-            | join(sample_tag_reference_files_ch) // tuple (sample_tag, bam_file, bam_index, fasta_file, snp_list)
-            | map{ it -> tuple(it[0], it[1], it[2], it[3], it[4])}
-            | set{bqsr_input} // tuple(sample_tag, bam_file, bam_index, fasta, snp_list)
-
-        if (!params.skip_bqsr) {
-            bqsr(bqsr_input)
-            samtools_index(bqsr.out)
-            
-            // haplotype caller
-            post_bqsr_output = samtools_index.out
-        }
-        else {
-            post_bqsr_output = input_sample_tags_bams_indexes
-        }
-    emit:
-        post_bqsr_output
-}
