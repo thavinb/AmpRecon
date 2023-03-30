@@ -15,7 +15,7 @@ Here all workflows which are used regardless of the entry point (iRODS or inCoun
 are setup
 */
 
-workflow COMMON {
+workflow READS_TO_VARIANTS {
 
     take:
         bam_files_ch // tuple(sample_tag, bam_file)

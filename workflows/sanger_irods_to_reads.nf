@@ -8,7 +8,7 @@ include { DESIGNATE_PANEL_RESOURCES } from './designate_panel_resources.nf'
 include { PULL_FROM_IRODS } from './pipeline-subworkflows/pull_from_irods.nf'
 
 
-workflow IRODS {
+workflow SANGER_IRODS_TO_READS {
     take:
         irods_manifest // irods manifest file
         reference_ch // tuple (fasta, panel_name, snp_list)

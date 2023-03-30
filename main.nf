@@ -7,10 +7,10 @@ nextflow.enable.dsl = 2
 // - workflows
 
 include { PARSE_PANEL_SETTINGS } from './workflows/parse_panels_settings.nf'
-include { IRODS } from './workflows/irods.nf'
-include { IN_COUNTRY } from './workflows/in_country.nf'
-include { COMMON } from './workflows/common.nf'
-include { GENOTYPES_TO_GRCS } from './workflows/genotypes_to_grcs.nf'
+include { SANGER_IRODS_TO_READS } from './workflows/sanger_irods_to_reads.nf'
+include { MISEQ_TO_READS } from './workflows/miseq_to_reads.nf'
+include { READS_TO_VARIANTS } from './workflows/reads_to_variants.nf'
+include { VARIANTS_TO_GRCS } from './workflows/variants_to_grcs.nf'
 include { validate_parameters } from './workflows/input_handling.nf'
 // logging info ----------------------------------------------------------------
 // This part of the code is based on the FASTQC PIPELINE (https://github.com/angelovangel/nxf-fastqc/blob/master/main.nf)
@@ -162,19 +162,19 @@ workflow {
 
   if (params.execution_mode == "in-country") {
     // process in country entry point
-    IN_COUNTRY(reference_ch)
-    bam_files_ch = IN_COUNTRY.out.bam_files_ch
-    sample_tag_reference_files_ch = IN_COUNTRY.out.sample_tag_reference_files_ch
-    file_id_to_sample_id_ch = IN_COUNTRY.out.file_id_to_sample_id_ch
+    MISEQ_TO_READS(reference_ch)
+    bam_files_ch = MISEQ_TO_READS.out.bam_files_ch
+    sample_tag_reference_files_ch = MISEQ_TO_READS.out.sample_tag_reference_files_ch
+    file_id_to_sample_id_ch = MISEQ_TO_READS.out.file_id_to_sample_id_ch
   }
 
   if (params.execution_mode == "irods") {
     // process IRODS entry point
-    IRODS(params.irods_manifest, reference_ch)
+    SANGER_IRODS_TO_READS(params.irods_manifest, reference_ch)
     // setup channels for downstream processing
-    bam_files_ch = IRODS.out.bam_files_ch // tuple (sample_tag, bam_file, run_id)
-    sample_tag_reference_files_ch = IRODS.out.sample_tag_reference_files_ch
-    file_id_to_sample_id_ch = IRODS.out.file_id_to_sample_id_ch
+    bam_files_ch = SANGER_IRODS_TO_READS.out.bam_files_ch // tuple (sample_tag, bam_file, run_id)
+    sample_tag_reference_files_ch = SANGER_IRODS_TO_READS.out.sample_tag_reference_files_ch
+    file_id_to_sample_id_ch = SANGER_IRODS_TO_READS.out.file_id_to_sample_id_ch
   }
 
   if (params.execution_mode == "aligned_bams"){
@@ -193,11 +193,11 @@ workflow {
   }
 
   // Reads to variants
-  COMMON(bam_files_ch, sample_tag_reference_files_ch, annotations_ch, file_id_to_sample_id_ch)
-  lanelet_manifest_file = COMMON.out.lanelet_manifest
+  READS_TO_VARIANTS(bam_files_ch, sample_tag_reference_files_ch, annotations_ch, file_id_to_sample_id_ch)
+  lanelet_manifest_file = READS_TO_VARIANTS.out.lanelet_manifest
 
   // Variants to GRCs
-  GENOTYPES_TO_GRCS(lanelet_manifest_file, chrom_key_file, kelch_reference_file, codon_key_file, drl_information_file)
+  VARIANTS_TO_GRCS(lanelet_manifest_file, chrom_key_file, kelch_reference_file, codon_key_file, drl_information_file)
 
 }
 

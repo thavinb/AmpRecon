@@ -19,7 +19,7 @@ include { miseq_run_validation } from '../modules/miseq_run_validation.nf'
 include { retrieve_miseq_run_from_s3 } from '../modules/retrieve_miseq_run_from_s3.nf'
 
 
-workflow IN_COUNTRY {
+workflow MISEQ_TO_READS {
    take:
       reference_ch // tuple (fasta, panel_name, snp_list)
    
