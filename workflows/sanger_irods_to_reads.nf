@@ -3,9 +3,10 @@
 // enable dsl2
 nextflow.enable.dsl = 2
 
-// import subworkflows
-include { DESIGNATE_PANEL_RESOURCES } from './designate_panel_resources.nf'
-include { PULL_FROM_IRODS } from './pipeline-subworkflows/pull_from_irods.nf'
+// import irods processes
+include { irods_retrieve } from '../../modules/irods_retrieve.nf'
+include { scramble_cram_to_bam } from '../../modules/scramble.nf'
+
 /*
 include { validate_general_params } from '../main.nf'
 
@@ -83,17 +84,23 @@ workflow SANGER_IRODS_TO_READS {
         irods_ch.map{it -> tuple(it[0], it[3])}.set{file_id_to_sample_id_ch}
 
         // assign each sample tag the appropriate set of reference files
-        irods_ch.map{it -> tuple(it[0], it[1])}.set{new_sample_tag_panel_ch} // tuple (new_sample_id, panel_name)
-        DESIGNATE_PANEL_RESOURCES(new_sample_tag_panel_ch, reference_ch)
-        sample_tag_reference_files_ch = DESIGNATE_PANEL_RESOURCES.out.sample_tag_reference_files_ch
-        // tuple (new_sample_id, panel_name, path/to/reference/genome, snp_list)
+        irods_ch.map{it -> tuple(it[0], it[1])}.set{new_sample_tag_panel_ch} // tuple (file_id, panel_name)
 
-        // run step1.2b - pull from iRODS
-        PULL_FROM_IRODS(irods_ch.map{it -> tuple(it[0], it[2])}) // tuple (new_sample_id, irods_path)
-        bam_files_ch = PULL_FROM_IRODS.out.bam_files_ch
+        new_sample_tag_panel_ch
+          |  combine(reference_ch,  by: 1) // tuple (panel_name, file_id, fasta,snp_list)
+          |  map{it -> tuple(it[1], it[0], it[2], it[3])}
+          |  set{sample_tag_reference_files_ch}
+        // tuple (file_id, panel_name, path/to/reference/genome, snp_list)
+
+        // Retrieve CRAM files from iRODS
+        irods_retrieve(irods_ch)
+
+        // Convert iRODS CRAM files to BAM format
+        scramble_cram_to_bam(irods_retrieve.out)
+        bam_files_ch = scramble_cram_to_bam.out
 
     emit:
-        bam_files_ch
+        bam_files_ch // tuple(file_id, bam_file)
         sample_tag_reference_files_ch // tuple (new_sample_id, panel_name, path/to/reference/genome, snp_list)
 	    file_id_to_sample_id_ch // tuple (file_id, sample_id)
 }
