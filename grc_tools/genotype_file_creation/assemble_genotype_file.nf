@@ -9,7 +9,6 @@ process assemble_genotype_file {
     * Merges supplied VCF files into 1 genotype .tsv file. 
     * Removes SNPs to be masked, updates co-ordinates to match those within supplied chromKey file and filtesr out alleles with low coverage.
     */
-    publishDir "${params.results_directory}/", overwrite: true, mode: "copy"
     label "grc_tools"
     input:
         path(vcf_manifest_file)
