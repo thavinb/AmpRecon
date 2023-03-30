@@ -5,6 +5,7 @@ nextflow.enable.dsl = 2
 
 // import subworkflows
 include { ALIGNMENT } from './alignment.nf'
+include { READ_COUNTS } from './read_counts.nf'
 include { GENOTYPING_GATK } from './genotyping_gatk.nf'
 include { GENOTYPING_BCFTOOLS } from './genotyping_bcftools.nf'
 include { samtools_index } from '../modules/samtools.nf'
@@ -36,12 +37,13 @@ workflow READS_TO_VARIANTS {
         ALIGNMENT(
                     alignment_In_ch.sample_tag,
                     alignment_In_ch.bam_file,
-                    alignment_ref_ch,
-                    annotations_ch
+                    alignment_ref_ch
                 )
 
         genotyping_In_ch = ALIGNMENT.out
         }
+
+        READ_COUNTS(ALIGNMENT.out, annotations_ch)
 
         if (params.execution_mode == "aligned_bams"){
         genotyping_In_ch = bam_files_ch

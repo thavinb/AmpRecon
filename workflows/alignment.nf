@@ -10,8 +10,6 @@ include { scramble_sam_to_bam } from '../modules/scramble.nf'
 include { add_read_group } from '../modules/add_read_group.nf'
 include { samtools_sort } from '../modules/samtools.nf'
 include { samtools_index } from '../modules/samtools.nf'
-include { files_and_panels_to_csv } from '../modules/read_counts_per_region.nf'
-include { read_count_per_region } from '../modules/read_counts_per_region.nf'
 include { upload_pipeline_output_to_s3 } from '../modules/upload_pipeline_output_to_s3.nf'
 
 process write_aligned_bam_mnf {
@@ -56,7 +54,6 @@ workflow ALIGNMENT {
     sample_tag
     bam_file
     sample_tag_reference_files_ch // tuple (sample_id, fasta_file, panel_name)
-    annotations_ch // tuple (panel_name, anotation_file)
 
   main:
     // Unmap the bam files (ubam)
@@ -85,23 +82,9 @@ workflow ALIGNMENT {
     samtools_sort(add_read_group.out)
     samtools_index(samtools_sort.out)
 
-    // make CSV file of bam file names with associated amplicon panel
-    bam_file_names = samtools_index.out.map{it -> it[1].baseName}.collect() // amplicon panel now part of BAM name
-    panel_names = samtools_index.out.join(sample_tag_reference_files_ch).map{it -> it[4]}.collect()
-    files_and_panels_to_csv(bam_file_names, panel_names)
-    bams_and_indices = samtools_index.out.map{it -> tuple(it[1], it[2])}.collect()
-
-    // determine read counts per amplicon region
-    read_count_per_region(
-        files_and_panels_to_csv.out,
-        bams_and_indices,
-        annotations_ch,
-    )
-
-    // upload read counts and BAM files / indices to S3 bucket
+    // upload BAM files and index files to S3 bucket
     if (params.upload_to_s3){
-      output_bams_and_indices_ch = samtools_index.out.map{it -> tuple(it[1], it[2])}.flatten()
-      read_count_per_region.out.qc_csv_file.concat(output_bams_and_indices_ch).set{output_to_s3}
+      output_to_s3 = samtools_index.out.map{it -> tuple(it[1], it[2])}.flatten()
       upload_pipeline_output_to_s3(output_to_s3)
     }
   // write aligned bam manifest
