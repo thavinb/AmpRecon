@@ -88,7 +88,7 @@ def validate_parameters() {
     // TODO add some manifest validation
 
     }
-  }  
+  }
 
 
   // check if all s3 required parameters were provided

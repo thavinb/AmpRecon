@@ -7,12 +7,11 @@ nextflow.enable.dsl = 2
 include { irods_retrieve } from '../modules/irods_retrieve.nf'
 include { scramble_cram_to_bam } from '../modules/scramble.nf'
 
-/*
 include { validate_general_params } from '../main.nf'
 
 // check paramater functions definition ------------------------------------
-def validate_irods_exclusive_params(){
-*/
+def count_irods_to_reads_params_errors(){
+
     /*
     This functions counts the number of errors on input parameters exclusively used on IRODS subworkflow
     
@@ -24,14 +23,14 @@ def validate_irods_exclusive_params(){
     
     Returns
     ---
-    <int> the nunber of errors found
+    <int> the number of errors found
     */
- /*   
     def err = 0
     if (params.irods_manifest == null){
         log.error("An irods_manifest parameter must be provided for execution mode '${params.execution_mode}'.")
         err += 1
     }
+
     if (params.irods_manifest){
         irods_manifest = file(params.irods_manifest)
         if (!irods_manifest.exists()){
@@ -42,27 +41,23 @@ def validate_irods_exclusive_params(){
             validate_irods_mnf(params.irods_manifest, params.panels_settings)
         }
     }
+
     return err
 }
 
 def validate_parameters(){
     def errors = 0
     // import general params check ones
-    validate_general_params()
+    errors += validate_general_params()
     // count errors and kill nextflow if any had been found
-    erros += validate_irods_exclusive_params(errors)
-
-    // check IRODS params
-    if (params.execution_mode == "irods"){
-        erros += validate_irods_exclusive_params(errors)
-    }
+    errors += validate_irods_exclusive_params()
 
     if (errors > 0) {
         log.error(String.format("%d errors detected", errors))
         exit 1
     }
 }
-*/
+
 // -------------------------------------------------------------------------
 
 workflow SANGER_IRODS_TO_READS {
