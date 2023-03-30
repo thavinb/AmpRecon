@@ -6,7 +6,60 @@ nextflow.enable.dsl = 2
 // import subworkflows
 include { DESIGNATE_PANEL_RESOURCES } from './designate_panel_resources.nf'
 include { PULL_FROM_IRODS } from './pipeline-subworkflows/pull_from_irods.nf'
+include { validate_general_params } from '../main.nf'
 
+// check paramater functions definition ------------------------------------
+def validate_irods_exclusive_params(){
+    /*
+    This functions counts the number of errors on input parameters exclusively used on IRODS subworkflow
+    
+    checks:
+     - if irods manifest was provided
+     - if irods manifest provided exists
+    
+    False for any of those conditions counts as an error.
+    
+    Returns
+    ---
+    <int> the nunber of errors found
+    */
+    
+    def err = 0
+    if (params.irods_manifest == null){
+        log.error("An irods_manifest parameter must be provided for execution mode '${params.execution_mode}'.")
+        err += 1
+    }
+    if (params.irods_manifest){
+        irods_manifest = file(params.irods_manifest)
+        if (!irods_manifest.exists()){
+            log.error("The irods manifest file specified (${params.irods_manifest}) does not exist.")
+            err += 1
+        }
+        else {
+            validate_irods_mnf(params.irods_manifest, params.panels_settings)
+        }
+    }
+    return err
+}
+
+def validate_parameters(){
+    def errors = 0
+    // import general params check ones
+    validate_general_params()
+    // count errors and kill nextflow if any had been found
+    erros += validate_irods_exclusive_params(errors)
+
+    // check IRODS params
+    if (params.execution_mode == "irods"){
+        erros += validate_irods_exclusive_params(errors)
+    }
+
+    if (errors > 0) {
+        log.error(String.format("%d errors detected", errors))
+        exit 1
+    }
+}
+// -------------------------------------------------------------------------
 
 workflow IRODS {
     take:

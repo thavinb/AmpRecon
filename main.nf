@@ -7,7 +7,7 @@ nextflow.enable.dsl = 2
 // - workflows
 
 include { PARSE_PANEL_SETTINGS } from './workflows/parse_panels_settings.nf'
-include { IRODS } from './workflows/irods.nf'
+include { IRODS ; validate_irods_exclusive_params} from './workflows/irods.nf'
 include { IN_COUNTRY } from './workflows/in_country.nf'
 include { COMMON } from './workflows/common.nf'
 include { GENOTYPES_TO_GRCS } from './workflows/genotypes_to_grcs.nf'
@@ -132,6 +132,18 @@ def printHelp() {
       sanger_lsf : run the pipeline on farm5 lsf (recommended)
       sanger_default : run the pipeline on farm5 local settings (only for development)
    """.stripIndent()
+}
+
+def validate_general_params(int errors){
+  // --- SANITY CHECKS ------------------------------------------------------
+  // check if output dir exists, if not create the default
+  if (params.results_dir){
+       results_path = file(params.results_dir)
+       if (!results_path.exists()){
+         log.warn("${results_path} does not exists, the dir will be created")
+         results_path.mkdir()
+       }
+  }
 }
 
 // Main entry-point workflow
