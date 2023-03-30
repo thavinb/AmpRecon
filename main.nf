@@ -7,7 +7,7 @@ nextflow.enable.dsl = 2
 // - workflows
 
 include { PARSE_PANEL_SETTINGS } from './workflows/parse_panels_settings.nf'
-include { SANGER_IRODS_TO_READS ; validate_irods_exclusive_params} from './workflows/sanger_irods_to_reads.nf'
+include { SANGER_IRODS_TO_READS} from './workflows/sanger_irods_to_reads.nf'
 include { MISEQ_TO_READS } from './workflows/miseq_to_reads.nf'
 include { READS_TO_VARIANTS } from './workflows/reads_to_variants.nf'
 include { VARIANTS_TO_GRCS } from './workflows/variants_to_grcs.nf'

@@ -6,10 +6,12 @@ nextflow.enable.dsl = 2
 // import subworkflows
 include { DESIGNATE_PANEL_RESOURCES } from './designate_panel_resources.nf'
 include { PULL_FROM_IRODS } from './pipeline-subworkflows/pull_from_irods.nf'
+/*
 include { validate_general_params } from '../main.nf'
 
 // check paramater functions definition ------------------------------------
 def validate_irods_exclusive_params(){
+*/
     /*
     This functions counts the number of errors on input parameters exclusively used on IRODS subworkflow
     
@@ -23,7 +25,7 @@ def validate_irods_exclusive_params(){
     ---
     <int> the nunber of errors found
     */
-    
+ /*   
     def err = 0
     if (params.irods_manifest == null){
         log.error("An irods_manifest parameter must be provided for execution mode '${params.execution_mode}'.")
@@ -59,6 +61,7 @@ def validate_parameters(){
         exit 1
     }
 }
+*/
 // -------------------------------------------------------------------------
 
 workflow SANGER_IRODS_TO_READS {
