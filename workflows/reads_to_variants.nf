@@ -4,9 +4,9 @@
 nextflow.enable.dsl = 2
 
 // import subworkflows
-include { REALIGNMENT } from './pipeline-subworkflows/realignment.nf'
-include { GENOTYPING_GATK } from './pipeline-subworkflows/genotyping_gatk.nf'
-include { GENOTYPING_BCFTOOLS } from './pipeline-subworkflows/genotyping_bcftools.nf'
+include { ALIGNMENT } from './alignment.nf'
+include { GENOTYPING_GATK } from './genotyping_gatk.nf'
+include { GENOTYPING_BCFTOOLS } from './genotyping_bcftools.nf'
 include { bqsr } from '../modules/bqsr.nf' addParams(gatk:params.gatk3)
 include { samtools_index } from '../modules/samtools.nf'
 include { write_vcfs_manifest } from '../modules/write_vcfs_manifest.nf'
@@ -30,18 +30,18 @@ workflow READS_TO_VARIANTS {
                 sample_tag: it[0]
                 bam_file: it[1]
                 }
-              | set { realignment_In_ch }
+              | set { alignment_In_ch }
         
-        // do realignment and read counts
-        sample_tag_reference_files_ch.map{it -> tuple(it[0], it[2], it[1])}.set{realignment_ref_ch} // tuple (sample_tag, fasta_file, panel_name)
-        REALIGNMENT(
-                    realignment_In_ch.sample_tag,
-                    realignment_In_ch.bam_file,
-                    realignment_ref_ch,
+        // do alignment and read counts
+        sample_tag_reference_files_ch.map{it -> tuple(it[0], it[2], it[1])}.set{alignment_ref_ch} // tuple (sample_tag, fasta_file, panel_name)
+        ALIGNMENT(
+                    alignment_In_ch.sample_tag,
+                    alignment_In_ch.bam_file,
+                    alignment_ref_ch,
                     annotations_ch
                 )
 
-        genotyping_In_ch = REALIGNMENT.out
+        genotyping_In_ch = ALIGNMENT.out
         }
 
         if (params.execution_mode == "aligned_bams"){

@@ -3,10 +3,10 @@
 // enable dsl2
 nextflow.enable.dsl = 2
 
-include { bcftools_mpileup } from '../../modules/bcftools_genotyping.nf'
-include { bcftools_call } from '../../modules/bcftools_genotyping.nf'
-include { bcftools_filter } from '../../modules/bcftools_genotyping.nf'
-include { upload_pipeline_output_to_s3 } from '../../modules/upload_pipeline_output_to_s3.nf'
+include { bcftools_mpileup } from '../modules/bcftools_genotyping.nf'
+include { bcftools_call } from '../modules/bcftools_genotyping.nf'
+include { bcftools_filter } from '../modules/bcftools_genotyping.nf'
+include { upload_pipeline_output_to_s3 } from '../modules/upload_pipeline_output_to_s3.nf'
 
 workflow GENOTYPING_BCFTOOLS {
 

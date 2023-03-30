@@ -3,16 +3,16 @@
 // enable dsl2
 nextflow.enable.dsl = 2
 
-include { bam_reset } from '../../modules/bam_reset.nf'
-include { bam_to_fastq } from '../../modules/bam_to_fastq.nf'
-include { align_bam } from '../../modules/align_bam.nf'
-include { scramble_sam_to_bam } from '../../modules/scramble.nf'
-include { add_read_group } from '../../modules/add_read_group.nf'
-include { samtools_sort } from '../../modules/samtools.nf'
-include { samtools_index } from '../../modules/samtools.nf'
-include { files_and_panels_to_csv } from '../../modules/read_counts_per_region.nf'
-include { read_count_per_region } from '../../modules/read_counts_per_region.nf'
-include { upload_pipeline_output_to_s3 } from '../../modules/upload_pipeline_output_to_s3.nf'
+include { bam_reset } from '../modules/bam_reset.nf'
+include { bam_to_fastq } from '../modules/bam_to_fastq.nf'
+include { align_bam } from '../modules/align_bam.nf'
+include { scramble_sam_to_bam } from '../modules/scramble.nf'
+include { add_read_group } from '../modules/add_read_group.nf'
+include { samtools_sort } from '../modules/samtools.nf'
+include { samtools_index } from '../modules/samtools.nf'
+include { files_and_panels_to_csv } from '../modules/read_counts_per_region.nf'
+include { read_count_per_region } from '../modules/read_counts_per_region.nf'
+include { upload_pipeline_output_to_s3 } from '../modules/upload_pipeline_output_to_s3.nf'
 
 process write_aligned_bam_mnf {
 
@@ -49,7 +49,7 @@ out_mnf.close()
 /$
 }
 
-workflow REALIGNMENT {
+workflow ALIGNMENT {
   //remove alignment from bam - this process proceeds directly after the end of 1.2x
 
   take:
