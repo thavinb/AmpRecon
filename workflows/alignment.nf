@@ -13,8 +13,6 @@ include { samtools_index } from '../modules/samtools.nf'
 include { upload_pipeline_output_to_s3 } from '../modules/upload_pipeline_output_to_s3.nf'
 
 workflow ALIGNMENT {
-  //remove alignment from bam - this process proceeds directly after the end of 1.2x
-
   take:
     file_id
     bam_file

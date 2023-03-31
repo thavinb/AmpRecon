@@ -16,12 +16,12 @@ are setup
 */
 
 workflow READS_TO_VARIANTS {
-
     take:
         bam_files_ch // tuple(file_id, bam_file)
         file_id_reference_files_ch // tuple (file_id, panel_name, reference_fasta_file, snp_list)
         annotations_ch // tuple (panel_name, annotation_file)
         file_id_to_sample_id_ch // tuple (file_id, sample_id)
+
     main:
 
         // alignment
