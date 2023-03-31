@@ -6,6 +6,8 @@ nextflow.enable.dsl = 2
 include { gatk_haplotype_caller_gatk4 } from '../modules/gatk_haplotype_caller_gatk4.nf'
 include { genotype_vcf_at_given_alleles } from '../modules/genotype_vcf_at_given_alleles.nf' addParams(gatk:params.gatk3, bgzip:'bgzip')
 include { upload_pipeline_output_to_s3 } from '../modules/upload_pipeline_output_to_s3.nf'
+include { bqsr } from '../modules/bqsr.nf'
+include { samtools_index } from '../modules/samtools.nf'
 
 workflow GENOTYPING_GATK {
 
@@ -20,10 +22,11 @@ workflow GENOTYPING_GATK {
 
  
      bqsr(bqsr_in)
+     samtools_index(bqsr.out)
 
-     bqsr.out.join(file_id_reference_files_ch)
-	     .map { it -> tuple(it[0], it[1], it[2], it[3]) }
-	     .set { haplotype_caller_input }      
+     samtools_index.out.join(file_id_reference_files_ch)
+	               .map { it -> tuple(it[0], it[1], it[2], it[3]) }
+	               .set { haplotype_caller_input }      
 
     gatk_haplotype_caller_gatk4(haplotype_caller_input)
 
@@ -42,31 +45,5 @@ workflow GENOTYPING_GATK {
 
   emit:
     genotyped_vcf_ch
-}
-
-workflow BQSR {
-    take:
-        input_file_ids_bams_indexes
-        file_id_reference_files_ch // tuple(file_id, fasta_file, snp_list)
-    
-    main:
-        // base quality score recalibration
-        input_file_ids_bams_indexes // tuple (file_id, bam_file, bam_index)
-            | join(file_id_reference_files_ch) // tuple (file_id, bam_file, bam_index, fasta_file, snp_list)
-            | map{ it -> tuple(it[0], it[1], it[2], it[3], it[4])}
-            | set{bqsr_input} // tuple(file_id, bam_file, bam_index, fasta, snp_list)
-
-        if (!params.skip_bqsr) {
-            bqsr(bqsr_input)
-            samtools_index(bqsr.out)
-            
-            // haplotype caller
-            post_bqsr_output = samtools_index.out
-        }
-        else {
-            post_bqsr_output = input_file_ids_bams_indexes
-        }
-    emit:
-        post_bqsr_output
 }
 
