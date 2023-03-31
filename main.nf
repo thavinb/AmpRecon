@@ -34,7 +34,11 @@ log.info """
          --containers_dir     : ${params.containers_dir}
          --genotyping_gatk    : ${params.genotyping_gatk}
          --genotyping_bcftools: ${params.genotyping_bcftools}
-         --skip_bqsr          : ${params.skip_bqsr}
+         --grc_settings_file_path: ${params.grc_settings_file_path}
+         --chrom_key_file_path: ${params.chrom_key_file_path}
+         --kelch_reference_file_path: ${params.kelch_reference_file_path}
+         --codon_key_file_path: ${params.codon_key_file_path}
+         --drl_information_file_path: ${params.drl_information_file_path}
 
          (in-country)
          --run_id             : ${params.run_id}
@@ -47,9 +51,6 @@ log.info """
          (irods)
          --irods_manifest     : ${params.irods_manifest}
 
-         (aligned_bams)
-         --aligned_bams_mnf   : ${params.aligned_bams_mnf}
-         
          (s3)
          --download_from_s3   : ${params.download_from_s3}
          --upload_to_s3       : ${params.upload_to_s3}
@@ -78,14 +79,26 @@ def printHelp() {
   Usage:
     (irods)
     nextflow run /path/to/ampseq-pipeline/main.nf -profile sanger_lsf 
-        --execution_mode irods
-        --irods_manifest ./input/irods_smallset.tsv
+      --execution_mode irods
+      --irods_manifest ./input/irods_smallset.tsv
+      --chrom_key_file_path chromKey.txt
+      --grc_settings_file_path grc_settings.json
+      --drl_information_file_path DRLinfo.txt
+      --codon_key_file_path codonKey.txt
+      --kelch_reference_file_path kelchReference.txt
+      --containers_dir ./containers_dir/ 
 
     (incountry)
     nextflow /path/to/ampseq-pipeline/main.nf -profile sanger_lsf
-                --execution_mode in-country --run_id 21045
-                --bcl_dir /path/to/my_bcl_dir/ --lane 1
-                --study_name test --read_group rg_test --library lib
+      --execution_mode in-country --run_id 21045
+      --bcl_dir /path/to/my_bcl_dir/ --lane 1
+      --study_name test --read_group rg_test --library lib
+      --chrom_key_file_path chromKey.txt
+      --grc_settings_file_path grc_settings.json
+      --drl_information_file_path DRLinfo.txt
+      --codon_key_file_path codonKey.txt
+      --kelch_reference_file_path kelchReference.txt
+      --containers_dir ./containers_dir/ 
 
   Description:
     Ampseq is a bioinformatics analysis pipeline for amplicon sequencing data.
@@ -116,6 +129,13 @@ def printHelp() {
       --upload_to_s3 : <bool> sets if needs to upload output data to an s3 bucket
       --s3_bucket_output : <str> s3 bucket name to upload data to
 
+      (grc_creation)
+      --grc_settings_file_path: <str> path to the GRC settings file.
+      --chrom_key_file_path: <str> path to the chrom key file
+      --kelch_reference_file_path: <str> path to the kelch13 reference sequence file
+      --codon_key_file_path: <str> path to the codon key file
+      --drl_information_file_path: <str> path to the drug resistance loci information file
+
     Settings:
       --results_dir : <path>, output directory (Default: $launchDir/output/)
       --panels_settings : <path>, path to panel_settings.csv
@@ -123,7 +143,7 @@ def printHelp() {
 
       (genotyping)
       --gatk3: <str> path to GATK3 GenomeAnalysisTK.jar file
-      --skip_bqsr : <bool> skip BQSR step in GATK genotyping procedure
+      --
 
     Additional options:
       --help (Prints this help message. Default: false)
