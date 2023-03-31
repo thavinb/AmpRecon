@@ -31,68 +31,6 @@ include { PARSE_PANEL_SETTINGS } from './parse_panels_settings.nf'
 include { miseq_run_validation } from '../modules/miseq_run_validation.nf'
 include { retrieve_miseq_run_from_s3 } from '../modules/retrieve_miseq_run_from_s3.nf'
 
-def count_miseq_to_reads_params_errors(){
-    /*
-    This functions counts the number of errors on input parameters exclusively used on Incountry workflow
-    
-    checks:
-     - if irods manifest was provided
-     - if irods manifest provided exists
-    
-    False for any of those conditions counts as an error.
-    
-    Returns
-    ---
-    <int> the number of errors found
-    */
-
-    def err = 0
-
-    if (params.run_id == null){
-      log.error("A run_id parameter must be provided for execution mode '${params.execution_mode}'.")
-      err += 1
-    }
-
-    if (params.bcl_dir == null && params.s3_bucket_input == null){
-      log.error("Either a bcl directory or a s3 bucket input must be specified for in-country execution_mode.")
-      err += 1
-    } 
-    
-
-    if (params.lane == null){
-      log.error("A lane parameter must be provided for execution mode '${params.execution_mode}'.")
-      err += 1
-    }
-    
-    if (params.study_name == null){
-      log.error("A study_name parameter must be provided for execution mode '${params.execution_mode}'.")
-      err += 1
-    }
-    if (params.read_group == null){
-      log.error("A read_group parameter must be provided for execution mode '${params.execution_mode}'.")
-      err += 1
-    }
-    
-    if (params.library == null){
-      log.error("A library parameter must be provided for execution mode '${params.execution_mode}'.")
-      err += 1
-    }
-    return err
-}
-
-def validate_parameters(){
-    def errors = 0
-
-    errors += validate_general_params()
-    errors += validate_incountry_exclusive_params()
-
-    // count errors and kill nextflow if any had been found
-    if (errors > 0) {
-        log.error(String.format("%d errors detected", errors))
-        exit 1
-    }
-}
-
 workflow BCL_TO_CRAM {
     take:
         pre_process_input_ch
@@ -284,4 +222,54 @@ workflow MISEQ_TO_READS {
     bam_files_ch // tuple (file_id, bam_file)
     file_id_reference_files_ch // tuple (file_id, panel_name, path/to/reference/genome, snp_list)
     file_id_to_sample_id_ch // tuple (file_id, sample_id)
+}
+
+
+def count_miseq_to_reads_params_errors(){
+    /*
+    This functions counts the number of errors on input parameters exclusively used on Incountry workflow
+    
+    checks:
+     - if irods manifest was provided
+     - if irods manifest provided exists
+    
+    False for any of those conditions counts as an error.
+    
+    Returns
+    ---
+    <int> the number of errors found
+    */
+
+    def err = 0
+
+    if (params.run_id == null){
+      log.error("A run_id parameter must be provided for execution mode '${params.execution_mode}'.")
+      err += 1
+    }
+
+    if (params.bcl_dir == null && params.s3_bucket_input == null){
+      log.error("Either a bcl directory or a s3 bucket input must be specified for in-country execution_mode.")
+      err += 1
+    } 
+    
+
+    if (params.lane == null){
+      log.error("A lane parameter must be provided for execution mode '${params.execution_mode}'.")
+      err += 1
+    }
+    
+    if (params.study_name == null){
+      log.error("A study_name parameter must be provided for execution mode '${params.execution_mode}'.")
+      err += 1
+    }
+    if (params.read_group == null){
+      log.error("A read_group parameter must be provided for execution mode '${params.execution_mode}'.")
+      err += 1
+    }
+    
+    if (params.library == null){
+      log.error("A library parameter must be provided for execution mode '${params.execution_mode}'.")
+      err += 1
+    }
+    return err
 }
