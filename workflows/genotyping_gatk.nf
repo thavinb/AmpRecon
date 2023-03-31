@@ -6,7 +6,7 @@ nextflow.enable.dsl = 2
 include { gatk_haplotype_caller_gatk4 } from '../modules/gatk_haplotype_caller_gatk4.nf'
 include { genotype_vcf_at_given_alleles } from '../modules/genotype_vcf_at_given_alleles.nf' addParams(gatk:params.gatk3, bgzip:'bgzip')
 include { upload_pipeline_output_to_s3 } from '../modules/upload_pipeline_output_to_s3.nf'
-include { bqsr } from '../modules/bqsr.nf'
+include { bqsr } from '../modules/bqsr.nf' addParams(gatk:params.gatk3)
 include { samtools_index } from '../modules/samtools.nf'
 
 workflow GENOTYPING_GATK {
