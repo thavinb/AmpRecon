@@ -38,7 +38,8 @@ workflow SANGER_IRODS_TO_READS {
         // tuple (file_id, panel_name, path/to/reference/genome, snp_list)
 
         // Retrieve CRAM files from iRODS
-        irods_retrieve(irods_ch)
+        irods_paths = irods_ch.map{it -> tuple(it[0], it[2])} // tuple (file_id, irods_path)
+        irods_retrieve(irods_paths)
 
         // Convert iRODS CRAM files to BAM format
         scramble_cram_to_bam(irods_retrieve.out)
