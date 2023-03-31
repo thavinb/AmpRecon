@@ -79,12 +79,12 @@ workflow SANGER_IRODS_TO_READS {
         irods_ch.map{it -> tuple(it[0], it[3])}.set{file_id_to_sample_id_ch}
 
         // assign each sample tag the appropriate set of reference files
-        irods_ch.map{it -> tuple(it[0], it[1])}.set{new_sample_tag_panel_ch} // tuple (file_id, panel_name)
+        irods_ch.map{it -> tuple(it[0], it[1])}.set{new_file_id_panel_ch} // tuple (file_id, panel_name)
 
-        new_sample_tag_panel_ch
+        new_file_id_panel_ch
           |  combine(reference_ch,  by: 1) // tuple (panel_name, file_id, fasta,snp_list)
           |  map{it -> tuple(it[1], it[0], it[2], it[3])}
-          |  set{sample_tag_reference_files_ch}
+          |  set{file_id_reference_files_ch}
         // tuple (file_id, panel_name, path/to/reference/genome, snp_list)
 
         // Retrieve CRAM files from iRODS
@@ -96,7 +96,7 @@ workflow SANGER_IRODS_TO_READS {
 
     emit:
         bam_files_ch // tuple(file_id, bam_file)
-        sample_tag_reference_files_ch // tuple (new_sample_id, panel_name, path/to/reference/genome, snp_list)
+        file_id_reference_files_ch // tuple (new_sample_id, panel_name, path/to/reference/genome, snp_list)
 	    file_id_to_sample_id_ch // tuple (file_id, sample_id)
 }
 

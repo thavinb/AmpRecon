@@ -10,13 +10,14 @@ include { upload_pipeline_output_to_s3 } from '../modules/upload_pipeline_output
 workflow READ_COUNTS {
   take:
     indexed_bams_ch
+    file_id_reference_files_ch
     annotations_ch // tuple (panel_name, anotation_file)
 
   main:
 
     // make CSV file of bam file names with associated amplicon panel
     bam_file_names = indexed_bams_ch.map{it -> it[1].baseName}.collect() // amplicon panel now part of BAM name
-    panel_names = indexed_bams_ch.join(sample_tag_reference_files_ch).map{it -> it[4]}.collect()
+    panel_names = indexed_bams_ch.join(file_id_reference_files_ch).map{it -> it[4]}.collect()
     files_and_panels_to_csv(bam_file_names, panel_names)
     bams_and_indices = indexed_bams_ch.map{it -> tuple(it[1], it[2])}.collect()
 

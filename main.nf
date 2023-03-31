@@ -244,7 +244,7 @@ workflow {
     // process in country entry point
     MISEQ_TO_READS(reference_ch)
     bam_files_ch = MISEQ_TO_READS.out.bam_files_ch
-    sample_tag_reference_files_ch = MISEQ_TO_READS.out.sample_tag_reference_files_ch
+    file_id_reference_files_ch = MISEQ_TO_READS.out.file_id_reference_files_ch
     file_id_to_sample_id_ch = MISEQ_TO_READS.out.file_id_to_sample_id_ch
   }
 
@@ -252,8 +252,8 @@ workflow {
     // process IRODS entry point
     SANGER_IRODS_TO_READS(params.irods_manifest, reference_ch)
     // setup channels for downstream processing
-    bam_files_ch = SANGER_IRODS_TO_READS.out.bam_files_ch // tuple (sample_tag, bam_file, run_id)
-    sample_tag_reference_files_ch = SANGER_IRODS_TO_READS.out.sample_tag_reference_files_ch
+    bam_files_ch = SANGER_IRODS_TO_READS.out.bam_files_ch // tuple (file_id, bam_file, run_id)
+    file_id_reference_files_ch = SANGER_IRODS_TO_READS.out.file_id_reference_files_ch
     file_id_to_sample_id_ch = SANGER_IRODS_TO_READS.out.file_id_to_sample_id_ch
   }
 
@@ -261,19 +261,19 @@ workflow {
     // get bam files channel
     mnf_ch = Channel.fromPath(params.aligned_bams_mnf, checkIfExists: true)
                         | splitCsv(header:true, sep:',')
-    bam_files_ch = mnf_ch | map {row -> tuple(row.sample_tag, row.bam_file, row.bam_idx)}
+    bam_files_ch = mnf_ch | map {row -> tuple(row.file_id, row.bam_file, row.bam_idx)}
     
     // get sample tags to panel resources relationship channel
-    ref_to_sample = mnf_ch | map {row -> tuple(row.sample_tag, row.panel_name)} 
+    ref_to_sample = mnf_ch | map {row -> tuple(row.file_id, row.panel_name)} 
 
     ref_to_sample
-      | combine(reference_ch, by:1) // tuple(panel_name, sample_tag, reference_file, snp_list)
-      | map {it -> tuple(it[1], it[0], it[2], it[3])} // tuple(sample_tag, panel_name, fasta_file, snp_list)
-      | set { sample_tag_reference_files_ch}
+      | combine(reference_ch, by:1) // tuple(panel_name, file_id, reference_file, snp_list)
+      | map {it -> tuple(it[1], it[0], it[2], it[3])} // tuple(file_id, panel_name, fasta_file, snp_list)
+      | set { file_id_reference_files_ch}
   }
 
   // Reads to variants
-  READS_TO_VARIANTS(bam_files_ch, sample_tag_reference_files_ch, annotations_ch, file_id_to_sample_id_ch)
+  READS_TO_VARIANTS(bam_files_ch, file_id_reference_files_ch, annotations_ch, file_id_to_sample_id_ch)
   lanelet_manifest_file = READS_TO_VARIANTS.out.lanelet_manifest
 
   // Variants to GRCs

@@ -17,7 +17,7 @@ process write_aligned_bam_mnf {
   //publishDir "${params.results_dir}/${run_id}", mode: 'copy', overwrite: true
   label 'pythonBox'
   input:
-    tuple val(sample_tag), path(bam_file), path(bam_idx), val(panel_name)
+    tuple val(file_id), path(bam_file), path(bam_idx), val(panel_name)
 
 // The $/ ... /$ is necessary to avoid nextflow to read "\n" incorrectly
 $/
@@ -27,7 +27,7 @@ from pathlib import Path
 # setup inputs
 bam_fl = "${bam_file}"
 bam_idx = "${bam_idx}"
-sample_tag = "${sample_tag}"
+file_id = "${file_id}"
 publishDir = f"${params.results_dir}/"
 bam_dir=f"${params.results_dir}/"
 panel_name = f"${panel_name}"
@@ -39,10 +39,10 @@ if Path(path_to_mnf).is_file():
 # if manifest does not exist, create file and write header
 else:
     out_mnf = open(f"{path_to_mnf}", "w")
-    out_mnf.write("sample_tag,panel_name,bam_file,bam_idx\n")
+    out_mnf.write("file_id,panel_name,bam_file,bam_idx\n")
 
 # write manifest line for the bam file
-out_mnf.write(f"{sample_tag},{panel_name},{bam_dir}{bam_fl},{bam_dir}{bam_idx}\n")
+out_mnf.write(f"{file_id},{panel_name},{bam_dir}{bam_fl},{bam_dir}{bam_idx}\n")
 out_mnf.close()
 /$
 }
@@ -51,21 +51,21 @@ workflow ALIGNMENT {
   //remove alignment from bam - this process proceeds directly after the end of 1.2x
 
   take:
-    sample_tag
+    file_id
     bam_file
-    sample_tag_reference_files_ch // tuple (sample_id, fasta_file, panel_name)
+    file_id_reference_files_ch // tuple (file_id, fasta_file, panel_name)
 
   main:
     // Unmap the bam files (ubam)
-    bam_reset(sample_tag, bam_file)
+    bam_reset(file_id, bam_file)
     
     // convert ubams to fastqs
     bam_to_fastq(bam_reset.out.sample_tag,
                  bam_reset.out.reset_bam)
 
     // prepare channels to be used on join for input for other processes
-    bam_to_fastq.out // tuple (sample_id, fastq_file)
-          | join(sample_tag_reference_files_ch) //tuple (sample_id, fastq, fasta_file, panel_name)
+    bam_to_fastq.out // tuple (file_id, fastq_file)
+          | join(file_id_reference_files_ch) //tuple (file_id, fastq, fasta_file, panel_name)
           | set{ bwa_ch }
 
      // do new alignment
@@ -89,10 +89,10 @@ workflow ALIGNMENT {
     }
   // write aligned bam manifest
 
-  samtools_index.out // tuple (sample_tag, input_bam, bam_bai)
-    | join(sample_tag_reference_files_ch) //tuple (sample_tag, input_bam, bam_bai, fasta_file, panel_name)
+  samtools_index.out // tuple (file_id, input_bam, bam_bai)
+    | join(file_id_reference_files_ch) //tuple (file_id, input_bam, bam_bai, fasta_file, panel_name)
     | map {it -> tuple(it[0], it[1], it[2], it[4])}
-    | set {manifest_ch} // tuple (sample_tag, bam, bam_index, panel_name)
+    | set {manifest_ch} // tuple (file_id, bam, bam_index, panel_name)
 
   write_aligned_bam_mnf(manifest_ch)
 

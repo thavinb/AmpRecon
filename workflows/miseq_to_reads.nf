@@ -130,10 +130,10 @@ workflow BCL_TO_CRAM {
         cram_ch
           | flatten()
           | map { it -> tuple(it.simpleName, it, params.run_id) }
-          | set {final_cram_ch} // tuple(sample_tag, cram_fl, run_id)
+          | set {final_cram_ch} // tuple(file_id, cram_fl, run_id)
 
     emit:
-        final_cram_ch // tuple( sample_tag, cram_fl, run_id)
+        final_cram_ch // tuple( file_id, cram_fl, run_id)
 
 }
 /*
@@ -149,8 +149,8 @@ workflow CRAM_TO_BAM {
     take:
         // manifest from step 1.1
         //intermediate_csv
-        cram_ch // tuple(sample_tag, cram_fl, run_id) | sample_tag = [run_id]_[lane]#[index]_[sample_name]-
-        sample_tag_reference_files_ch // tuple (sample_id, ref_fasta, panel_name)
+        cram_ch // tuple(file_id, cram_fl, run_id) | file_id = [run_id]_[lane]#[index]_[sample_name]-
+        file_id_reference_files_ch // tuple (sample_id, ref_fasta, panel_name)
 
     main:
         // --| DEBUG |--------------------------------------------------
@@ -172,17 +172,17 @@ workflow CRAM_TO_BAM {
 
         // Convert BAM to FASTQ
         bam_to_fasq_In_ch = clip_adapters.out
-                              | multiMap {it -> sample_tag: it[0]
-                                                bam_cliped_file: it[1]
+                              | multiMap {it -> file_id: it[0]
+                                                bam_clipped_file: it[1]
                                         }
-        bam_to_fastq(bam_to_fasq_In_ch.sample_tag,
-                    bam_to_fasq_In_ch.bam_cliped_file)
+        bam_to_fastq(bam_to_fasq_In_ch.file_id,
+                    bam_to_fasq_In_ch.bam_clipped_file)
 
         // Align reads to reference genome
-        bam_to_fastq.out //tuple (old_sample_tag, fastq_files)
+        bam_to_fastq.out //tuple (file_id, fastq_files)
               // get panel resource files
-              | join(sample_tag_reference_files_ch) // tuple (new_sample_tag, fastq_files, panel_name, ref_fasta)
-              | map{it -> tuple(it[0], it[1], it[2], it[3])} // tuple (new_sample_tag, fastq, fasta, panel_name)
+              | join(file_id_reference_files_ch) // tuple (file_id, fastq_files, panel_name, ref_fasta)
+              | map{it -> tuple(it[0], it[1], it[2], it[3])} // tuple (new_file_id, fastq, fasta, panel_name)
               | set{ bwa_ch }
 
         bwa_alignment(bwa_ch)
@@ -197,8 +197,8 @@ workflow CRAM_TO_BAM {
         // Keeping @SQ.*\tSN:([^\t]+) matching lines from the new header.
         reheader_in_ch = scramble_sam_to_bam.out 
                             | join(clip_adapters.out)
-                            | join(sample_tag_reference_files_ch)
-                            | map { it -> tuple(it[0], it[1], it[2], it[3]) } // tuple(sample_tag, scrambled_bam, clipped_bam, ref_fasta)
+                            | join(file_id_reference_files_ch)
+                            | map { it -> tuple(it[0], it[1], it[2], it[3]) } // tuple(file_id, scrambled_bam, clipped_bam, ref_fasta)
         mapping_reheader(reheader_in_ch)
 
         // Split BAM rank pairs to single ranks per read
@@ -280,37 +280,37 @@ workflow MISEQ_TO_READS {
 
       // Stage 1 - Step 1: BCL to CRAM
       BCL_TO_CRAM(step1_Input_ch, make_samplesheet_manifest.out.manifest_file)
-      cram_ch = BCL_TO_CRAM.out // tuple (sample_tag, cram_fl, run_id)
+      cram_ch = BCL_TO_CRAM.out // tuple (file_id, cram_fl, run_id)
 
       // get the relevant sample data from the manifest
-      sample_tag_ch = make_samplesheet_manifest.out.manifest_file // WARN: this need to be removed, we should no rely on results dir
+      file_id_ch = make_samplesheet_manifest.out.manifest_file // WARN: this need to be removed, we should no rely on results dir
                   | splitCsv(header: ["lims_id", "sims_id", "index", "assay",
                                      "barcode_sequence", "well", "plate"],
                                     skip: 18)
                   | map { row -> tuple(row.lims_id, row.assay, row.index) }
-                  | map{it -> tuple("${params.run_id}_${params.lane}#${it[2]}_${it[0]}", it[1], it[0])} // tuple (sample_tag, panel_name, lims_id)
+                  | map{it -> tuple("${params.run_id}_${params.lane}#${it[2]}_${it[0]}", it[1], it[0])} // tuple (file_id, panel_name, lims_id)
 
       // link file_id to sample_id
-      sample_tag_ch.map{it -> tuple("${it[0]}_${it[1]}", it[2])}.set{file_id_to_sample_id_ch}
+      file_id_ch.map{it -> tuple("${it[0]}_${it[1]}", it[2])}.set{file_id_to_sample_id_ch}
 
-      // add panel names to sample_tags
-      panel_name_cram_ch = cram_ch.join(sample_tag_ch) // tuple (sample_tag, cram_fl, run_id, panel_name)
-                           | map{it -> tuple("${it[0]}_${it[3]}", it[1], it[2])} // tuple(sample_tag_panel_name, cram_fl, run_id)
-      new_sample_tag_ch = sample_tag_ch.map{it -> tuple("${it[0]}_${it[1]}", it[1])} // tuple (file_id, panel_name)  
+      // add panel names to file_ids
+      panel_name_cram_ch = cram_ch.join(file_id_ch) // tuple (file_id, cram_fl, run_id, panel_name)
+                           | map{it -> tuple("${it[0]}_${it[3]}", it[1], it[2])} // tuple(file_id_panel_name, cram_fl, run_id)
+      new_file_id_ch = file_id_ch.map{it -> tuple("${it[0]}_${it[1]}", it[1])} // tuple (file_id, panel_name)  
 
       // assign each sample tag the appropriate set of reference files
-      new_sample_tag_ch
+      new_file_id_ch
          |  combine(reference_ch,  by: 1) // tuple (panel_name, file_id, fasta,snp_list)
          |  map{it -> tuple(it[1], it[0], it[2], it[3])}
-         |  set{sample_tag_reference_files_ch}
+         |  set{file_id_reference_files_ch}
       // tuple(file_id, panel_name path/to/reference/genome, snp_list)
 
       // Stage 1 - Step 2: CRAM to BAM
-      CRAM_TO_BAM(panel_name_cram_ch, sample_tag_reference_files_ch.map{it -> tuple(it[0], it[2], it[1])})  // tuple (new_sample_tag, ref_fasta, panel_name)
+      CRAM_TO_BAM(panel_name_cram_ch, file_id_reference_files_ch.map{it -> tuple(it[0], it[2], it[1])})  // tuple (new_file_id, ref_fasta, panel_name)
       bam_files_ch = CRAM_TO_BAM.out.bam_ch
 
    emit:
-      bam_files_ch // tuple (new_sample_tag, bam_file)
-      sample_tag_reference_files_ch // tuple (new_sample_tag, panel_name, path/to/reference/genome, snp_list)
+      bam_files_ch // tuple (file_id, bam_file)
+      file_id_reference_files_ch // tuple (file_id, panel_name, path/to/reference/genome, snp_list)
       file_id_to_sample_id_ch // tuple (file_id, sample_id)
 }

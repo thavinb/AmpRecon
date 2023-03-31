@@ -18,24 +18,24 @@ are setup
 workflow READS_TO_VARIANTS {
 
     take:
-        bam_files_ch // tuple(sample_tag, bam_file)
-        sample_tag_reference_files_ch // tuple (sample_tag, panel_name, reference_fasta_file, snp_list)
+        bam_files_ch // tuple(file_id, bam_file)
+        file_id_reference_files_ch // tuple (file_id, panel_name, reference_fasta_file, snp_list)
         annotations_ch // tuple (panel_name, annotation_file)
-        file_id_to_sample_id_ch // tuple (sample_tag, sample_id)
+        file_id_to_sample_id_ch // tuple (file_id, sample_id)
     main:
         // mapping tuple to multichannel 
         if (params.aligned_bams_mnf == null){
             bam_files_ch
               | multiMap {
-                sample_tag: it[0]
+                file_id: it[0]
                 bam_file: it[1]
                 }
               | set { alignment_In_ch }
         
         // do alignment and read counts
-        sample_tag_reference_files_ch.map{it -> tuple(it[0], it[2], it[1])}.set{alignment_ref_ch} // tuple (sample_tag, fasta_file, panel_name)
+        file_id_reference_files_ch.map{it -> tuple(it[0], it[2], it[1])}.set{alignment_ref_ch} // tuple (file_id, fasta_file, panel_name)
         ALIGNMENT(
-                    alignment_In_ch.sample_tag,
+                    alignment_In_ch.file_id,
                     alignment_In_ch.bam_file,
                     alignment_ref_ch
                 )
@@ -43,13 +43,13 @@ workflow READS_TO_VARIANTS {
         genotyping_In_ch = ALIGNMENT.out
         }
 
-        READ_COUNTS(ALIGNMENT.out, annotations_ch)
+        READ_COUNTS(ALIGNMENT.out, alignment_ref_ch, annotations_ch)
 
         if (params.execution_mode == "aligned_bams"){
         genotyping_In_ch = bam_files_ch
         }
         // genotyping
-        sample_tag_reference_files_ch.map{it -> tuple(it[0], it[2], it[3])}.set{bqsr_ref_ch} // tuple (sample_tag, fasta_file, snp_list)
+        file_id_reference_files_ch.map{it -> tuple(it[0], it[2], it[3])}.set{bqsr_ref_ch} // tuple (file_id, fasta_file, snp_list)
         BQSR(
             genotyping_In_ch,
             bqsr_ref_ch
@@ -57,7 +57,7 @@ workflow READS_TO_VARIANTS {
 
         // genotyping
         if( params.genotyping_gatk == true ) {
-        sample_tag_reference_files_ch.map{it -> tuple(it[0], it[2], it[3])}.set{gatk_genotyping_ref_ch} // tuple (sample_tag, fasta_file, snp_list)
+        file_id_reference_files_ch.map{it -> tuple(it[0], it[2], it[3])}.set{gatk_genotyping_ref_ch} // tuple (file_id, fasta_file, snp_list)
                 GENOTYPING_GATK(
                    BQSR.out,
                    gatk_genotyping_ref_ch
@@ -68,7 +68,7 @@ workflow READS_TO_VARIANTS {
         }
 
         if( params.genotyping_bcftools == true ) {
-        sample_tag_reference_files_ch.map{it -> tuple(it[0], it[2], it[3])}.set{bcftools_genotyping_ref_ch} // tuple (sample_tag, fasta_file, snp_list)
+        file_id_reference_files_ch.map{it -> tuple(it[0], it[2], it[3])}.set{bcftools_genotyping_ref_ch} // tuple (file_id, fasta_file, snp_list)
                 GENOTYPING_BCFTOOLS(
                    BQSR.out,
                    bcftools_genotyping_ref_ch

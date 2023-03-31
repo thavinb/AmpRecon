@@ -11,21 +11,21 @@ include { upload_pipeline_output_to_s3 } from '../modules/upload_pipeline_output
 workflow GENOTYPING_BCFTOOLS {
 
   take:
-        input_sample_tags_bams_indexes // tuple(sample_tag, bam_file, bam_index_file)
-        sample_tag_reference_files_ch // tuple(sample_tag, reference_fasta, snp_list)
+        input_file_ids_bams_indexes // tuple(file_id, bam_file, bam_index_file)
+        file_id_reference_files_ch // tuple(file_id, reference_fasta, snp_list)
   main:
 
     // compute genotype likelihoods
-    input_sample_tags_bams_indexes // tuple (sample_tag, bam_file, bam_index)
-        | join(sample_tag_reference_files_ch) // tuple (sample_tag, bam_file, bam_index, reference_fasta, snp_list)
-        | set{mpileup_input} // tuple(sample_tag, bam_file, bam_index, reference_fasta, snp_list)
+    input_file_ids_bams_indexes // tuple (file_id, bam_file, bam_index)
+        | join(file_id_reference_files_ch) // tuple (file_id, bam_file, bam_index, reference_fasta, snp_list)
+        | set{mpileup_input} // tuple(file_id, bam_file, bam_index, reference_fasta, snp_list)
     bcftools_mpileup(mpileup_input)
 
     // call SNP sites
-    bcftools_mpileup.out // tuple (sample_tag, bcf_file)
-	| join(sample_tag_reference_files_ch) // tuple (sample_tag, bcf_file, reference_file, snp_list)
+    bcftools_mpileup.out // tuple (file_id, bcf_file)
+	| join(file_id_reference_files_ch) // tuple (file_id, bcf_file, reference_file, snp_list)
 	| map{ it -> tuple(it[0], it[1])}
-	| set{call_input} // tuple (sample_tag, bcf_file)
+	| set{call_input} // tuple (file_id, bcf_file)
     bcftools_call(call_input)
 
     // filter genetic variants
