@@ -11,7 +11,7 @@ workflow READ_COUNTS {
   take:
     indexed_bams_ch
     file_id_reference_files_ch
-    annotations_ch // tuple (panel_name, anotation_file)
+    annotations_ch // tuple (panel_name, annotation_file)
 
   main:
 

@@ -112,8 +112,6 @@ workflow BCL_TO_CRAM {
                     bam_find_adapter.out.bam_adapter_file,
                     bam_find_adapter.out.bam_metrics_file)
 
-        //cram_ch = bam_to_cram.out
-
         // rename samples to samplesheet provided names
         // on this step the pattern for file names are set as
         // [run_id]_[lane]#[index]_[sample_name]
@@ -219,9 +217,7 @@ workflow CRAM_TO_BAM {
                  alignment_filter.out.sample_tag,
                  alignment_filter.out.selected_bam)
         bam_ch = sort_bam.out
-        // --- DEBUG ----------
-        //bam_ch.first().view()
-        // --------------------
+  
     emit:
         bam_ch
 }
