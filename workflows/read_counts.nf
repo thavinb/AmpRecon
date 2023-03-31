@@ -23,9 +23,9 @@ workflow READ_COUNTS {
 
     // determine read counts per amplicon region
     read_count_per_region(
-        files_and_panels_to_csv.out,
-        bams_and_indices,
-        annotations_ch,
+      files_and_panels_to_csv.out,
+      bams_and_indices,
+      annotations_ch,
     )
 
     // upload read counts to S3 bucket

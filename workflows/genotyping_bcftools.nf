@@ -9,16 +9,16 @@ include { bcftools_filter } from '../modules/bcftools_genotyping.nf'
 include { upload_pipeline_output_to_s3 } from '../modules/upload_pipeline_output_to_s3.nf'
 
 workflow GENOTYPING_BCFTOOLS {
-
   take:
-        input_file_ids_bams_indexes // tuple(file_id, bam_file, bam_index_file)
-        file_id_reference_files_ch // tuple(file_id, reference_fasta, snp_list)
+    input_file_ids_bams_indexes // tuple(file_id, bam_file, bam_index_file)
+    file_id_reference_files_ch // tuple(file_id, reference_fasta, snp_list)
+
   main:
 
     // compute genotype likelihoods
     input_file_ids_bams_indexes // tuple (file_id, bam_file, bam_index)
-        | join(file_id_reference_files_ch) // tuple (file_id, bam_file, bam_index, reference_fasta, snp_list)
-        | set{mpileup_input} // tuple(file_id, bam_file, bam_index, reference_fasta, snp_list)
+      | join(file_id_reference_files_ch) // tuple (file_id, bam_file, bam_index, reference_fasta, snp_list)
+      | set{mpileup_input} // tuple(file_id, bam_file, bam_index, reference_fasta, snp_list)
     bcftools_mpileup(mpileup_input)
 
     // call SNP sites

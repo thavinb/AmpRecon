@@ -7,56 +7,6 @@ nextflow.enable.dsl = 2
 include { irods_retrieve } from '../modules/irods_retrieve.nf'
 include { scramble_cram_to_bam } from '../modules/scramble.nf'
 
-include { validate_general_params } from '../main.nf'
-
-// check paramater functions definition ------------------------------------
-def count_irods_to_reads_params_errors(){
-
-    /*
-    This functions counts the number of errors on input parameters exclusively used on IRODS subworkflow
-    
-    checks:
-     - if irods manifest was provided
-     - if irods manifest provided exists
-    
-    False for any of those conditions counts as an error.
-    
-    Returns
-    ---
-    <int> the number of errors found
-    */
-    def err = 0
-    if (params.irods_manifest == null){
-        log.error("An irods_manifest parameter must be provided for execution mode '${params.execution_mode}'.")
-        err += 1
-    }
-
-    if (params.irods_manifest){
-        irods_manifest = file(params.irods_manifest)
-        if (!irods_manifest.exists()){
-            log.error("The irods manifest file specified (${params.irods_manifest}) does not exist.")
-            err += 1
-        }
-        else {
-            validate_irods_mnf(params.irods_manifest, params.panels_settings)
-        }
-    }
-
-    return err
-}
-
-def validate_parameters(){
-    def errors = 0
-    // import general params check ones
-    errors += validate_general_params()
-    // count errors and kill nextflow if any had been found
-    errors += validate_irods_exclusive_params()
-
-    if (errors > 0) {
-        log.error(String.format("%d errors detected", errors))
-        exit 1
-    }
-}
 
 // -------------------------------------------------------------------------
 
@@ -88,7 +38,8 @@ workflow SANGER_IRODS_TO_READS {
         // tuple (file_id, panel_name, path/to/reference/genome, snp_list)
 
         // Retrieve CRAM files from iRODS
-        irods_retrieve(irods_ch)
+        irods_paths = irods_ch.map{it -> tuple(it[0], it[2])} // tuple (file_id, irods_path)
+        irods_retrieve(irods_paths)
 
         // Convert iRODS CRAM files to BAM format
         scramble_cram_to_bam(irods_retrieve.out)
@@ -100,3 +51,38 @@ workflow SANGER_IRODS_TO_READS {
 	    file_id_to_sample_id_ch // tuple (file_id, sample_id)
 }
 
+def count_irods_to_reads_params_errors(){
+
+    /*
+    This functions counts the number of errors on input parameters exclusively used on IRODS subworkflow
+    
+    checks:
+     - if irods manifest was provided
+     - if irods manifest provided exists
+    
+    False for any of those conditions counts as an error.
+    
+    Returns
+    ---
+    <int> the number of errors found
+    */
+
+    def err = 0
+    if (params.irods_manifest == null){
+        log.error("An irods_manifest parameter must be provided for execution mode '${params.execution_mode}'.")
+        err += 1
+    }
+
+    if (params.irods_manifest){
+        irods_manifest = file(params.irods_manifest)
+        if (!irods_manifest.exists()){
+            log.error("The irods manifest file specified (${params.irods_manifest}) does not exist.")
+            err += 1
+        }
+        else {
+            validate_irods_mnf(params.irods_manifest, params.panels_settings)
+        }
+    }
+
+    return err
+}
