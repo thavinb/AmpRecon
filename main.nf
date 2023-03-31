@@ -257,21 +257,6 @@ workflow {
     file_id_to_sample_id_ch = SANGER_IRODS_TO_READS.out.file_id_to_sample_id_ch
   }
 
-  if (params.execution_mode == "aligned_bams"){
-    // get bam files channel
-    mnf_ch = Channel.fromPath(params.aligned_bams_mnf, checkIfExists: true)
-                        | splitCsv(header:true, sep:',')
-    bam_files_ch = mnf_ch | map {row -> tuple(row.file_id, row.bam_file, row.bam_idx)}
-    
-    // get sample tags to panel resources relationship channel
-    ref_to_sample = mnf_ch | map {row -> tuple(row.file_id, row.panel_name)} 
-
-    ref_to_sample
-      | combine(reference_ch, by:1) // tuple(panel_name, file_id, reference_file, snp_list)
-      | map {it -> tuple(it[1], it[0], it[2], it[3])} // tuple(file_id, panel_name, fasta_file, snp_list)
-      | set { file_id_reference_files_ch}
-  }
-
   // Reads to variants
   READS_TO_VARIANTS(bam_files_ch, file_id_reference_files_ch, annotations_ch, file_id_to_sample_id_ch)
   lanelet_manifest_file = READS_TO_VARIANTS.out.lanelet_manifest
