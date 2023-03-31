@@ -7,8 +7,8 @@ nextflow.enable.dsl = 2
 // - workflows
 
 include { PARSE_PANEL_SETTINGS } from './workflows/parse_panels_settings.nf'
-include { SANGER_IRODS_TO_READS; count_irods_to_reads_params_errors} from './workflows/sanger_irods_to_reads.nf'
-include { MISEQ_TO_READS; count_miseq_to_reads_params_errors } from './workflows/miseq_to_reads.nf'
+include { SANGER_IRODS_TO_READS } from './workflows/sanger_irods_to_reads.nf'
+include { MISEQ_TO_READS } from './workflows/miseq_to_reads.nf'
 include { READS_TO_VARIANTS } from './workflows/reads_to_variants.nf'
 include { VARIANTS_TO_GRCS } from './workflows/variants_to_grcs.nf'
 include { validate_parameters } from './workflows/input_handling.nf'
@@ -154,86 +154,6 @@ def printHelp() {
    """.stripIndent()
 }
 
-def validate_general_params(){
-  /*
-  count errors on parameters which must be provided regardless of the workflow which will be executed
-  
-  returns
-  -------
-  <int> number of errors found
-  */
-  def err = 0
-  def valid_execution_modes = ["in-country", "irods", "aligned_bams"]
-
-  // check if execution mode is valid
-  if (!valid_execution_modes.contains(params.execution_mode)){
-    log.error("The execution mode provided (${params.execution_mode}) is not valid. valid modes = ${valid_execution_modes}")
-    err += 1
-  }
-  // check if output dir exists, if not create the default
-  if (params.results_dir){
-    results_path = file(params.results_dir)
-    if (!results_path.exists()){
-      log.warn("${results_path} does not exists, the dir will be created")
-      results_path.mkdir()
-    }
-  }
-  
-  // if S3 is requested, check if all s3 required parameters were provided
-  // check S3 input bucket
-  if (!(params.s3_bucket_input==null)){
-    if (params.s3_uuid == null){
-      log.error("A s3 uuid parameter must be provided if a s3 bucket input is provided'.")
-      errors += 1
-    } 
-  }
-  // check S3 output bucket
-  if (params.upload_to_s3){
-    if (params.s3_bucket_output == null){
-      log.error("A s3_bucket_output parameter must be provided if upload_to_s3 is set to '${params.upload_to_s3}'.")
-      errors += 1
-    }
-    if (params.s3_uuid==null){
-      log.error("A s3_uuid must be provided if upload_to_s3 is required")
-      errors += 1
-    }
-  }
-  // -------------------------------------------------------------/
-  // NOTE: aligned_bams mode maybe depreciated in the near future
-  //       this will likely be removed
-  if (params.execution_mode == "aligned_bams"){
-    if (params.aligned_bams_mnf == null){
-      log.error("An aligned_bams_mnf must be provided for execution mode '${params.execution_mode}'.")
-      errors += 1
-    }
-    if (params.aligned_bams_mnf){
-      aligned_bams_manifest = file(params.aligned_bams_mnf)
-      if (!aligned_bams_manifest.exists()){
-        log.error("The aligned bams manifest file specified (${params.aligned_bams_mnf}) does not exist.")
-        errors += 1
-      }
-    }
-  }
-  // -------------------------------------------------------------/
-
-  return err
-}
-
-def validate_parameters(){
-  def errors = 0
-  // check general params
-  errors += validate_general_params()
-  
-  // count errors of irods params, if need be
-  if (params.execution_mode == "irods"){
-    errors += count_irods_to_reads_params_errors()
-  }
-  // count errors of incountry params, if need be
-  if (params.execution_mode == "in-country"){
-    errors += count_miseq_to_reads_params_errors()
-  }
-}
-
 // Main entry-point workflow
 workflow {
   // --- Print help if requested -------------------------------------------
@@ -303,4 +223,70 @@ workflow.onComplete {
             """
             .stripIndent()
     }
+}
+
+def validate_general_params(){
+  /*
+  count errors on parameters which must be provided regardless of the workflow which will be executed
+  
+  returns
+  -------
+  <int> number of errors found
+  */
+
+  def err = 0
+  def valid_execution_modes = ["in-country", "irods", "aligned_bams"]
+
+  // check if execution mode is valid
+  if (!valid_execution_modes.contains(params.execution_mode)){
+    log.error("The execution mode provided (${params.execution_mode}) is not valid. valid modes = ${valid_execution_modes}")
+    err += 1
+  }
+  // check if output dir exists, if not create the default
+  if (params.results_dir){
+    results_path = file(params.results_dir)
+    if (!results_path.exists()){
+      log.warn("${results_path} does not exists, the dir will be created")
+      results_path.mkdir()
+    }
+  }
+  
+  // if S3 is requested, check if all s3 required parameters were provided
+  // check S3 input bucket
+  if (!(params.s3_bucket_input==null)){
+    if (params.s3_uuid == null){
+      log.error("A s3 uuid parameter must be provided if a s3 bucket input is provided'.")
+      errors += 1
+    } 
+  }
+  // check S3 output bucket
+  if (params.upload_to_s3){
+    if (params.s3_bucket_output == null){
+      log.error("A s3_bucket_output parameter must be provided if upload_to_s3 is set to '${params.upload_to_s3}'.")
+      errors += 1
+    }
+    if (params.s3_uuid==null){
+      log.error("A s3_uuid must be provided if upload_to_s3 is required")
+      errors += 1
+    }
+  }
+  // -------------------------------------------------------------/
+  // NOTE: aligned_bams mode maybe depreciated in the near future
+  //       this will likely be removed
+  if (params.execution_mode == "aligned_bams"){
+    if (params.aligned_bams_mnf == null){
+      log.error("An aligned_bams_mnf must be provided for execution mode '${params.execution_mode}'.")
+      errors += 1
+    }
+    if (params.aligned_bams_mnf){
+      aligned_bams_manifest = file(params.aligned_bams_mnf)
+      if (!aligned_bams_manifest.exists()){
+        log.error("The aligned bams manifest file specified (${params.aligned_bams_mnf}) does not exist.")
+        errors += 1
+      }
+    }
+  }
+  // -------------------------------------------------------------/
+
+  return err
 }
