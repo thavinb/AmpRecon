@@ -195,9 +195,9 @@ class KelchMutationCaller:
 
         # If non-synonymous mutations were found across kelch13, then return them
         if len(mutations) > 0:
-            # Order the mutations by amino acid position
+            # Reverse order the mutations by amino acid position
             mutations_dict = {int(re.sub(r"\D", "", item)): item for item in mutations}
-            positions = sorted(list(mutations_dict.keys()))
+            positions = sorted(list(mutations_dict.keys()), reverse=True)
             mutations = [mutations_dict.get(position) for position in positions]
 
             # Add wild type if they were all heterozygous
