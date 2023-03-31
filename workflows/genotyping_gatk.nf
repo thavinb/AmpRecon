@@ -13,11 +13,17 @@ workflow GENOTYPING_GATK {
         input_file_ids_bams_indexes // tuple(file_id, bam_file, bam_index_file)
         file_id_reference_files_ch // tuple(file_id, reference_fasta, snp_list)
   main:
+    //bqsr input channel
+    input_file_ids_bams_indexes.join(file_id_reference_files_ch)
+			       .map { it -> tuple(it[0], it[1], it[2], it[3], it[4]) }
+			       .set { bqsr_in }
 
-    input_file_ids_bams_indexes // tuple (file_id, bam_file, bam_index)
-            | join(file_id_reference_files_ch) // tuple (file_id, bam_file, bam_index, reference_fasta, snp_list)
-            | map{ it -> tuple(it[0], it[1], it[2], it[3])}
-            | set{haplotype_caller_input} // tuple(file_id, bam_file, bam_index, reference_fasta)
+ 
+     bqsr(bqsr_in)
+
+     bqsr.out.join(file_id_reference_files_ch)
+	     .map { it -> tuple(it[0], it[1], it[2], it[3]) }
+	     .set { haplotype_caller_input }      
 
     gatk_haplotype_caller_gatk4(haplotype_caller_input)
 
