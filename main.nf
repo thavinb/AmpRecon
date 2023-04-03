@@ -11,7 +11,6 @@ include { SANGER_IRODS_TO_READS } from './workflows/sanger_irods_to_reads.nf'
 include { MISEQ_TO_READS } from './workflows/miseq_to_reads.nf'
 include { READS_TO_VARIANTS } from './workflows/reads_to_variants.nf'
 include { VARIANTS_TO_GRCS } from './workflows/variants_to_grcs.nf'
-include { validate_parameters } from './workflows/input_handling.nf'
 // logging info ----------------------------------------------------------------
 // This part of the code is based on the FASTQC PIPELINE (https://github.com/angelovangel/nxf-fastqc/blob/master/main.nf)
 
@@ -162,9 +161,6 @@ workflow {
       printHelp()
       exit 0
   }
-
-  // check parameters provided
-  validate_parameters()
 
   // -- MAIN-EXECUTION ------------------------------------------------------
   // prepare panel resource channels 

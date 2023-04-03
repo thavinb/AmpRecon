@@ -23,7 +23,6 @@ include { alignment_filter } from '../modules/alignment_filter.nf'
 include { sort_bam } from '../modules/sort_bam.nf'
 
 // - process to extract and validate information expected based on input params
-include { validate_parameters } from './input_handling.nf'
 include { get_taglist_file } from '../modules/manifest2tag.nf'
 include { make_samplesheet_manifest } from '../modules/make_samplesheet_manifest.nf'
 include { validate_samplesheet_manifest } from '../modules/samplesheet_manifest_validation.nf'

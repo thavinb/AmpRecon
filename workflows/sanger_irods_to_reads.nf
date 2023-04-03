@@ -7,7 +7,6 @@ nextflow.enable.dsl = 2
 include { irods_retrieve } from '../modules/irods_retrieve.nf'
 include { scramble_cram_to_bam } from '../modules/scramble.nf'
 
-
 // -------------------------------------------------------------------------
 
 workflow SANGER_IRODS_TO_READS {
