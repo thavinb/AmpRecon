@@ -75,6 +75,7 @@
             "falciparum": "Pf",
             "vivax": "Pv"
         },
+        "species_order": ["Pf", "Pk", "Pv", "Po", "Pm"],
         "species_ref": {
             "F23": {
                 "Pf": "T",
