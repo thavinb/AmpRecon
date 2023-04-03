@@ -110,7 +110,7 @@ def printHelp() {
   Options:
     Inputs:
       (required)
-      --execution_mode : sets the entry point for the pipeline ("irods", "aligned_bams" or "in-country")
+      --execution_mode : sets the entry point for the pipeline ("irods" or "in-country")
       
       (incountry required)
       --run_id : id to be used for the batch of data to be processed
@@ -235,7 +235,7 @@ def validate_general_params(){
   */
 
   def err = 0
-  def valid_execution_modes = ["in-country", "irods", "aligned_bams"]
+  def valid_execution_modes = ["in-country", "irods"]
 
   // check if execution mode is valid
   if (!valid_execution_modes.contains(params.execution_mode)){
@@ -270,23 +270,5 @@ def validate_general_params(){
       errors += 1
     }
   }
-  // -------------------------------------------------------------/
-  // NOTE: aligned_bams mode maybe depreciated in the near future
-  //       this will likely be removed
-  if (params.execution_mode == "aligned_bams"){
-    if (params.aligned_bams_mnf == null){
-      log.error("An aligned_bams_mnf must be provided for execution mode '${params.execution_mode}'.")
-      errors += 1
-    }
-    if (params.aligned_bams_mnf){
-      aligned_bams_manifest = file(params.aligned_bams_mnf)
-      if (!aligned_bams_manifest.exists()){
-        log.error("The aligned bams manifest file specified (${params.aligned_bams_mnf}) does not exist.")
-        errors += 1
-      }
-    }
-  }
-  // -------------------------------------------------------------/
-
   return err
 }
