@@ -23,8 +23,8 @@ singularity build --fakeroot biobambam2-2.0.79.sif biobambam2-2.0.79.def
 echo "@ building staden.sif"
 singularity build --fakeroot staden.sif SingularityFile_staden
 
-echo "@ building mergeheaders.sif"
-singularity build --fakeroot mergeHeaders.sif SingularityFile_mergeHeaders
+echo "@ building python_plus_samtools.sif"
+singularity build --fakeroot python_plus_samtools.sif SingularityFile_python_plus_samtools
 
 echo "@ pulling samtools_1.15.sif"
 singularity pull docker://staphb/samtools:1.15
