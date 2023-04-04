@@ -29,7 +29,7 @@ include { validate_samplesheet_manifest } from '../modules/samplesheet_manifest_
 include { PARSE_PANEL_SETTINGS } from './parse_panels_settings.nf'
 include { retrieve_miseq_run_from_s3 } from '../modules/retrieve_miseq_run_from_s3.nf'
 
-workflow BCL_TO_CRAM {
+workflow BCL_TO_COLLATED_CRAM {
     take:
         pre_process_input_ch
         manifest
@@ -71,7 +71,7 @@ workflow BCL_TO_CRAM {
 
 }
 
-workflow CRAM_TO_BAM {
+workflow COLLATED_CRAM_TO_SPLIT_CRAM_AND_FASTQ {
     take:
         // manifest from step 1.1
         //intermediate_csv
@@ -186,8 +186,8 @@ workflow MISEQ_TO_READS {
     step1_Input_ch = input_csv_ch.join(get_taglist_file.out)
 
     // Stage 1 - Step 1: BCL to CRAM
-    BCL_TO_CRAM(step1_Input_ch, make_samplesheet_manifest.out.manifest_file)
-    cram_ch = BCL_TO_CRAM.out // tuple (file_id, cram_fl, run_id)
+    BCL_TO_COLLATED_CRAM(step1_Input_ch, make_samplesheet_manifest.out.manifest_file)
+    cram_ch = BCL_TO_COLLATED_CRAM.out // tuple (file_id, cram_fl, run_id)
 
     // get the relevant sample data from the manifest
     file_id_ch = make_samplesheet_manifest.out.manifest_file // WARN: this need to be removed, we should no rely on results dir
@@ -213,8 +213,8 @@ workflow MISEQ_TO_READS {
     // tuple(file_id, panel_name path/to/reference/genome, snp_list)
 
     // Stage 1 - Step 2: CRAM to BAM
-    CRAM_TO_BAM(panel_name_cram_ch, file_id_reference_files_ch.map{it -> tuple(it[0], it[2], it[1])})  // tuple (new_file_id, ref_fasta, panel_name)
-    bam_files_ch = CRAM_TO_BAM.out.bam_ch
+    COLLATED_CRAM_TO_SPLIT_CRAM_AND_FASTQ(panel_name_cram_ch, file_id_reference_files_ch.map{it -> tuple(it[0], it[2], it[1])})  // tuple (new_file_id, ref_fasta, panel_name)
+    bam_files_ch = COLLATED_CRAM_TO_SPLIT_CRAM_AND_FASTQ.out.bam_ch
 
   emit:
     bam_files_ch // tuple (file_id, bam_file)
