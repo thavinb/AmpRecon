@@ -15,12 +15,14 @@ include { upload_pipeline_output_to_s3 } from '../modules/upload_pipeline_output
 workflow ALIGNMENT {
   take:
     file_id
+    fastq_ch
     bam_file
+    bam_reset_ch
     file_id_reference_files_ch // tuple (file_id, fasta_file, panel_name)
 
   main:
      // do new alignment
-    bwa_alignment(bwa_ch)
+    bwa_alignment(fastq_ch)
 
     // convert sam to bam
     scramble_sam_to_bam(bwa_alignment.out.sample_tag, bwa_alignment.out.sam_file)

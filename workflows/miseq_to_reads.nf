@@ -11,9 +11,11 @@ include { bam_to_cram } from '../modules/bam_to_cram.nf'
 include { rename_cram_fls } from '../modules/rename_cram_fls.nf'
 
 include { collate_alignments } from '../modules/collate_alignments.nf'
-include { bam_reset } from '../modules/bam_reset.nf'
+include { bam_reset as bam_reset_1 } from '../modules/bam_reset.nf'
+include { bam_reset as bam_reset_2 } from '../modules/bam_reset.nf'
 include { clip_adapters } from '../modules/clip_adapters.nf'
-include { bam_to_fastq } from '../modules/bam_to_fastq.nf'
+include { bam_to_fastq as bam_to_fastq_1 } from '../modules/bam_to_fastq.nf'
+include { bam_to_fastq as bam_to_fastq_2 } from '../modules/bam_to_fastq.nf'
 include { bwa_alignment } from '../modules/bwa_alignment.nf'
 include { scramble_sam_to_bam } from '../modules/scramble.nf'
 include { mapping_reheader } from '../modules/mapping_reheader.nf'
@@ -89,23 +91,23 @@ workflow COLLATED_CRAM_TO_SPLIT_CRAM_AND_FASTQ {
         }
 
         // Transform BAM file to pre-aligned state
-        bam_reset(collate_alignments.out.sample_tag,
+        bam_reset_1(collate_alignments.out.sample_tag,
                   collate_alignments.out.collated_bam)
 
         // Remove adapters
-        clip_adapters(bam_reset.out.sample_tag,
-                 bam_reset.out.reset_bam)
+        clip_adapters(bam_reset_1.out.sample_tag,
+                 bam_reset_1.out.reset_bam)
 
         // Convert BAM to FASTQ
         bam_to_fasq_In_ch = clip_adapters.out
                               | multiMap {it -> file_id: it[0]
                                                 bam_clipped_file: it[1]
                                         }
-        bam_to_fastq(bam_to_fasq_In_ch.file_id,
+        bam_to_fastq_1(bam_to_fasq_In_ch.file_id,
                     bam_to_fasq_In_ch.bam_clipped_file)
 
         // Align reads to reference genome
-        bam_to_fastq.out //tuple (file_id, fastq_files)
+        bam_to_fastq_1.out //tuple (file_id, fastq_files)
               // get panel resource files
               | join(file_id_reference_files_ch) // tuple (file_id, fastq_files, panel_name, ref_fasta)
               | map{it -> tuple(it[0], it[1], it[2], it[3])} // tuple (new_file_id, fastq, fasta, panel_name)
@@ -144,23 +146,30 @@ workflow COLLATED_CRAM_TO_SPLIT_CRAM_AND_FASTQ {
         sort_bam(params.run_id,
                  alignment_filter.out.sample_tag,
                  alignment_filter.out.selected_bam)
-        bam_ch = sort_bam.out
 
-	// Unmap the bam files (ubam)
-    	bam_reset(file_id, bam_file)
+	 sort_bam.out
+                 .multiMap {  file_id : it[0]
+                              bam_file : it[1]
+                }
+                .set { reset_ch }
 
+	 bam_ch = sort_bam.out
+         // Unmap the bam files (ubam)
+         bam_reset_2(reset_ch.file_id, reset_ch.bam_file)
+         bam_reset_ch = bam_reset_2.out.bam_reset_tuple_ch
    	 // convert ubams to fastqs
-   	 bam_to_fastq(bam_reset.out.sample_tag, bam_reset.out.reset_bam)
+   	 bam_to_fastq_2(bam_reset_2.out.sample_tag, bam_reset_2.out.reset_bam)
 
    	 // prepare channels to be used on join for input for other processes
-    	bam_to_fastq.out // tuple (file_id, fastq_file)
-      		    | join(file_id_reference_files_ch) //tuple (file_id, fastq, fasta_file, panel_name)
-                    | set{ fastq_ch }
+    	 bam_to_fastq_2.out // tuple (file_id, fastq_file)
+      		       | join(file_id_reference_files_ch) //tuple (file_id, fastq, fasta_file, panel_name)
+                       | set{ fastq_ch }
 
   
     emit:
 	fastq_ch
         bam_ch
+	bam_reset_ch
 }
 
 workflow MISEQ_TO_READS {
