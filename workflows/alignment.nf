@@ -19,17 +19,6 @@ workflow ALIGNMENT {
     file_id_reference_files_ch // tuple (file_id, fasta_file, panel_name)
 
   main:
-    // Unmap the bam files (ubam)
-    bam_reset(file_id, bam_file)
-    
-    // convert ubams to fastqs
-    bam_to_fastq(bam_reset.out.sample_tag, bam_reset.out.reset_bam)
-
-    // prepare channels to be used on join for input for other processes
-    bam_to_fastq.out // tuple (file_id, fastq_file)
-      | join(file_id_reference_files_ch) //tuple (file_id, fastq, fasta_file, panel_name)
-      | set{ bwa_ch }
-
      // do new alignment
     bwa_alignment(bwa_ch)
 

@@ -145,8 +145,21 @@ workflow COLLATED_CRAM_TO_SPLIT_CRAM_AND_FASTQ {
                  alignment_filter.out.sample_tag,
                  alignment_filter.out.selected_bam)
         bam_ch = sort_bam.out
+
+	// Unmap the bam files (ubam)
+    	bam_reset(file_id, bam_file)
+
+   	 // convert ubams to fastqs
+   	 bam_to_fastq(bam_reset.out.sample_tag, bam_reset.out.reset_bam)
+
+   	 // prepare channels to be used on join for input for other processes
+    	bam_to_fastq.out // tuple (file_id, fastq_file)
+      		    | join(file_id_reference_files_ch) //tuple (file_id, fastq, fasta_file, panel_name)
+                    | set{ fastq_ch }
+
   
     emit:
+	fastq_ch
         bam_ch
 }
 
