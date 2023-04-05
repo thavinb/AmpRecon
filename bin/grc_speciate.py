@@ -235,8 +235,8 @@ class Speciate:
 
         #sort all species and join by backslash
         label = "/".join(__reorder_list(all_species_out, self.species_order))
-        
-        if not label:
+
+        if len(label) == 0:
             #if no species called, output dash
             label = "-"
 
