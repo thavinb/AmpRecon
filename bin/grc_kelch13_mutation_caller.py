@@ -187,7 +187,7 @@ class KelchMutationCaller:
                 if amino_acid_substitution != None:
                     non_synonymous_mutations.append(amino_acid_substitution)
 
-            # If any of the alleles for this postion cause non-synonymous mutations then retain these mutations
+            # If any of the alleles for this position cause non-synonymous mutations then retain these mutations
             if len(non_synonymous_mutations) > 0:
                 mutations.extend(non_synonymous_mutations)
                 if has_reference == 0:
