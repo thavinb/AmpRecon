@@ -153,7 +153,6 @@ workflow COLLATED_CRAM_TO_SPLIT_CRAM_AND_FASTQ {
                 }
                 .set { reset_ch }
 
-	 bam_ch = sort_bam.out
          // Unmap the bam files (ubam)
          bam_reset_2(reset_ch.file_id, reset_ch.bam_file)
          bam_reset_ch = bam_reset_2.out.bam_reset_tuple_ch
@@ -168,8 +167,6 @@ workflow COLLATED_CRAM_TO_SPLIT_CRAM_AND_FASTQ {
   
     emit:
 	fastq_ch
-        bam_ch
-	bam_reset_ch
 }
 
 workflow MISEQ_TO_READS {
@@ -236,10 +233,10 @@ workflow MISEQ_TO_READS {
 
     // Stage 1 - Step 2: CRAM to BAM
     COLLATED_CRAM_TO_SPLIT_CRAM_AND_FASTQ(panel_name_cram_ch, file_id_reference_files_ch.map{it -> tuple(it[0], it[2], it[1])})  // tuple (new_file_id, ref_fasta, panel_name)
-    bam_files_ch = COLLATED_CRAM_TO_SPLIT_CRAM_AND_FASTQ.out.bam_ch
+    fastq_files_ch = COLLATED_CRAM_TO_SPLIT_CRAM_AND_FASTQ.out.fastq_ch
 
   emit:
-    bam_files_ch // tuple (file_id, bam_file)
+    fastq_files_ch // tuple (file_id, bam_file)
     file_id_reference_files_ch // tuple (file_id, panel_name, path/to/reference/genome, snp_list)
     file_id_to_sample_id_ch // tuple (file_id, sample_id)
 }

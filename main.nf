@@ -179,7 +179,7 @@ workflow {
   if (params.execution_mode == "in-country") {
     // process in country entry point
     MISEQ_TO_READS(reference_ch)
-    bam_files_ch = MISEQ_TO_READS.out.bam_files_ch
+    fastq_files_ch = MISEQ_TO_READS.out.fastq_files_ch
     file_id_reference_files_ch = MISEQ_TO_READS.out.file_id_reference_files_ch
     file_id_to_sample_id_ch = MISEQ_TO_READS.out.file_id_to_sample_id_ch
   }
@@ -194,7 +194,7 @@ workflow {
   }
 
   // Reads to variants
-  READS_TO_VARIANTS(bam_files_ch, file_id_reference_files_ch, annotations_ch, file_id_to_sample_id_ch)
+  READS_TO_VARIANTS(fastq_files_ch, file_id_reference_files_ch, annotations_ch, file_id_to_sample_id_ch)
   lanelet_manifest_file = READS_TO_VARIANTS.out.lanelet_manifest
 
   // Variants to GRCs
