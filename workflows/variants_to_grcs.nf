@@ -13,7 +13,7 @@ include { grc_estimate_coi } from '../grc_tools/COI/grc_estimate_coi.nf'
 include { grc_amino_acid_caller } from '../grc_tools/amino_acid_calling/grc_amino_acid_caller.nf'
 include { grc_assemble } from '../grc_tools/assemble_grc1/grc_assemble.nf'
 
-workflow GENOTYPES_TO_GRCS {
+workflow VARIANTS_TO_GRCS {
     take:
         lanelet_manifest_file
         chrom_key_file
@@ -66,6 +66,6 @@ workflow {
     drl_information_file = Channel.fromPath(params.drl_information_file_path, checkIfExists: true)
 
     // Run GRC creation workflow
-    GENOTYPES_TO_GRCS(lanelet_manifest_file, chrom_key_file, kelch_reference_file, codon_key_file, drl_information_file)
+    VARIANTS_TO_GRCS(lanelet_manifest_file, chrom_key_file, kelch_reference_file, codon_key_file, drl_information_file)
 }
 
