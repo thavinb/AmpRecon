@@ -1,4 +1,0 @@
-sample_tag,panel_name,bam_file,bam_idx
-26381_1#808_3_PFA_Spec,PFA_Spec,/path/to/26381_1#808_3_PFA_Spec_PFA_Spec-PlasmoDB-54_Pfalciparum3D7_Genome.bam,/path/to/26381_1#808_3_PFA_Spec_PFA_Spec-PlasmoDB-54_Pfalciparum3D7_Genome.bam.bai
-29632_1#149_2_PFA_GRC2_v1.0,PFA_GRC2_v1.0,/path/to/29632_1#149_2_PFA_GRC2_v1.0_PFA_GRC2_v1.0-PlasmoDB-54_Pfalciparum3D7_Genome.bam,/path/to/29632_1#149_2_PFA_GRC2_v1.0_PFA_GRC2_v1.0-PlasmoDB-54_Pfalciparum3D7_Genome.bam.bai
-29632_1#55_1_PFA_GRC1_v1.0,PFA_GRC1_v1.0,/path/to/29632_1#55_1_PFA_GRC1_v1.0_PFA_GRC1_v1.0-PlasmoDB-54_Pfalciparum3D7_Genome.bam,/path/to/29632_1#55_1_PFA_GRC1_v1.0_PFA_GRC1_v1.0-PlasmoDB-54_Pfalciparum3D7_Genome.bam.bai

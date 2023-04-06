@@ -4,9 +4,6 @@ From: staphb/samtools
 %labels
 MAINTAINER Antonio Marinho <ad45@sanger.ac.uk>
 
-%files
-./scripts/* ./
-
 %post
 # this container is used on the merging headers 
 apt update
