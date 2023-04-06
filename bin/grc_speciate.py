@@ -350,7 +350,7 @@ def read_genotype_file(
                 }
                 samples[row["ID"]] = True
         for sample, switch in samples.items():
-            if not switch:
+            if switch and sample not in d_out:
                 d_out[sample] = {}
 
     return dict(d_out)
