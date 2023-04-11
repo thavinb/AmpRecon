@@ -1,3 +1,4 @@
+
 /*
     | PARSE_PANEL_SETTINGS |-----------------------------------------
     
@@ -70,48 +71,33 @@ def validatePanelSettings(row, source_dir){
     }
 }
 
-workflow PARSE_PANEL_SETTINGS {
-    take:
-        panels_settings
-    
-    main:
-        // if a csv was provided, no need to add source_dir to rows
-        if (!(panels_settings==null)){
-            source_dir = ""
-        }
-        // if no panels_settings csv is provided, use the one at the repo
-        else {
-            source_dir = "${projectDir}" // required to get the right path of resources at repo
-            panels_settings = "${source_dir}/panels_resources/panels_settings.csv"
-        }
-        
-        // build reference channel from "aligns_to"
-        reference_ch = Channel.fromPath(panels_settings, checkIfExists: true)
-                        | splitCsv(header: true, sep: ',')
-                        | map { row ->
-                            // validate row settings
-                    
-                            validatePanelSettings(row, source_dir)
-                            // TODO: validate if expected files were provided
-                            tuple(
-                                "${source_dir}/${row.reference_file}",
-                                row.panel_name,
-				"${source_dir}/${row.snp_list}"
-                            )
-                            }
+def parse_panel_settings(panels_settings) {
+    def source_dir = ""
+    if (panels_settings == null) {
+        source_dir = "${projectDir}" // required to get the right path of resources at repo
+        panels_settings = "${source_dir}/panels_resources/panels_settings.csv"
+    }
 
-        // build panel_anotations_files from "design_file"
-        annotations_ch = Channel.fromPath(panels_settings, checkIfExists: true)
-                          | splitCsv(header: true, sep: ',')
-                          | map { row ->
-                                // validate row settings
-                                validatePanelSettings(row, source_dir)
-                                tuple(
-                                    row.panel_name,
-                                    file("${source_dir}/$row.design_file")
-                                )
+    def reference_ch = Channel.fromPath(panels_settings, checkIfExists: true)
+                       | splitCsv(header: true, sep: ',')
+                       | map { row ->
+                             validatePanelSettings(row, source_dir)
+                             tuple(
+                                 "${source_dir}/${row.reference_file}",
+                                 row.panel_name,
+                                 "${source_dir}/${row.snp_list}"
+                             )
+                         }
+
+    def annotations_ch = Channel.fromPath(panels_settings, checkIfExists: true)
+                         | splitCsv(header: true, sep: ',')
+                         | map { row ->
+                               validatePanelSettings(row, source_dir)
+                               tuple(
+                                   row.panel_name,
+                                   file("${source_dir}/$row.design_file")
+                               )
                            }
-    emit:
-        reference_ch // tuple(reference_file, panel_name, snp_list)
-        annotations_ch // tuple(panel_name, design_file)
+
+    return [reference_ch, annotations_ch]
 }
