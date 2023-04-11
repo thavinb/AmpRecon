@@ -179,7 +179,7 @@ workflow {
   if (params.execution_mode == "in-country") {
     // process in country entry point
     MISEQ_TO_READS(reference_ch)
-    fastq_files_ch = MISEQ_TO_READS.out.fastq_files_ch
+    fastq_files_ch = MISEQ_TO_READS.out.fastq_files_ch //
     file_id_reference_files_ch = MISEQ_TO_READS.out.file_id_reference_files_ch
     file_id_to_sample_id_ch = MISEQ_TO_READS.out.file_id_to_sample_id_ch
   }
@@ -188,7 +188,7 @@ workflow {
     // process IRODS entry point
     SANGER_IRODS_TO_READS(params.irods_manifest, reference_ch)
     // setup channels for downstream processing
-    bam_files_ch = SANGER_IRODS_TO_READS.out.bam_files_ch // tuple (file_id, bam_file, run_id)
+    fastq_files_ch = SANGER_IRODS_TO_READS.out.fastq_ch // tuple (file_id, bam_file, run_id)
     file_id_reference_files_ch = SANGER_IRODS_TO_READS.out.file_id_reference_files_ch
     file_id_to_sample_id_ch = SANGER_IRODS_TO_READS.out.file_id_to_sample_id_ch
   }
