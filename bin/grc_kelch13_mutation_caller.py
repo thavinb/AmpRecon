@@ -187,7 +187,7 @@ class KelchMutationCaller:
                 if amino_acid_substitution != None:
                     non_synonymous_mutations.append(amino_acid_substitution)
 
-            # If any of the alleles for this postion cause non-synonymous mutations then retain these mutations
+            # If any of the alleles for this position cause non-synonymous mutations then retain these mutations
             if len(non_synonymous_mutations) > 0:
                 mutations.extend(non_synonymous_mutations)
                 if has_reference == 0:
@@ -195,9 +195,9 @@ class KelchMutationCaller:
 
         # If non-synonymous mutations were found across kelch13, then return them
         if len(mutations) > 0:
-            # Order the mutations by amino acid position
+            # Reverse order the mutations by amino acid position
             mutations_dict = {int(re.sub(r"\D", "", item)): item for item in mutations}
-            positions = sorted(list(mutations_dict.keys()))
+            positions = sorted(list(mutations_dict.keys()), reverse=True)
             mutations = [mutations_dict.get(position) for position in positions]
 
             # Add wild type if they were all heterozygous

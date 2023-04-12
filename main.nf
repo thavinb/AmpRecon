@@ -179,7 +179,7 @@ workflow {
   if (params.execution_mode == "in-country") {
     // process in country entry point
     MISEQ_TO_READS(reference_ch)
-    fastq_files_ch = MISEQ_TO_READS.out.fastq_files_ch //
+    fastq_files_ch = MISEQ_TO_READS.out.fastq_files_ch
     file_id_reference_files_ch = MISEQ_TO_READS.out.file_id_reference_files_ch
     file_id_to_sample_id_ch = MISEQ_TO_READS.out.file_id_to_sample_id_ch
   }

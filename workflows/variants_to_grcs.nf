@@ -25,6 +25,7 @@ workflow VARIANTS_TO_GRCS {
         // Write genotype file
         assemble_genotype_file(lanelet_manifest_file, chrom_key_file)
         genotype_files_ch = assemble_genotype_file.out.collect()
+	genotype_files_ch.view()
 
         // Call mutations at Kelch13 loci
         grc_kelch13_mutation_caller(genotype_files_ch, kelch_reference_file, codon_key_file)

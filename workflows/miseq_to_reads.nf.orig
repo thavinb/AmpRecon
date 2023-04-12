@@ -11,11 +11,17 @@ include { bam_to_cram } from '../modules/bam_to_cram.nf'
 include { rename_cram_fls } from '../modules/rename_cram_fls.nf'
 
 include { collate_alignments } from '../modules/collate_alignments.nf'
+<<<<<<< HEAD
 include { bam_reset as bam_reset_1 } from '../modules/bam_reset.nf'
 include { bam_reset as bam_reset_2 } from '../modules/bam_reset.nf'
 include { clip_adapters } from '../modules/clip_adapters.nf'
 include { bam_to_fastq as bam_to_fastq_1 } from '../modules/bam_to_fastq.nf'
 include { bam_to_fastq as bam_to_fastq_2 } from '../modules/bam_to_fastq.nf'
+=======
+include { bam_reset } from '../modules/bam_reset.nf'
+include { clip_adapters } from '../modules/clip_adapters.nf'
+include { bam_to_fastq } from '../modules/bam_to_fastq.nf'
+>>>>>>> remotes/origin/develop
 include { bwa_alignment } from '../modules/bwa_alignment.nf'
 include { scramble_sam_to_bam } from '../modules/scramble.nf'
 include { mapping_reheader } from '../modules/mapping_reheader.nf'
@@ -28,11 +34,16 @@ include { sort_bam } from '../modules/sort_bam.nf'
 include { get_taglist_file } from '../modules/manifest2tag.nf'
 include { make_samplesheet_manifest } from '../modules/make_samplesheet_manifest.nf'
 include { validate_samplesheet_manifest } from '../modules/samplesheet_manifest_validation.nf'
+<<<<<<< HEAD
 include { PARSE_PANEL_SETTINGS } from './parse_panels_settings.nf'
 include { retrieve_miseq_run_from_s3 } from '../modules/retrieve_miseq_run_from_s3.nf'
 
 workflow BCL_TO_COLLATED_CRAM {
+=======
+include { retrieve_miseq_run_from_s3 } from '../modules/retrieve_miseq_run_from_s3.nf'
 
+workflow BCL_TO_CRAM {
+>>>>>>> remotes/origin/develop
     take:
         pre_process_input_ch
         manifest
@@ -74,7 +85,11 @@ workflow BCL_TO_COLLATED_CRAM {
 
 }
 
+<<<<<<< HEAD
 workflow COLLATED_CRAM_TO_SPLIT_CRAM_AND_FASTQ {
+=======
+workflow CRAM_TO_BAM {
+>>>>>>> remotes/origin/develop
     take:
         // manifest from step 1.1
         //intermediate_csv
@@ -92,37 +107,40 @@ workflow COLLATED_CRAM_TO_SPLIT_CRAM_AND_FASTQ {
         }
 
         // Transform BAM file to pre-aligned state
+<<<<<<< HEAD
         bam_reset_1(collate_alignments.out.sample_tag,
                   collate_alignments.out.collated_bam)
 
         // Remove adapters
         clip_adapters(bam_reset_1.out.sample_tag,
                  bam_reset_1.out.reset_bam)
-
+=======
         bam_reset(collate_alignments.out.sample_tag,
                   collate_alignments.out.collated_bam)
 
         // Remove adapters
         clip_adapters(bam_reset.out.sample_tag,
                  bam_reset.out.reset_bam)
+>>>>>>> remotes/origin/develop
 
         // Convert BAM to FASTQ
         bam_to_fasq_In_ch = clip_adapters.out
                               | multiMap {it -> file_id: it[0]
                                                 bam_clipped_file: it[1]
                                         }
-
+<<<<<<< HEAD
         bam_to_fastq_1(bam_to_fasq_In_ch.file_id,
                     bam_to_fasq_In_ch.bam_clipped_file)
 
         // Align reads to reference genome
         bam_to_fastq_1.out //tuple (file_id, fastq_files)
-
+=======
         bam_to_fastq(bam_to_fasq_In_ch.file_id,
                     bam_to_fasq_In_ch.bam_clipped_file)
 
         // Align reads to reference genome
         bam_to_fastq.out //tuple (file_id, fastq_files)
+>>>>>>> remotes/origin/develop
               // get panel resource files
               | join(file_id_reference_files_ch) // tuple (file_id, fastq_files, panel_name, ref_fasta)
               | map{it -> tuple(it[0], it[1], it[2], it[3])} // tuple (new_file_id, fastq, fasta, panel_name)
@@ -161,6 +179,7 @@ workflow COLLATED_CRAM_TO_SPLIT_CRAM_AND_FASTQ {
         sort_bam(params.run_id,
                  alignment_filter.out.sample_tag,
                  alignment_filter.out.selected_bam)
+<<<<<<< HEAD
 
 	 sort_bam.out
                  .multiMap {  file_id : it[0]
@@ -178,9 +197,16 @@ workflow COLLATED_CRAM_TO_SPLIT_CRAM_AND_FASTQ {
     	 bam_to_fastq_2.out // tuple (file_id, fastq_file)
       		       | join(file_id_reference_files_ch) //tuple (file_id, fastq, fasta_file, panel_name)
                        | set{ fastq_ch }
+
   
     emit:
 	fastq_ch
+=======
+        bam_ch = sort_bam.out
+  
+    emit:
+        bam_ch
+>>>>>>> remotes/origin/develop
 }
 
 workflow MISEQ_TO_READS {
@@ -219,12 +245,13 @@ workflow MISEQ_TO_READS {
     step1_Input_ch = input_csv_ch.join(get_taglist_file.out)
 
     // Stage 1 - Step 1: BCL to CRAM
-
+<<<<<<< HEAD
     BCL_TO_COLLATED_CRAM(step1_Input_ch, make_samplesheet_manifest.out.manifest_file)
     cram_ch = BCL_TO_COLLATED_CRAM.out // tuple (file_id, cram_fl, run_id)
-
+=======
     BCL_TO_CRAM(step1_Input_ch, make_samplesheet_manifest.out.manifest_file)
     cram_ch = BCL_TO_CRAM.out // tuple (file_id, cram_fl, run_id)
+>>>>>>> remotes/origin/develop
 
     // get the relevant sample data from the manifest
     file_id_ch = make_samplesheet_manifest.out.manifest_file // WARN: this need to be removed, we should no rely on results dir
@@ -250,14 +277,21 @@ workflow MISEQ_TO_READS {
     // tuple(file_id, panel_name path/to/reference/genome, snp_list)
 
     // Stage 1 - Step 2: CRAM to BAM
+<<<<<<< HEAD
     COLLATED_CRAM_TO_SPLIT_CRAM_AND_FASTQ(panel_name_cram_ch, file_id_reference_files_ch.map{it -> tuple(it[0], it[2], it[1])})  // tuple (new_file_id, ref_fasta, panel_name)
     fastq_files_ch = COLLATED_CRAM_TO_SPLIT_CRAM_AND_FASTQ.out.fastq_ch
 
   emit:
     fastq_files_ch // tuple (file_id, bam_file)
+=======
+    CRAM_TO_BAM(panel_name_cram_ch, file_id_reference_files_ch.map{it -> tuple(it[0], it[2], it[1])})  // tuple (new_file_id, ref_fasta, panel_name)
+    bam_files_ch = CRAM_TO_BAM.out.bam_ch
+
+  emit:
+    bam_files_ch // tuple (file_id, bam_file)
+>>>>>>> remotes/origin/develop
     file_id_reference_files_ch // tuple (file_id, panel_name, path/to/reference/genome, snp_list)
     file_id_to_sample_id_ch // tuple (file_id, sample_id)
-
 }
 
 
