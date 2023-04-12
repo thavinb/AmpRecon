@@ -6,6 +6,7 @@ nextflow.enable.dsl = 2
 // import irods processes
 
 include { bam_to_fastq } from '../modules/bam_to_fastq.nf'
+include { clip_adapters } from '../modules/clip_adapters.nf'
 include { irods_retrieve } from '../modules/irods_retrieve.nf'
 include { scramble_cram_to_bam } from '../modules/scramble.nf'
 include { validate_irods_mnf } from '../modules/validate_irods_mnf.nf'
@@ -49,6 +50,16 @@ workflow SANGER_IRODS_TO_READS {
 	//temp fix for irods functionality to continue working
 
 	bam_files_ch.multiMap { 
+				tag : it[0]
+				bam : it[1]
+	}.set { clip_adapters_in }
+
+	clip_adapters(clip_adapters_in.tag, clip_adapters_in.bam)
+
+
+
+	clip_adapters.out
+		     .multiMap { 
 				tag : it[0]
 				bam : it[1]
 	}.set { bam_to_fastq_ch }
