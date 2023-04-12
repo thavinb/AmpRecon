@@ -169,9 +169,6 @@ workflow {
   reference_ch = ref_and_annt_ch[0] // tuple(reference_file, panel_name, snp_list)
   annotations_ch = ref_and_annt_ch[1] // tuple(panel_name, design_file)
 
-  //reference_ch = PARSE_PANEL_SETTINGS.out.reference_ch // 
-  //annotations_ch = PARSE_PANEL_SETTINGS.out.annotations_ch // 
-
   // Files required for GRC creation
   Channel.fromPath(params.grc_settings_file_path, checkIfExists: true)
   chrom_key_file = Channel.fromPath(params.chrom_key_file_path, checkIfExists: true)
