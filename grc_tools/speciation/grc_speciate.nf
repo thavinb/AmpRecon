@@ -4,7 +4,7 @@ process grc_speciate {
     label "grc_tools"
 
     input:
-        val(genotype_file_list)
+        path(genotype_file)
         path(barcodes_file)
 
     output:
@@ -13,11 +13,10 @@ process grc_speciate {
     script:
         grc_settings = params.grc_settings_file_path
         speciation_out_filename = params.speciation_output_filename
-        genotype_file_list = genotype_file_list.join(" ")
 
         """
         grc_speciate.py \
-            --genotype_files ${genotype_file_list} \
+            --genotype_files ${genotype_file} \
             --output_file "${speciation_out_filename}" \
             --barcodes_file "${barcodes_file}" \
             --config "${grc_settings}"

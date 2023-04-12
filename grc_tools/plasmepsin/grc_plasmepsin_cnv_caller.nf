@@ -9,7 +9,7 @@ process grc_plasmepsin_cnv_caller {
     label "grc_tools"
 
     input:
-        val(genotype_file_list)
+        path(genotype_file)
 
     output:
         path("${plasmepsin_out_filename}")
@@ -17,11 +17,10 @@ process grc_plasmepsin_cnv_caller {
     script:
         grc_settings = params.grc_settings_file_path
         plasmepsin_out_filename = params.plasmepsin_cnv_output_filename
-        genotype_file_list = genotype_file_list.join(" ")
 
         """
         grc_plasmepsin_cnv_caller.py \
-            --genotype_files ${genotype_file_list} \
+            --genotype_files ${genotype_file} \
             --output_file "${plasmepsin_out_filename}" \
             --config "${grc_settings}"
         """

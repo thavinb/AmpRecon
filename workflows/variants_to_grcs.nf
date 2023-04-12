@@ -24,7 +24,7 @@ workflow VARIANTS_TO_GRCS {
     main:
         // Write genotype file
         assemble_genotype_file(lanelet_manifest_file, chrom_key_file)
-        genotype_files_ch = assemble_genotype_file.out.collect()
+        genotype_files_ch = assemble_genotype_file.out//.collect()
 
         // Call mutations at Kelch13 loci
         grc_kelch13_mutation_caller(genotype_files_ch, kelch_reference_file, codon_key_file)
@@ -45,15 +45,14 @@ workflow VARIANTS_TO_GRCS {
         grc_amino_acid_caller(genotype_files_ch, drl_information_file, codon_key_file)
 
         // Assemble GRC1
-        grc_kelch13_mutation_caller.out
-            .concat(grc_plasmepsin_cnv_caller.out)
-            .concat(grc_barcoding.out)
-            .concat(grc_speciate.out)
-            .concat(grc_estimate_coi.out)
-            .concat(grc_amino_acid_caller.out.drl_haplotypes)
-            .collect()
-            .set{grc1_columns}
-        grc_assemble(grc1_columns)
+        grc_assemble(
+            grc_kelch13_mutation_caller.out,
+            grc_plasmepsin_cnv_caller.out,
+            grc_barcoding.out,
+            grc_speciate.out,
+            grc_estimate_coi.out,
+            grc_amino_acid_caller.out.drl_haplotypes,
+        )
 }
 
 workflow {
