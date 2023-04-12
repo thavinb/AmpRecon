@@ -166,7 +166,6 @@ The following parameter should be present within the nextflow.config file:
 
 ```
 gatk3: <str> path to GATK3 GenomeAnalysisTK.jar file - only needed if GATK genotyping is enabled.
-skip_bqsr: <bool> skip BQSR step in genotyping procedure.
 ```
 
 ### BCFtools Genotyping Requirements
