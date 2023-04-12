@@ -99,30 +99,21 @@ workflow COLLATED_CRAM_TO_SPLIT_CRAM_AND_FASTQ {
         clip_adapters(bam_reset_1.out.sample_tag,
                  bam_reset_1.out.reset_bam)
 
-        bam_reset(collate_alignments.out.sample_tag,
-                  collate_alignments.out.collated_bam)
-
-        // Remove adapters
-        clip_adapters(bam_reset.out.sample_tag,
-                 bam_reset.out.reset_bam)
-
         // Convert BAM to FASTQ
-        bam_to_fasq_In_ch = clip_adapters.out
+        bam_to_fastq_In_ch = clip_adapters.out
                               | multiMap {it -> file_id: it[0]
                                                 bam_clipped_file: it[1]
                                         }
 
-        bam_to_fastq_1(bam_to_fasq_In_ch.file_id,
-                    bam_to_fasq_In_ch.bam_clipped_file)
+        bam_to_fastq_1(bam_to_fastq_In_ch.file_id,
+                    bam_to_fastq_In_ch.bam_clipped_file)
 
         // Align reads to reference genome
         bam_to_fastq_1.out //tuple (file_id, fastq_files)
 
-        bam_to_fastq(bam_to_fasq_In_ch.file_id,
-                    bam_to_fasq_In_ch.bam_clipped_file)
 
         // Align reads to reference genome
-        bam_to_fastq.out //tuple (file_id, fastq_files)
+        bam_to_fastq_1.out //tuple (file_id, fastq_files)
               // get panel resource files
               | join(file_id_reference_files_ch) // tuple (file_id, fastq_files, panel_name, ref_fasta)
               | map{it -> tuple(it[0], it[1], it[2], it[3])} // tuple (new_file_id, fastq, fasta, panel_name)
@@ -222,9 +213,6 @@ workflow MISEQ_TO_READS {
 
     BCL_TO_COLLATED_CRAM(step1_Input_ch, make_samplesheet_manifest.out.manifest_file)
     cram_ch = BCL_TO_COLLATED_CRAM.out // tuple (file_id, cram_fl, run_id)
-
-    BCL_TO_CRAM(step1_Input_ch, make_samplesheet_manifest.out.manifest_file)
-    cram_ch = BCL_TO_CRAM.out // tuple (file_id, cram_fl, run_id)
 
     // get the relevant sample data from the manifest
     file_id_ch = make_samplesheet_manifest.out.manifest_file // WARN: this need to be removed, we should no rely on results dir
