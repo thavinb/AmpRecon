@@ -17,29 +17,19 @@ are setup
 
 workflow READS_TO_VARIANTS {
     take:
-        bam_files_ch // tuple(file_id, bam_file)
+	fastq_ch
         file_id_reference_files_ch // tuple (file_id, panel_name, reference_fasta_file, snp_list)
         annotations_ch // tuple (panel_name, annotation_file)
         file_id_to_sample_id_ch // tuple (file_id, sample_id)
 
     main:
-        // mapping tuple to multichannel 
-        bam_files_ch
-            | multiMap {
-                file_id: it[0]
-                bam_file: it[1]
-            }
-            | set { alignment_In_ch }
 
         // alignment
         file_id_reference_files_ch.map{it -> tuple(it[0], it[2], it[1])}.set{alignment_ref_ch} // tuple (file_id, fasta_file, panel_name)
-        ALIGNMENT(
-            alignment_In_ch.file_id,
-            alignment_In_ch.bam_file,
-            alignment_ref_ch
-        )
-        // read counts
-        READ_COUNTS(ALIGNMENT.out, alignment_ref_ch, annotations_ch)
+        ALIGNMENT(fastq_ch)
+        
+	//read counts 
+	READ_COUNTS(ALIGNMENT.out, alignment_ref_ch, annotations_ch)
 
         // genotyping
         if( params.genotyping_gatk == true ) {

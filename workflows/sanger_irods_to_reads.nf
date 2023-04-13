@@ -4,6 +4,8 @@
 nextflow.enable.dsl = 2
 
 // import irods processes
+
+include { bam_to_fastq } from '../modules/bam_to_fastq.nf'
 include { irods_retrieve } from '../modules/irods_retrieve.nf'
 include { scramble_cram_to_bam } from '../modules/scramble.nf'
 include { validate_irods_mnf } from '../modules/validate_irods_mnf.nf'
@@ -44,10 +46,25 @@ workflow SANGER_IRODS_TO_READS {
         scramble_cram_to_bam(irods_retrieve.out)
         bam_files_ch = scramble_cram_to_bam.out
 
+	//temp fix for irods functionality to continue working
+
+	bam_files_ch.multiMap { 
+				tag : it[0]
+				bam : it[1]
+	}.set { bam_to_fastq_ch }
+
+	bam_to_fastq(bam_to_fastq_ch.tag, bam_to_fastq_ch.bam)
+
+	bam_to_fastq.out
+		    .join(file_id_reference_files_ch)
+		    .map { it -> [ it[0], it[1], it[3], it[2] ] }
+		    .set { fastq_ch }
+
     emit:
-        bam_files_ch // tuple(file_id, bam_file)
-        file_id_reference_files_ch // tuple (new_sample_id, panel_name, path/to/reference/genome, snp_list)
-	    file_id_to_sample_id_ch // tuple (file_id, sample_id)
+        fastq_ch
+	file_id_reference_files_ch // tuple (new_sample_id, panel_name, path/to/reference/genome, snp_list)
+	file_id_to_sample_id_ch // tuple (file_id, sample_id)
+ 
 }
 
 def count_irods_to_reads_params_errors(){
