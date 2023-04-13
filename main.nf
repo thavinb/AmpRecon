@@ -163,8 +163,7 @@ workflow {
   }
 
   // -- MAIN-EXECUTION ------------------------------------------------------
-  // prepare panel resource channels 
-  //PARSE_PANEL_SETTINGS(params.panels_settings)
+  // prepare panel resource channels
   ref_and_annt_ch = parse_panel_settings(params.panels_settings)
   reference_ch = ref_and_annt_ch[0] // tuple(reference_file, panel_name, snp_list)
   annotations_ch = ref_and_annt_ch[1] // tuple(panel_name, design_file)
