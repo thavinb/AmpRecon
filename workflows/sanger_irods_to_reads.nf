@@ -1,11 +1,26 @@
 #!/usr/bin/env nextflow
 
+/*
+    | SANGER_IRODS_TO_READS |-----------------------------------------
+    
+    This workflow downloads CRAM files from iRODS and does a series
+    of file conversions to produce an adapter trimmed fastq file. 
+
+    Here, a tab-separated iRODS manifest is supplied containing
+    iRODS paths. The workflow will then retrieve the relevant 
+    CRAM files, convert to BAM formatted files, strip adapter
+    sequences and convert the BAM to fastq format in preparation
+    for alignment and SNP calling.
+    ------------------------------------------------------------------
+*/
+
 // enable dsl2
 nextflow.enable.dsl = 2
 
 // import irods processes
 
 include { bam_to_fastq } from '../modules/bam_to_fastq.nf'
+include { clip_adapters } from '../modules/clip_adapters.nf'
 include { irods_retrieve } from '../modules/irods_retrieve.nf'
 include { scramble_cram_to_bam } from '../modules/scramble.nf'
 include { validate_irods_mnf } from '../modules/validate_irods_mnf.nf'
@@ -51,6 +66,14 @@ workflow SANGER_IRODS_TO_READS {
 	bam_files_ch.multiMap { 
 				tag : it[0]
 				bam : it[1]
+	}.set { clip_adapters_in }
+
+	clip_adapters(clip_adapters_in.tag, clip_adapters_in.bam)
+
+	clip_adapters.out
+		     .multiMap { 
+				tag : it[0]
+				bam : it[1]
 	}.set { bam_to_fastq_ch }
 
 	bam_to_fastq(bam_to_fastq_ch.tag, bam_to_fastq_ch.bam)
@@ -61,7 +84,7 @@ workflow SANGER_IRODS_TO_READS {
 		    .set { fastq_ch }
 
     emit:
-        fastq_ch
+    fastq_ch
 	file_id_reference_files_ch // tuple (new_sample_id, panel_name, path/to/reference/genome, snp_list)
 	file_id_to_sample_id_ch // tuple (file_id, sample_id)
  
