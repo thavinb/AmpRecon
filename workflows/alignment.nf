@@ -24,8 +24,7 @@ workflow ALIGNMENT {
     // convert sam to bam
     scramble_sam_to_bam(bwa_alignment.out.sample_tag, bwa_alignment.out.sam_file)
 
-    scramble_sam_to_bam.out
-		       .set{ scramble_out_ch }
+    scramble_sam_to_bam.out.set{ scramble_out_ch }
      
     // sort and index bam
     samtools_sort(scramble_out_ch)
