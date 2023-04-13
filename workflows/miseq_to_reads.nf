@@ -28,7 +28,7 @@ include { sort_bam } from '../modules/sort_bam.nf'
 include { get_taglist_file } from '../modules/manifest2tag.nf'
 include { make_samplesheet_manifest } from '../modules/make_samplesheet_manifest.nf'
 include { validate_samplesheet_manifest } from '../modules/samplesheet_manifest_validation.nf'
-include { PARSE_PANEL_SETTINGS } from './parse_panels_settings.nf'
+include { parse_panel_settings } from '../modules/parse_panels_settings.nf'
 include { retrieve_miseq_run_from_s3 } from '../modules/retrieve_miseq_run_from_s3.nf'
 
 workflow BCL_TO_COLLATED_CRAM {
