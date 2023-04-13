@@ -6,7 +6,7 @@ nextflow.enable.dsl = 2
 // --- import modules ---------------------------------------------------------
 // - workflows
 
-include { PARSE_PANEL_SETTINGS } from './workflows/parse_panels_settings.nf'
+include { parse_panel_settings } from './modules/parse_panels_settings.nf'
 include { SANGER_IRODS_TO_READS } from './workflows/sanger_irods_to_reads.nf'
 include { MISEQ_TO_READS } from './workflows/miseq_to_reads.nf'
 include { READS_TO_VARIANTS } from './workflows/reads_to_variants.nf'
@@ -163,11 +163,10 @@ workflow {
   }
 
   // -- MAIN-EXECUTION ------------------------------------------------------
-  // prepare panel resource channels 
-  PARSE_PANEL_SETTINGS(params.panels_settings)
-
-  reference_ch = PARSE_PANEL_SETTINGS.out.reference_ch // tuple(reference_file, panel_name, snp_list)
-  annotations_ch = PARSE_PANEL_SETTINGS.out.annotations_ch // tuple(panel_name, design_file)
+  // prepare panel resource channels
+  ref_and_annt_ch = parse_panel_settings(params.panels_settings)
+  reference_ch = ref_and_annt_ch[0] // tuple(reference_file, panel_name, snp_list)
+  annotations_ch = ref_and_annt_ch[1] // tuple(panel_name, design_file)
 
   // Files required for GRC creation
   Channel.fromPath(params.grc_settings_file_path, checkIfExists: true)
