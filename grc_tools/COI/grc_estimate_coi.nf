@@ -3,7 +3,7 @@ params.coi_output_filename = "coi.tsv"
 process grc_estimate_coi {
     label "coi"
     input:
-        val(barcodes_grc)
+        path(barcodes_grc)
 
     output:
         path("${coi_out_filename}")

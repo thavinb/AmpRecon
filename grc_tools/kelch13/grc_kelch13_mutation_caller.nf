@@ -10,7 +10,7 @@ process grc_kelch13_mutation_caller {
     */
     label "grc_tools"
     input:
-        val(genotype_file_list)
+        path(genotype_file)
         path(kelch_reference_file)
         path(codon_key_file)
 
@@ -20,11 +20,10 @@ process grc_kelch13_mutation_caller {
     script:
         grc_settings = params.grc_settings_file_path
         kelch13_out_filename = params.kelch13_mutations_output_filename
-        genotype_file_list = genotype_file_list.join(" ")
 
         """
         grc_kelch13_mutation_caller.py \
-            --genotype_files ${genotype_file_list} \
+            --genotype_files ${genotype_file} \
             --output_file "${kelch13_out_filename}" \
             --config "${grc_settings}" \
             --kelch_reference_file "${kelch_reference_file}" \
