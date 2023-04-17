@@ -23,12 +23,9 @@ process bwa_alignment_and_post_processing {
             -t 1 \
             "${reference_fasta}" \
             "${fastq}" |
-            scramble -0 -I sam -O bam > ${bam_file}.intermediate
-
-            samtools sort --threads 2 -o ${bam_file}.sorted.bam ${bam_file}.intermediate
+            scramble -0 -I sam -O bam | samtools sort --threads 2 -o ${bam_file}.sorted.bam 
             samtools index ${bam_file}.sorted.bam
 
-            rm -rf ${bam_file}.intermediate #look into improving this
             mv ${bam_file}.sorted.bam ${bam_file}
             mv ${bam_file}.sorted.bam.bai ${bam_file}.bai
 
