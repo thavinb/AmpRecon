@@ -1,5 +1,5 @@
 params.bwa='bwa'
-params.bwa_num_threads = 24
+params.bwa_num_threads = 1
 params.bwa_batch_input_bases = 100000000
 
 process bwa_alignment {
