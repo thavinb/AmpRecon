@@ -14,6 +14,8 @@ process add_read_group {
         new_bam_file = "${simple_name}.bam"
         temp_bam_name = "temp.${simple_name}.bam"
         """
+        set -e
+        set -o pipefail
         # Change remapped bam file name so that its not same as output name
         mv ${remapped_bam_file} ${temp_bam_name}
 

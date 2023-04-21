@@ -13,6 +13,9 @@ process irods_retrieve {
     output_file=file(irods_path).getFileName()
 
     """
+    set -e
+    set -o pipefail
+
     irods_path=$irods_path
     if [[ \$irods_path =~ \\/.*\\/.* ]]; then
         file_name=\$(basename \$irods_path)

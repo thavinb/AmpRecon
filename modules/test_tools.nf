@@ -8,6 +8,8 @@ process test_size {
 
     script:
         """
+        set -e
+        set -o pipefail
         # Function to compare files
         function file_size {
             local test=\${1}
@@ -153,6 +155,9 @@ process check_md5sum {
 
     script:
         """
+        set -e
+        set -o pipefail
+
         test_value=\$(md5sum ${input_file} | awk '{print \$1}')
         echo ${input_file} \${test_value} >&2
         if [[ "\${test_value}" != "${expected}" ]]; then
@@ -173,6 +178,8 @@ process check_cram_md5sum {
 
     script:
         """
+        set -e
+        set -o pipefail
         test_value=\$(samtools view -h ${input_file} | md5sum | awk '{print \$1}')
         echo ${input_file} \${test_value} >&2
         if [[ "\${test_value}" != "${expected}" ]]; then
@@ -193,6 +200,8 @@ process check_vcf_md5sum {
 
     script:
         """
+        set -e
+        set -o pipefail
         test_value=\$(bcftools view -H ${input_file} | md5sum | awk '{print \$1}')
         echo ${input_file} \${test_value} >&2
         if [[ "\${test_value}" != "${expected}" ]]; then
@@ -224,6 +233,8 @@ process compare_two_cram_files {
 
     script:
     """
+        set -e
+        set -o pipefail
         reference_value=\$(samtools view ${crams[0]} | md5sum | awk '{print \$1}')
         test_value=\$(samtools view ${crams[1]} | md5sum | awk '{print \$1}')
         if [[ "\${test_value}" != "\${reference_value}" ]]; then

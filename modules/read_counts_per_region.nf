@@ -19,6 +19,9 @@ process read_count_per_region {
         plex_file = "${panel_name}.plex"
 
         """
+        set -e
+        set -o pipefail
+
         grep ${panel_name} "${bam_file_list}" | awk 'BEGIN {FS=","; OFS=","} {print \$1}' > "${plex_file}"
         count_reads_per_region.py  \
             --design_file "${annotation_file}" \
