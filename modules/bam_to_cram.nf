@@ -2,8 +2,7 @@ process bam_to_cram {
     /*
     * split BAM by read group into CRAM.
     */
-    errorStrategy 'finish'
-    //publishDir "${params.results_dir}/", overwrite: true
+
     label 'samtools'
     input:
         val(run_id)

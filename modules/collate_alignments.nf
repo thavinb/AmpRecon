@@ -5,7 +5,6 @@ process collate_alignments {
     /*
     * collates bam/cram reads/alignments by name
     */
-    errorStrategy 'ignore'
     label 'biobambam2'
 
     //publishDir "${params.results_dir}/${run_id}", overwrite: true
