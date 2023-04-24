@@ -1,10 +1,8 @@
 process validate_samplesheet_manifest {
     label 'pythonBox'
     input:
-        tuple val(run_id), path(manifest)
+        path(manifest)
         val(panel_names_list)
-    output:
-        tuple val(run_id), path("${manifest}")
 
     script:
         formatted_panel_names_list = "${panel_names_list}".replaceAll("[\\,\\[\\]]", "")
