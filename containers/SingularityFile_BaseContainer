@@ -1,6 +1,5 @@
-# Singularity recipe originally developed by Heng Li. Adapted by Thomas Maddison and Antonio Marinho to include Staden, Bambi, Python and Biobambam2.
 Bootstrap: docker
-From: ubuntu:xenial
+From: ubuntu:18.04
 
 %labels
 Maintainer Thomas Maddison
@@ -36,6 +35,7 @@ Staden 1.14.9
     PATH=/opt/conda/envs/biobambam-2.0.79/bin:$PATH
 
 %post
+    DEBIAN_FRONTEND=noninteractive
     # Software version variables
     BIOBAMBAM2_VERSION=2.0.79-0
     HTSLIB_VERSION=1.8 # also for samtools and bcftools
@@ -45,21 +45,20 @@ Staden 1.14.9
     STADEN_TAG=io_lib-1-14-9
     # Install requirements ---------------------
     apt update
-    apt upgrade -y
-    
+    #apt upgrade -y
+    DEBIAN_FRONTEND=noninteractive \
     apt install -y wget git zlib1g zlib1g-dev libbz2-dev libncurses5-dev \
-                curl unzip python-dev liblzma-dev libcurl4-openssl-dev \
+                curl unzip liblzma-dev libcurl4-openssl-dev \
                 software-properties-common apt-transport-https \
                 libssl-dev gcc wget \
                 make perl bzip2 gnuplot ca-certificates gawk python3 \
                 git libtool pkg-config libpython3-dev libxml2-dev \
                 bzip2 libncurses-dev checkinstall autoconf libgsl-dev \
-                libgd2-xpm-dev libgd-dev nano
+                libgd-dev nano python3-pip #python-dev libgd2-xpm-dev
 
     # Setup Conda
     cd /opt
     rm -fr miniconda
-    
     wget https://repo.continuum.io/miniconda/Miniconda3-4.7.12-Linux-x86_64.sh -O miniconda.sh
     bash miniconda.sh -b -p /opt/miniconda
     export PATH="/opt/miniconda/bin:$PATH"
@@ -70,6 +69,10 @@ Staden 1.14.9
     conda install -y biobambam=${BIOBAMBAM2_VERSION}
     mkdir /app/
     cd /app/
+
+    # add python requirements
+    pip install --upgrade pip
+    pip install pandas
 
     # Setup HTSLib
     wget -O "htslib.tar.gz" https://github.com/samtools/htslib/archive/${HTSLIB_VERSION}.tar.gz
@@ -170,3 +173,4 @@ Staden 1.14.9
     bamsort -h
     # python3
     python3 --version
+    python3 -c "import pandas"
