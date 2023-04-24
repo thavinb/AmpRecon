@@ -5,7 +5,7 @@ process basecalls_conversion {
     /*
     * Converts Illumina BCL sequencing run data into a BAM file.
     */
-    label 'bambi'
+    
 
 
     input:

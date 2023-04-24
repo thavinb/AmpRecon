@@ -2,8 +2,8 @@ process rename_cram_fls {
     /*
     * resets a BAM file to a pre-aligned state
     */
-    //publishDir "${params.results_dir}", overwrite: true
-    label 'pythonBox'
+
+    
     
     input:
         val(run_id)

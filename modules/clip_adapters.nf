@@ -5,7 +5,7 @@ process clip_adapters {
     /*
     * removes identified adapters from bam
     */
-    label 'biobambam2'
+    
 
     input:
         val(sample_tag)

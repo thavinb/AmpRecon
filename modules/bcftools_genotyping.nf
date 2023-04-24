@@ -5,7 +5,7 @@ process bcftools_mpileup {
     /*
     * Creates an uncompressed BCF file containing calculated genotype likelihoods for every possible genomic position supported by the BAM
     */
-    label 'bcftools'
+    
     input:
         tuple val(sample_tag), path(input_bam), path(input_bam_index), val(reference_file), val(reference_annotation_vcf)
 
@@ -33,7 +33,7 @@ process bcftools_call {
     /*
     * Calls SNPs from a BCF file containing all possible genotype likelihoods across genome
     */
-    label 'bcftools'
+    
     input:
         tuple val(sample_tag), path(input_bcf)
 
@@ -64,7 +64,7 @@ process bcftools_filter {
     * SNPs in the input BCF file are filtered and output as an uncompressed VCF file
     */
     publishDir "${params.results_dir}/", overwrite: true, mode: "copy"
-    label 'bcftools'
+    
     input:
         tuple val(sample_tag), path(input_bcf)
 

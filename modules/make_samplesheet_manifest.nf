@@ -3,7 +3,7 @@
 nextflow.enable.dsl=2
 
 process make_samplesheet_manifest {
-    label 'pythonBox'
+    
     input:
         tuple val(run_id), path(bcl_dir)
 

@@ -7,7 +7,7 @@ process bwa_alignment {
     * Map reads to reference
     */
     //publishDir "${params.results_dir}", overwrite: true
-    label 'bwa'
+    
 
     input:
         tuple val(sample_tag), path(fastq), val(reference_fasta), val(panel_name)
@@ -20,9 +20,7 @@ process bwa_alignment {
         bwa=params.bwa
         ref_simplename=file(reference_fasta).simpleName
         """
-        bwa mem \
-            -p \
-            -Y \
+        bwa mem -p -Y \
             -K ${params.bwa_batch_input_bases} \
             -t ${params.bwa_num_threads} \
             "${reference_fasta}" \

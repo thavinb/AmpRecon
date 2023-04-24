@@ -3,7 +3,7 @@ process bam_to_cram {
     * split BAM by read group into CRAM.
     */
 
-    label 'samtools'
+    
     input:
         val(run_id)
         path(adapters_bam_file)

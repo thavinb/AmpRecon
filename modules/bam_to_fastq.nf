@@ -3,7 +3,7 @@ process bam_to_fastq {
     * convert BAM files to FASTQ.
     */
     //publishDir "${params.results_dir}/${run_id}", overwrite: true
-    label 'biobambam2'
+    
 
     input:
         //val(run_id) //needed to know where to publish the files

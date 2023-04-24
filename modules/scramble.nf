@@ -5,7 +5,7 @@ process scramble_sam_to_bam {
     * Converts a sam to bam.
     */
 
-    label 'staden'
+    
 
     input:
         val(tag)
@@ -34,7 +34,7 @@ process scramble_cram_to_bam {
     * Converts a cram to bam.
     */
 
-    label 'staden'
+    
 
     input:
         tuple val(tag), path(cram_file)

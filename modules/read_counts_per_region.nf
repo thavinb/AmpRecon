@@ -4,7 +4,7 @@ nextflow.enable.dsl = 2
 process read_count_per_region {
     stageInMode 'copy'
     publishDir "${params.results_dir}/", overwrite: true, mode: "copy"
-    label 'python_plus_samtools'
+    
 
     input:
         path(bam_file_list)
@@ -32,7 +32,7 @@ process read_count_per_region {
 }
 
 process files_and_panels_to_csv {
-    label "pythonBox"
+
     input:
         val(file_names)
         val(panel_names)
