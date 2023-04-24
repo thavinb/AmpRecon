@@ -1,0 +1,107 @@
+Bootstrap: docker
+From: staphb/htslib
+
+%labels
+MAINTAINER Thomas Maddison <tm17@sanger.ac.uk>
+
+# set up environment
+%environment
+    # Add the Miniconda3 binaries to the PATH
+    PATH=/opt/conda/bin:$PATH
+
+    # Set path for staden libraries
+    export LD_LIBRARY_PATH=/usr/local/lib
+
+    # Set the library path, include path, and pkg-config path to system default
+    # The aim of these values is to avoid issues with package installation
+    export LIBRARY_PATH=/usr/lib/x86_64-linux-gnu/
+    export C_INCLUDE_PATH=/usr/include/
+    export PKG_CONFIG_PATH=/usr/lib/x86_64-linux-gnu/pkgconfig/
+
+    export LC_ALL=C
+    export LC_NUMERIC=en_GB.UTF-8
+    export PATH="/opt/miniconda/bin:$PATH"
+
+
+    # Add the biobambam2 binary to the environment path
+    PATH=/opt/conda/envs/biobambam-2.0.79/bin:$PATH
+
+%post
+
+    # --- SETUP REQUIREMENTS -------------------------------------------------------
+    # --- install requirements
+    export DEBIAN_FRONTEND=noninteractive
+
+    # Install necessary packages
+    # Update the package manager and install necessary packages
+    apt update
+    apt upgrade -y
+    apt install -y libbz2-dev liblzma-dev zlib1g-dev \
+                   libssl-dev gcc wget make perl bzip2 \
+                   gnuplot ca-certificates gawk python3 \
+                   git libtool pkg-config libpython3-dev \
+                   libxml2 libxml2-dev bzip2 libncurses-dev \
+                   checkinstall
+
+    #install conda
+    cd /opt
+    rm -fr miniconda
+
+    #miniconda3: get miniconda3 version 4.7.12
+    wget https://repo.continuum.io/miniconda/Miniconda3-4.7.12-Linux-x86_64.sh -O miniconda.sh
+
+    #install conda
+    bash miniconda.sh -b -p /opt/miniconda
+    export PATH="/opt/miniconda/bin:$PATH"
+
+    # Configure Conda to use the bioconda channel
+    conda config --add channels bioconda
+
+    # --- INSTALL BWA ------------------------------------------------------------
+    # Install bwa version 0.7.17
+    conda install -y -c bioconda bwa=0.7.17
+
+    # --- INSTALL biobambam2 ------------------------------------------------------------
+    # Install biobambam2 version 2.0.79
+    conda install -y biobambam=2.0.79-0
+
+    # --- INSTALL Bambi ------------------------------------------------------------
+    mkdir /app/
+    cd /app/
+    git clone https://github.com/wtsi-npg/bambi.git
+    cd bambi/
+    autoreconf -i
+    ./configure
+    make
+    make check
+    make install
+
+    # --- INSTALL Samtools ------------------------------------------------------------
+    # Install samtools version 1.9
+    wget https://github.com/samtools/samtools/releases/download/1.9/samtools-1.9.tar.bz2 && \
+    tar -xjf samtools-1.9.tar.bz2 && \
+    rm samtools-1.9.tar.bz2 && \
+    cd samtools-1.9 && \
+    ./configure && \
+    make && \
+    make install
+
+    # --- INSTALL Staden ------------------------------------------------------------
+    cd /tmp
+
+    wget -q https://github.com/jkbonfield/io_lib/releases/download/io_lib-1-14-11/io_lib-1.14.11.tar.gz
+    tar -xvzf io_lib-1.14.11.tar.gz \
+    && rm /tmp/io_lib-1.14.11.tar.gz
+    cd /tmp/io_lib-1.14.11
+    ./configure
+    make && make install
+    cd /
+    rm -r /tmp/io_lib-1.14.11
+
+    export LD_LIBRARY_PATH=/usr/local/lib
+
+    # --- Cleanup ------------------------------------------------------------
+    conda clean -y --all
+    rm -f /opt/miniconda.sh
+    apt autoremove --purge
+    apt clean

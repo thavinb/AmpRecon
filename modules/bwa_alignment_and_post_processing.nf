@@ -31,5 +31,3 @@ process bwa_alignment_and_post_processing {
 
         """
 }
-
-
