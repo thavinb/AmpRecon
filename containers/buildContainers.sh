@@ -14,50 +14,16 @@ trap 'last_command=$current_command; current_command=$BASH_COMMAND' DEBUG
 # echo an error message before exiting
 trap 'echo "\"${last_command}\" command filed with exit code $?."' EXIT
 
-echo "@ building core_pipeline_replica.sif"
-singularity build --fakeroot core_pipeline_replica.sif SingularityFile_core_pipeline_replica
-
-echo "@ building bambi.sif"
-singularity build --fakeroot bambi.sif SingularityFile_bambi
-
-echo "@ building biobambam2-2.0.79.sif"
-singularity build --fakeroot biobambam2-2.0.79.sif biobambam2-2.0.79.def
-
-echo "@ building staden.sif"
-singularity build --fakeroot staden.sif SingularityFile_staden
-
-echo "@ building python_plus_samtools.sif"
-singularity build --fakeroot python_plus_samtools.sif SingularityFile_python_plus_samtools
-
-echo "@ pulling samtools_1.15.sif"
-singularity pull docker://staphb/samtools:1.15
-
-echo "@ pulling samtools_1.9.sif" # same of current production pipeline
-singularity pull docker://staphb/samtools:1.9
-
-
 echo "@ building picard.sif"
 singularity build --fakeroot picard.sif SingularityFile_picard
 
-echo "@ building bwa.sif"
-singularity build --fakeroot bwa.sif SingularityFile_bwa
-
-echo "@ building pythonBox.sif"
-singularity build --fakeroot pythonBox.sif SingularityFile_pythonBox
-
 echo "@ building genotyping.sif"
 singularity build --fakeroot genotyping.sif SingularityFile_genotyping
-
-echo "@ building bcftools.sif"
-singularity build --fakeroot bcftools.sif SingularityFile_bcftools
 
 echo "@ building grc_tools.sif"
 singularity build --fakeroot grc_tools.sif SingularityFile_grctools
 
 echo "@ building coi.sif"
 singularity build --fakeroot coi.sif SingularityFile_coi
-
-echo "@ building pyvcf.sif"
-singularity build --fakeroot pyvcf.sif SingularityFile_pyvcf
 
 echo ":: DONE ::"
