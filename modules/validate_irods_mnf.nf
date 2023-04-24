@@ -3,7 +3,7 @@
 nextflow.enable.dsl=2
 
 process validate_irods_mnf {
-    
+
     input:
         path(irods_mnf_file)
         path(panel_settings_file)

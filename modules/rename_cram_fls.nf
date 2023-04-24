@@ -2,8 +2,6 @@ process rename_cram_fls {
     /*
     * resets a BAM file to a pre-aligned state
     */
-
-    
     
     input:
         val(run_id)
@@ -11,6 +9,7 @@ process rename_cram_fls {
         path(cram_fls)
         val(lane)
         path(manifest_file)
+
     output:
         path("*_*#*_*.cram")
 

@@ -2,10 +2,9 @@ process bwa_alignment_and_post_processing {
     /*
     * Map reads to reference
     */
-    
 
     input:
-	tuple val(sample_tag), path(fastq), val(reference_fasta), val(panel_name)
+	tuple val(sample_tag), path(fastq), val(reference_fasta)
 
     output:
         tuple val(sample_tag), path(bam_file), path("${bam_file}.bai")
@@ -26,9 +25,7 @@ process bwa_alignment_and_post_processing {
         
         samtools index ${bam_file}.sorted.bam
 
-        mv ${bam_file}.sorted.bam ${bam_file}
-        mv ${bam_file}.sorted.bam.bai ${bam_file}.bai
-
-
+            mv ${bam_file}.sorted.bam ${bam_file}
+            mv ${bam_file}.sorted.bam.bai ${bam_file}.bai
         """
 }

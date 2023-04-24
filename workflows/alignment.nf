@@ -8,7 +8,7 @@ include { upload_pipeline_output_to_s3 } from '../modules/upload_pipeline_output
 
 workflow ALIGNMENT {
   take:
-    fastq_ch
+    fastq_ch // tuple (file_id, fastq_file, reference_fasta_file)
 
   main:
     // do alignment, sort by coordinate and index
@@ -16,7 +16,7 @@ workflow ALIGNMENT {
 
     // upload BAM files and index files to S3 bucket
     if (params.upload_to_s3){
-      output_to_s3 = samtools_index.out.map{it -> tuple(it[1], it[2])}.flatten()
+      output_to_s3 = bwa_alignment_and_post_processing.out.map{it -> tuple(it[1], it[2])}.flatten()
       upload_pipeline_output_to_s3(output_to_s3)
     }
 
