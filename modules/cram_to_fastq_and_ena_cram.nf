@@ -4,10 +4,10 @@ process cram_to_fastq_and_ena_cram {
     */
     label 'core_pipeline_replica'
     input:
-        tuple val(file_id), path(sample_cram), val(reference_fasta), val(panel_name)
+        tuple val(file_id), path(sample_cram), val(reference_fasta)
 
     output:
-        tuple val(file_id), path("${output_fastq_file}"), val(reference_fasta), val(panel_name), emit: fastq
+        tuple val(file_id), path("${output_fastq_file}"), val(reference_fasta), emit: fastq
         path("${output_cram_file}"), emit: cram
 
     script:

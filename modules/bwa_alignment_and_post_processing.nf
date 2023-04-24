@@ -5,7 +5,7 @@ process bwa_alignment_and_post_processing {
     label 'alignment_and_post_processing'
 
     input:
-	tuple val(sample_tag), path(fastq), val(reference_fasta), val(panel_name)
+	tuple val(sample_tag), path(fastq), val(reference_fasta)
 
     output:
         tuple val(sample_tag), path(bam_file), path("${bam_file}.bai")
@@ -21,7 +21,7 @@ process bwa_alignment_and_post_processing {
         bwa mem -p -Y -K 100000000 -t 1 \
             "${reference_fasta}" \
             "${fastq}" |
-            scramble -0 -I sam -O bam | samtools sort --threads 2 -o ${bam_file}.sorted.bam 
+            scramble -0 -I sam -O bam | samtools sort --threads 1 -o ${bam_file}.sorted.bam 
             
             samtools index ${bam_file}.sorted.bam
 
