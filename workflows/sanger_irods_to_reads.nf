@@ -68,11 +68,11 @@ workflow SANGER_IRODS_TO_READS {
 
         bam_to_fastq.out
                 .join(file_id_reference_files_ch)
-                .map { it -> [ it[0], it[1], it[3], it[2] ] }
+                .map { it -> [ it[0], it[1], it[3] ] }
                 .set { fastq_ch }
 
     emit:
-        fastq_ch // tuple (file_id, fastq_ch, path/to/reference/genome, panel_name)
+        fastq_ch // tuple (file_id, fastq_ch, path/to/reference/genome)
         file_id_reference_files_ch // tuple (file_id, panel_name, path/to/reference/genome, snp_list)
         file_id_to_sample_id_ch // tuple (file_id, sample_id)
  

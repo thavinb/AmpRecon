@@ -83,8 +83,6 @@ workflow COLLATED_CRAM_TO_SPLIT_CRAM_AND_FASTQ {
         }
         // -------------------------------------------------------------
 
-        cram_ch.first().view()
-        file_id_reference_files_ch.first().view()
         cram_ch // tuple(file_id, cram_file)
               // get panel resource files
               | join(file_id_reference_files_ch) // tuple (file_id, cram_file, ref_fasta)
@@ -119,8 +117,6 @@ workflow MISEQ_TO_READS {
     manifest_file = make_samplesheet_manifest.out
     panel_names_list = reference_ch.map{it -> it[1].toString()}.collect()
 
-    manifest_file.view()
-    panel_names_list.view()
     // Validate the manifest created from the samplesheet file
     validate_samplesheet_manifest(manifest_file, panel_names_list)
 
