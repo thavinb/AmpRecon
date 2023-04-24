@@ -4,7 +4,7 @@ process bwa_alignment_and_post_processing {
     */
 
     input:
-	tuple val(sample_tag), path(fastq), val(reference_fasta)
+        tuple val(sample_tag), path(fastq), val(reference_fasta)
 
     output:
         tuple val(sample_tag), path(bam_file), path("${bam_file}.bai")
