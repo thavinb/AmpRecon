@@ -3,7 +3,6 @@
 nextflow.enable.dsl=2
 
 process get_taglist_file {
-    label 'pythonBox'
 
     input:
       val(run_id)

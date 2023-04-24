@@ -2,7 +2,6 @@ process bwa_alignment_and_post_processing {
     /*
     * Map reads to reference
     */
-    label 'alignment_and_post_processing'
 
     input:
 	tuple val(sample_tag), path(fastq), val(reference_fasta)
@@ -27,7 +26,5 @@ process bwa_alignment_and_post_processing {
 
             mv ${bam_file}.sorted.bam ${bam_file}
             mv ${bam_file}.sorted.bam.bai ${bam_file}.bai
-
-
         """
 }

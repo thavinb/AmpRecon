@@ -3,8 +3,6 @@ process scramble_cram_to_bam {
     * Converts a cram to bam.
     */
 
-    label 'staden'
-
     input:
         tuple val(file_id), path(cram_file)
     output:

@@ -2,7 +2,7 @@ process cram_to_fastq_and_ena_cram {
     /*
     * Converts a CRAM file into a FASTQ file and an ENA submission ready CRAM file
     */
-    label 'core_pipeline_replica'
+
     input:
         tuple val(file_id), path(sample_cram), val(reference_fasta)
 

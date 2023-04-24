@@ -5,7 +5,6 @@ process clip_adapters {
     /*
     * Removes identified adapters from bam
     */
-    label 'biobambam2'
 
     input:
         tuple val(file_id), path(input_bam)

@@ -4,7 +4,7 @@ process decode_multiplexed_bam {
     /*
     * Decodes a multiplexed BAM file.
     */
-    label 'bambi'
+
     input:
         path(i2b_output)
         path(tag_file)

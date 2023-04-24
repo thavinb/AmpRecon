@@ -1,5 +1,5 @@
 process validate_samplesheet_manifest {
-    label 'pythonBox'
+
     input:
         path(manifest)
         val(panel_names_list)

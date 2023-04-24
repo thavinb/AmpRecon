@@ -2,7 +2,6 @@ process bam_to_fastq {
     /*
     * Converts BAM files to FASTQ.
     */
-    label 'biobambam2'
 
     input:
         tuple val(sample_tag), path(input_bam)

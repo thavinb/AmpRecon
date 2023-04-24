@@ -3,7 +3,6 @@ process bam_find_adapter {
     * Searches for sequencing adapter contamination with a BAM  file.
     */
     publishDir "${params.results_dir}/", overwrite: true, mode: "copy"
-    label 'biobambam2'
     input:
         path(bam_file)
 

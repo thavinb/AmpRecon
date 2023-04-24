@@ -1,5 +1,4 @@
 process samtools_index {
-    label "samtools"
 
     input:
         tuple val(sample_tag), path(input_bam)
