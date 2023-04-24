@@ -14,6 +14,9 @@ trap 'last_command=$current_command; current_command=$BASH_COMMAND' DEBUG
 # echo an error message before exiting
 trap 'echo "\"${last_command}\" command filed with exit code $?."' EXIT
 
+echo "@ building core_pipeline_replica.sif"
+singularity build --fakeroot core_pipeline_replica.sif SingularityFile_core_pipeline_replica
+
 echo "@ building bambi.sif"
 singularity build --fakeroot bambi.sif SingularityFile_bambi
 

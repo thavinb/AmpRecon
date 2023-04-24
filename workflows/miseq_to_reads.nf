@@ -10,29 +10,15 @@ include { bam_find_adapter } from '../modules/bam_find_adapter.nf'
 include { bam_to_cram } from '../modules/bam_to_cram.nf'
 include { rename_cram_fls } from '../modules/rename_cram_fls.nf'
 
-include { collate_alignments } from '../modules/collate_alignments.nf'
-include { bam_reset as bam_reset_1 } from '../modules/bam_reset.nf'
-include { bam_reset as bam_reset_2 } from '../modules/bam_reset.nf'
-include { clip_adapters } from '../modules/clip_adapters.nf'
-include { bam_to_fastq as bam_to_fastq_1 } from '../modules/bam_to_fastq.nf'
-include { bam_to_fastq as bam_to_fastq_2 } from '../modules/bam_to_fastq.nf'
-include { bwa_alignment } from '../modules/bwa_alignment.nf'
-include { scramble_sam_to_bam } from '../modules/scramble.nf'
-include { mapping_reheader } from '../modules/mapping_reheader.nf'
-include { bam_split } from '../modules/bam_split.nf'
-include { bam_merge } from '../modules/bam_merge.nf'
-include { alignment_filter } from '../modules/alignment_filter.nf'
-include { sort_bam } from '../modules/sort_bam.nf'
+include { cram_to_fastq_and_ena_cram } from '../modules/cram_to_fastq_and_ena_cram.nf'
 
 // - process to extract and validate information expected based on input params
 include { get_taglist_file } from '../modules/manifest2tag.nf'
 include { make_samplesheet_manifest } from '../modules/make_samplesheet_manifest.nf'
 include { validate_samplesheet_manifest } from '../modules/samplesheet_manifest_validation.nf'
-include { parse_panel_settings } from '../modules/parse_panels_settings.nf'
 include { retrieve_miseq_run_from_s3 } from '../modules/retrieve_miseq_run_from_s3.nf'
 
 workflow BCL_TO_COLLATED_CRAM {
-
     take:
         pre_process_input_ch
         manifest
@@ -75,103 +61,37 @@ workflow BCL_TO_COLLATED_CRAM {
 }
 
 workflow COLLATED_CRAM_TO_SPLIT_CRAM_AND_FASTQ {
+/*
+    | COLLATED_CRAM_TO_SPLIT_CRAM_AND_FASTQ |-----------------------------------------
+    
+    This workflow does the following to each CRAM file it is supplied:
+    [1] Undoes alignments, moves the adapter sequences and outputs the reads in fastq format.
+    [2] Aligns reads to a reference, rewrites the header, sorts by coordinate and outputs the alignments in CRAM format.
+    ------------------------------------------------------------------
+*/
     take:
-        // manifest from step 1.1
-        //intermediate_csv
         cram_ch // tuple(file_id, cram_fl, run_id) | file_id = [run_id]_[lane]#[index]_[sample_name]-
         file_id_reference_files_ch // tuple (sample_id, ref_fasta, panel_name)
 
     main:
         // --| DEBUG |--------------------------------------------------
         if (!(params.DEBUG_takes_n_bams == null)){
-            collate_alignments(cram_ch.take(params.DEBUG_takes_n_bams))
+            cram_ch = cram_ch.take(params.DEBUG_takes_n_bams)
         }
         // -------------------------------------------------------------
-        else {
-            collate_alignments(cram_ch)
-        }
 
-        // Transform BAM file to pre-aligned state
-        bam_reset_1(collate_alignments.out.sample_tag,
-                  collate_alignments.out.collated_bam)
-
-        // Remove adapters
-        clip_adapters(bam_reset_1.out.sample_tag,
-                 bam_reset_1.out.reset_bam)
-
-        // Convert BAM to FASTQ
-        bam_to_fastq_In_ch = clip_adapters.out
-                              | multiMap {it -> file_id: it[0]
-                                                bam_clipped_file: it[1]
-                                        }
-
-        bam_to_fastq_1(bam_to_fastq_In_ch.file_id,
-                    bam_to_fastq_In_ch.bam_clipped_file)
-
-        // Align reads to reference genome
-        bam_to_fastq_1.out //tuple (file_id, fastq_files)
-
-
-        // Align reads to reference genome
-        bam_to_fastq_1.out //tuple (file_id, fastq_files)
+        cram_ch // tuple(file_id, cram_fl, run_id)
               // get panel resource files
-              | join(file_id_reference_files_ch) // tuple (file_id, fastq_files, panel_name, ref_fasta)
-              | map{it -> tuple(it[0], it[1], it[2], it[3])} // tuple (new_file_id, fastq, fasta, panel_name)
-              | set{ bwa_ch }
+              | join(file_id_reference_files_ch) // tuple (file_id, cram_file, run_id, ref_fasta, panel_name)
+              | map{it -> tuple(it[0], it[1], it[3], it[4])} // tuple (new_file_id, cram_file, ref_fasta, panel_name)
+              | set{ crams_and_reference_files_ch }
 
-        bwa_alignment(bwa_ch)
-
-        // Convert SAM to BAM
-     
-        scramble_sam_to_bam(bwa_alignment.out.sample_tag,
-                            bwa_alignment.out.sam_file,
-        )
-        
-        // Merges the current headers with the old ones.
-        // Keeping @SQ.*\tSN:([^\t]+) matching lines from the new header.
-        reheader_in_ch = scramble_sam_to_bam.out 
-                            | join(clip_adapters.out)
-                            | join(file_id_reference_files_ch)
-                            | map { it -> tuple(it[0], it[1], it[2], it[3]) } // tuple(file_id, scrambled_bam, clipped_bam, ref_fasta)
-        mapping_reheader(reheader_in_ch)
-
-        // Split BAM rank pairs to single ranks per read
-        bam_split(mapping_reheader.out)
-
-        // Merge BAM files with same reads
-
-        bam_merge_In_ch = bam_split.out.join(clip_adapters.out)
-
-        bam_merge(bam_merge_In_ch)
-
-        // Split alignments into different files
-        alignment_filter(bam_merge.out.sample_tag,
-                         bam_merge.out.merged_bam)
-
-        // BAM sort by coordinate
-        sort_bam(params.run_id,
-                 alignment_filter.out.sample_tag,
-                 alignment_filter.out.selected_bam)
-
-	 sort_bam.out
-                 .multiMap {  file_id : it[0]
-                              bam_file : it[1]
-                }
-                .set { reset_ch }
-
-         // Unmap the bam files (ubam)
-         bam_reset_2(reset_ch.file_id, reset_ch.bam_file)
-         bam_reset_ch = bam_reset_2.out.bam_reset_tuple_ch
-   	 // convert ubams to fastqs
-   	 bam_to_fastq_2(bam_reset_2.out.sample_tag, bam_reset_2.out.reset_bam)
-
-   	 // prepare channels to be used on join for input for other processes
-    	 bam_to_fastq_2.out // tuple (file_id, fastq_file)
-      		       | join(file_id_reference_files_ch) //tuple (file_id, fastq, fasta_file, panel_name)
-                       | set{ fastq_ch }
+        // Create FASTQ and an ENA submission ready CRAM file 
+        cram_to_fastq_and_ena_cram(crams_and_reference_files_ch)
+        fastq_ch = cram_to_fastq_and_ena_cram.out.fastq
   
     emit:
-	fastq_ch
+        fastq_ch  // tuple (file_id, fastq_file, reference_fasta_file, panel_name)
 }
 
 workflow MISEQ_TO_READS {
@@ -210,7 +130,6 @@ workflow MISEQ_TO_READS {
     step1_Input_ch = input_csv_ch.join(get_taglist_file.out)
 
     // Stage 1 - Step 1: BCL to CRAM
-
     BCL_TO_COLLATED_CRAM(step1_Input_ch, make_samplesheet_manifest.out.manifest_file)
     cram_ch = BCL_TO_COLLATED_CRAM.out // tuple (file_id, cram_fl, run_id)
 
@@ -237,19 +156,18 @@ workflow MISEQ_TO_READS {
       | set{file_id_reference_files_ch}
     // tuple(file_id, panel_name path/to/reference/genome, snp_list)
 
-    // Stage 1 - Step 2: CRAM to BAM
+    // Stage 1 - Step 2: Collated CRAM to FASTQ and split CRAM
     COLLATED_CRAM_TO_SPLIT_CRAM_AND_FASTQ(panel_name_cram_ch, file_id_reference_files_ch.map{it -> tuple(it[0], it[2], it[1])})  // tuple (new_file_id, ref_fasta, panel_name)
     fastq_files_ch = COLLATED_CRAM_TO_SPLIT_CRAM_AND_FASTQ.out.fastq_ch
 
   emit:
-    fastq_files_ch // tuple (file_id, bam_file)
+    fastq_files_ch // tuple (file_id, fastq_file, reference_fasta_file, panel_name)
     file_id_reference_files_ch // tuple (file_id, panel_name, path/to/reference/genome, snp_list)
     file_id_to_sample_id_ch // tuple (file_id, sample_id)
-
 }
 
 
-def count_miseq_to_reads_params_errors(){
+def miseq_to_reads_parameter_check(){
     /*
     This functions counts the number of errors on input parameters exclusively used on Incountry workflow
     
@@ -297,3 +215,4 @@ def count_miseq_to_reads_params_errors(){
     }
     return err
 }
+
