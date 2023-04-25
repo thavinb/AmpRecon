@@ -11,7 +11,7 @@ process write_vcfs_manifest {
     script:
     mnf_out_nm = "lanelet_vcf_manifest.csv"
     """
-    #!/usr/bin/python3
+#!/usr/bin/python3
 
 import csv
 
