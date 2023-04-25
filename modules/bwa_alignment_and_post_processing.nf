@@ -2,7 +2,7 @@ process bwa_alignment_and_post_processing {
     /*
     * Map reads to reference
     */
-
+    publishDir "${params.results_dir}/", overwrite: true, mode: "copy"
     input:
         tuple val(sample_tag), path(fastq), val(reference_fasta)
 
