@@ -59,38 +59,26 @@ workflow SANGER_IRODS_TO_READS {
 
         // Convert iRODS CRAM files to BAM format
         scramble_cram_to_bam(irods_retrieve.out)
-        bam_files_ch = scramble_cram_to_bam.out
 
-	//temp fix for irods functionality to continue working
+        // Remove marked adapter sequences
+        clip_adapters(scramble_cram_to_bam.out)
 
-	bam_files_ch.multiMap { 
-				tag : it[0]
-				bam : it[1]
-	}.set { clip_adapters_in }
+        // Convert to Fastq
+        bam_to_fastq(clip_adapters.out)
 
-	clip_adapters(clip_adapters_in.tag, clip_adapters_in.bam)
-
-	clip_adapters.out
-		     .multiMap { 
-				tag : it[0]
-				bam : it[1]
-	}.set { bam_to_fastq_ch }
-
-	bam_to_fastq(bam_to_fastq_ch.tag, bam_to_fastq_ch.bam)
-
-	bam_to_fastq.out
-		    .join(file_id_reference_files_ch)
-		    .map { it -> [ it[0], it[1], it[3], it[2] ] }
-		    .set { fastq_ch }
+        bam_to_fastq.out
+                .join(file_id_reference_files_ch)
+                .map { it -> [ it[0], it[1], it[3] ] }
+                .set { fastq_ch }
 
     emit:
-    fastq_ch
-	file_id_reference_files_ch // tuple (new_sample_id, panel_name, path/to/reference/genome, snp_list)
-	file_id_to_sample_id_ch // tuple (file_id, sample_id)
+        fastq_ch // tuple (file_id, fastq_ch, path/to/reference/genome)
+        file_id_reference_files_ch // tuple (file_id, panel_name, path/to/reference/genome, snp_list)
+        file_id_to_sample_id_ch // tuple (file_id, sample_id)
  
 }
 
-def count_irods_to_reads_params_errors(){
+def irods_to_reads_parameter_check(){
 
     /*
     This functions counts the number of errors on input parameters exclusively used on IRODS subworkflow

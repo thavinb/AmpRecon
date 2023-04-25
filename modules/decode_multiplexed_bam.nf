@@ -4,17 +4,14 @@ process decode_multiplexed_bam {
     /*
     * Decodes a multiplexed BAM file.
     */
-    //publishDir "${params.results_dir}/", overwrite: true
-    label 'bambi'
+
     input:
-        tuple val(run_id), path(base_dir), val(lane), val(study_name), val(read_group), val(library), path(barcode_file), path(i2b_output)
-        //path(input_file) // ex. bambi_i2b.bam
-        //path(barcode_file) // ex.
+        path(i2b_output)
+        path(tag_file)
 
     output:
-        tuple val(run_id), path("${decoded_bam_file}"), path("${metrics_file}")
-        //path("${output_file}"), emit: output_file
-        //path("${metrics_file}"), emit: metrics_file
+        path("${decoded_bam_file}"), emit: decoded_bam_file
+        path("${metrics_file}"), emit: bam_metrics_file
 
     script:
         compression_level=params.bambi_compression_level
@@ -26,7 +23,7 @@ process decode_multiplexed_bam {
         bambi decode \
             --input-fmt="bam" \
             --metrics-file=${metrics_file} \
-            --barcode-file=${barcode_file} \
+            --barcode-file=${tag_file} \
             --output=${decoded_bam_file} \
             --output-fmt="bam" \
             --compression-level=${compression_level} \

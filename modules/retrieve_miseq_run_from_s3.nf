@@ -7,7 +7,7 @@ process retrieve_miseq_run_from_s3 {
         val(uuid_id)
 
     output:
-        tuple val("${params.run_id}"), val("${output_path}"), val("${params.lane}"), val("${params.study_name}"), val("${params.read_group}"), val("${params.library}"), emit: tuple_ch
+        val("${output_path}")
 
     when:
         params.s3_uuid != "-1"

@@ -5,14 +5,16 @@ process basecalls_conversion {
     /*
     * Converts Illumina BCL sequencing run data into a BAM file.
     */
-    label 'bambi'
-
 
     input:
-        tuple val(run_id), path(base_dir), val(lane), val(study_name), val(read_group), val(library), path(tag_file)
+        val(run_id)
+        path(base_dir)
+        val(lane)
+        val(study_name)
+        val(read_group)
 
     output:
-        tuple val(run_id), path("${output_file}")
+        path("${output_file}")
 
     script:
         intensity_dir="${base_dir}/Data/Intensities"
