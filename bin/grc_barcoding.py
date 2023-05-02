@@ -239,7 +239,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--output_file_2",
         help="""
-        Path to directory to output results (example: _Barcodes.txt)
+        Path to directory to output results (example: barcoding_results.split_out.txt)
     """,
     )
 
@@ -277,7 +277,7 @@ if __name__ == "__main__":
     output_file = os.path.abspath(args.get("output_file", "./barcoding_results.txt"))
     ncpus = args.get("ncpus", 1)
     pbar = args.get("pbar", False)
-    output_file_2 = os.path.abspath(args.get("output_file_2", "./_Barcodes.txt"))
+    output_file_2 = os.path.abspath(args.get("output_file_2", "./barcoding_results.split_out.txt"))
     # add in logic to condionally attempt to load tqdm for pbar
     # if tqdm not present continue without progress bar
     if pbar:
