@@ -92,11 +92,59 @@ def output_df(records, output_file: str, sep="\t") -> None:
         for row in records:
             if not writer:
                 fields = list(row.keys())
-                writer = csv.DictWriter(outBarcodes, fieldnames=fields, delimiter="\t")
+                writer = csv.DictWriter(outBarcodes, fieldnames=fields, delimiter=sep)
                 writer.writeheader()
             writer.writerow(row)
         outBarcodes.close()
 
+def output_barcode_2(barcode_ref_dct, records, output_flnm:str, sep="\t"):
+    """
+    Write a second barcode file in which there is on column per barcode base and columns
+    are named as {Chromosome}:{Locus} 
+    """
+    # get col names and positions
+    cols_dct = {"cols_bar":{}}
+    for pos_i in barcode_ref_dct.keys():
+        chrm_i = barcode_ref_dct[pos_i]["Chromosome"]
+        locs_i = barcode_ref_dct[pos_i]["Locus"]
+        cols_dct["cols_bar"][int(pos_i)]= f"{chrm_i}:{locs_i}"
+
+    # get numbers of pos expected
+    n_pos = len(cols_dct["cols_bar"].keys())
+
+    # --- sanity check ---
+    # assert we have a continuous list of integers
+    assert(min(cols_dct["cols_bar"].keys()) == 1) # it shoudl start with one
+    max_pos = max(cols_dct["cols_bar"].keys())
+    assert(set(cols_dct["cols_bar"].keys()) == set(range(1, max_pos+1))), "Not a continuous list of integers for the barcode positions"
+
+    # get samples data
+    out_sample_dct = []
+    for sample_j in records:
+        # record id
+        smpl_dct = {"ID":sample_j["ID"]}
+        
+        # get bases from barcode and associate 
+        # with the respective column
+        barcode = sample_j["Barcode"]
+        assert(len(barcode) == n_pos)
+    
+        for i, base_i in enumerate(barcode):
+            colnm = cols_dct["cols_bar"][i+1]
+            smpl_dct[colnm] = base_i
+    
+        out_sample_dct.append(smpl_dct)
+
+    # write tsv file
+    with open(output_flnm,"w") as out_file:
+        writer = None
+        for row in out_sample_dct:
+            if not writer:
+                fields = list(row.keys())
+                writer = csv.DictWriter(out_file, fieldnames=fields, delimiter=sep)
+                writer.writeheader()
+            writer.writerow(row)
+        out_file.close()
 
 def read_genotype_file(genotype_file_path: str, deconstruct_barcode_ref: dict) -> dict:
     """
@@ -188,6 +236,13 @@ if __name__ == "__main__":
     """,
     )
 
+    parser.add_argument(
+        "--output_file_2",
+        help="""
+        Path to directory to output results (example: _Barcodes.txt)
+    """,
+    )
+
     # get all arguments with a value and place into dictionary
     args = {k: v for k, v in vars(parser.parse_args()).items() if v}
 
@@ -222,7 +277,7 @@ if __name__ == "__main__":
     output_file = os.path.abspath(args.get("output_file", "./barcoding_results.txt"))
     ncpus = args.get("ncpus", 1)
     pbar = args.get("pbar", False)
-
+    output_file_2 = os.path.abspath(args.get("output_file_2", "./_Barcodes.txt"))
     # add in logic to condionally attempt to load tqdm for pbar
     # if tqdm not present continue without progress bar
     if pbar:
@@ -275,3 +330,5 @@ if __name__ == "__main__":
     all_samples_out = [i for sublist in all_samples_out for i in sublist]
     # pass flattened list to output_df
     output_df(all_samples_out, output_file)
+
+    output_barcode_2(barcode_ref, all_samples_out,output_file_2)
