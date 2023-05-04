@@ -5,17 +5,15 @@ nextflow.enable.dsl=2
 process make_samplesheet_manifest {
 
     input:
-        val(run_id)
-        path(bcl_dir)
+        path(samplesheet_csv) // usually "${bcl_dir}/SampleSheet.csv" 
 
     output:
         path("${manifest}")
 
     script:
-        samplesheet = "${bcl_dir}/SampleSheet.csv"
-        manifest = "${run_id}_manifest.csv"
+        manifest = "${params.run_id}_manifest.csv"
         """
-        samplesheet_parser.py ${samplesheet} -r ${run_id} -o ${manifest}
+        samplesheet_parser.py ${samplesheet_csv} -o ${manifest}
         """
 }
 

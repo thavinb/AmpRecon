@@ -1,4 +1,4 @@
-process bam_to_cram {
+process split_bam_by_readgroup {
     /*
     * split BAM by read group into CRAM.
     */
