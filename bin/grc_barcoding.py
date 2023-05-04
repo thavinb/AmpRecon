@@ -97,7 +97,7 @@ def output_df(records, output_file: str, sep="\t") -> None:
             writer.writerow(row)
         outBarcodes.close()
 
-def output_barcode_2(barcode_ref_dct, records, output_flnm:str, sep="\t"):
+def output_barcode_split_out(barcode_ref_dct, records, output_flnm:str, sep="\t"):
     """
     Write a second barcode file in which there is on column per barcode base and columns
     are named as {Chromosome}:{Locus} 
@@ -237,7 +237,7 @@ if __name__ == "__main__":
     )
 
     parser.add_argument(
-        "--output_file_2",
+        "--output_file_split_out",
         help="""
         Path to directory to output results (example: barcoding_results.split_out.txt)
     """,
@@ -277,7 +277,7 @@ if __name__ == "__main__":
     output_file = os.path.abspath(args.get("output_file", "./barcoding_results.txt"))
     ncpus = args.get("ncpus", 1)
     pbar = args.get("pbar", False)
-    output_file_2 = os.path.abspath(args.get("output_file_2", "./barcoding_results.split_out.txt"))
+    output_file_2 = os.path.abspath(args.get("output_file_split_out", "./barcoding_results.split_out.txt"))
     # add in logic to condionally attempt to load tqdm for pbar
     # if tqdm not present continue without progress bar
     if pbar:
@@ -331,4 +331,4 @@ if __name__ == "__main__":
     # pass flattened list to output_df
     output_df(all_samples_out, output_file)
 
-    output_barcode_2(barcode_ref, all_samples_out,output_file_2)
+    output_barcode_split_out(barcode_ref, all_samples_out,output_file_2)

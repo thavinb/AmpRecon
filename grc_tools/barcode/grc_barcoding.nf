@@ -19,6 +19,6 @@ process grc_barcoding {
             --genotype_files ${genotype_file} \
             --output_file "${output_file_name}" \
             --config "${grc_settings}" \
-            --output_file_2 ${params.barcode_splitout_filename}
+            --output_file_split_out ${params.barcode_splitout_filename}
         """
 }
