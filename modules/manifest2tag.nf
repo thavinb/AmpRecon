@@ -5,9 +5,7 @@ nextflow.enable.dsl=2
 process get_taglist_file {
 
     input:
-      val(run_id)
       val(study_name)
-      val(library)
       val(manifest)
 
     output:
@@ -18,6 +16,6 @@ process get_taglist_file {
 
       """
       echo ${manifest}
-      manifest2tag.py -m $manifest -l $library --sample $run_id --study $study_name
+      manifest2tag.py -m $manifest --study $study_name
       """
 }

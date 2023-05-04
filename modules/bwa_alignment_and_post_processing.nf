@@ -10,8 +10,7 @@ process bwa_alignment_and_post_processing {
         tuple val(sample_tag), path(bam_file), path("${bam_file}.bai")
 
     script:
-        ref_simplename=file(reference_fasta).simpleName
-        bam_file="${sample_tag}-${ref_simplename}.bam"
+        bam_file="${sample_tag}.bam"
 
         """
         set -e

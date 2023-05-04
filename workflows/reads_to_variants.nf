@@ -27,8 +27,8 @@ workflow READS_TO_VARIANTS {
         file_id_reference_files_ch.map{it -> tuple(it[0], it[2], it[1])}.set{alignment_ref_ch} // tuple (file_id, fasta_file, panel_name)
         ALIGNMENT(fastq_ch)
         
-	//read counts 
-	READ_COUNTS(ALIGNMENT.out, alignment_ref_ch, annotations_ch)
+        // read counts
+        READ_COUNTS(ALIGNMENT.out, alignment_ref_ch, annotations_ch)
 
         // genotyping
         if( params.genotyping_gatk == true ) {

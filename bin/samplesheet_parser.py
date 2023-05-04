@@ -17,12 +17,7 @@ def parse_args():
         "samplesheet_path",
         help="Path to SampleSheet.csv. Preferably exists inside a run folder matching [0-9]{6}",
     )
-    parser.add_argument(
-        "--run",
-        "-r",
-        help="Force the run number. Useful if SampleSheet.csv is not inside a run folder",
-        type=int,
-    )
+
     parser.add_argument(
         "--output_file",
         "-o",
@@ -58,9 +53,6 @@ class SampleSheetParser:
 
         # Skip manifest header
         for row in self._fileio:
-            # Keep original header for reasons
-            self._manifest_io.write(row)
-
             if row.lower().startswith("[data]"):
                 break
 
@@ -70,10 +62,8 @@ class SampleSheetParser:
             "lims_id",
             "sims_id",
             "index",
-            "assay", #"ref",
-            "barcode_sequence",
-            "well",
-            "plate",
+            "assay",
+            "barcode_sequence"
         ]
 
         self.reader = DictReader(
@@ -108,7 +98,8 @@ class SampleSheetParser:
         assay = None
         match = None
         assay_options = OrderedDict(
-            grc1="PFA_GRC1_v1.0", grc2="PFA_GRC2_v1.0", spec="PFA_Spec"
+            # TODO: this needs to be taken from the panel_settings, not hardcoded.
+            grc1="PFA_GRC1_v1.0", grc2="PFA_GRC2_v1.0", spec="PFA_Spec" 
         )
         grc = re.compile(r"(grc[12])|(sp(?:ec)?)", re.IGNORECASE)
 
@@ -149,25 +140,33 @@ class SampleSheetParser:
             )
         return f"{index_1}-{index_2}"
 
-    def _get_well(self, line):
-        well = line.get("sample_well")
-        if well is None:
-            # No well is given, generate one instead
-            try:
-                return next(self.well_iterator)
-            except StopIteration:
-                # reset iterator because it hit 96
-                self.well_iterator = self._well_iterator()
-                return next(self.well_iterator)
+    def _check_required_col(self, line:OrderedDict):
+        '''
+        Check if required columns are present on the samplesheet.
+        '''
+        # those columns are expected to be on the samplesheet
+        REQUIRED_COLUMNS = ["index", "index2", "sample_name",
+                            "sample_id"]
+        # some of them may have an alternative name
+        OPT_COLS = {"well":"sample_well",
+                    "plate":"sample_plate"}
 
-        return well
+        # index and index2 are used to produce the "barcode_sequence"
+        # sample_name is used to fill lims_id
+        # TODO: it looks for panel names everywhere and the columns are hardcoded
+        #       at _get_assay()
+        missing_cols = []
+        for col in REQUIRED_COLUMNS:
+            if col not in line:
+                # check if the optional names are available
+                if col in OPT_COLS:
+                    alt_nm = OPT_COLS[col]
+                    if alt_nm in line:
+                        continue
+                missing_cols.append(col)
 
-    def _get_plate(self, line):
-        """Placeholder method for when we need to do extra things"""
-        plate = line.get("sample_plate")
-        if plate is None:
-            plate = self.run
-        return plate
+        if len(missing_cols) > 0:
+            raise Exception(f"The following columns are missing: {missing_cols}")
 
     def process(self):
         """Run all validation functions"""
@@ -176,13 +175,16 @@ class SampleSheetParser:
             for column in line:
                 if line[column] is not None:
                     line[column] = line[column].strip()
+
+            # check if required columns are present
+            self._check_required_col(line)
+
+            # parse values
             try:
                 lims_id = self._get_lims_id(line)
                 sims_id = self._get_sims_id(line, lims_id)
                 assay = self._get_assay(line, lims_id)
                 barcode_sequence = self._get_barcode_sequence(line)
-                well = self._get_well(line)
-                plate = self._get_plate(line)
             except self.MissingValueError as err:
                 logging.error(str(err))
                 exit(1)
@@ -193,8 +195,6 @@ class SampleSheetParser:
                 index=index,
                 assay=assay,
                 barcode_sequence=barcode_sequence,
-                well=well,
-                plate=plate,
             )
             self.writer.writerow(row)
 
@@ -219,5 +219,5 @@ class SampleSheetParser:
 
 if __name__ == "__main__":
     args = parse_args()
-    with SampleSheetParser(args.samplesheet_path, args.output_file, args.run) as s:
+    with SampleSheetParser(args.samplesheet_path, args.output_file, None) as s:
         s.process()

@@ -374,6 +374,7 @@ def write_out_grcs(
     grc_1 = open(f"{output_grc1_file}", "w+")
     grc_1.write("ID\t")
     sample_id = list(haplotype_data["data"].keys())
+    sample_id.sort()
 
     if extended:
         grc_2 = open(f"{output_grc2_file}", "w+")
