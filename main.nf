@@ -42,10 +42,8 @@ log.info """
          (in-country)
          --run_id             : ${params.run_id}
          --bcl_dir            : ${params.bcl_dir}
-         --lane               : ${params.lane}
          --study_name         : ${params.study_name}
-         --read_group         : ${params.read_group}
-         --library            : ${params.library}
+         --samplesheet_path   : ${params.samplesheet_path}
 
          (irods)
          --irods_manifest     : ${params.irods_manifest}
@@ -90,8 +88,7 @@ def printHelp() {
     (incountry)
     nextflow /path/to/ampseq-pipeline/main.nf -profile sanger_lsf
       --execution_mode in-country --run_id 21045
-      --bcl_dir /path/to/my_bcl_dir/ --lane 1
-      --study_name test --read_group rg_test --library lib
+      --bcl_dir /path/to/my_bcl_dir/ --study_name test
       --chrom_key_file_path chromKey.txt
       --grc_settings_file_path grc_settings.json
       --drl_information_file_path DRLinfo.txt
@@ -114,10 +111,7 @@ def printHelp() {
       (incountry required)
       --run_id : id to be used for the batch of data to be processed
       --bcl_dir: path to a miseq directory
-      --lane : <str>
       --study_name : <str>
-      --read_group : <str>
-      --library : <str>
 
       (irods required)
       --irods_manifest : an tsv containing information of irods data to fetch

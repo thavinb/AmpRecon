@@ -48,4 +48,5 @@ for file in args["grcs_in"]:
 # -- handle special columns --
 # intify McCOIL columns (PS: min value for COI is 1, in this context 0 is NaN)
 merged_data["McCOIL"] = merged_data["McCOIL"].fillna(0).astype(int).replace(0, "-")
-merged_data.fillna("-").to_csv(args["grc_out_name"], sep="\t")
+# sort entries and fill nan values as "-"
+merged_data.fillna("-").sort_values(by=["ID"]).to_csv(args["grc_out_name"], sep="\t")

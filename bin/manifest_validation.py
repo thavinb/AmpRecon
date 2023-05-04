@@ -76,14 +76,6 @@ class AmpliconManifestValidator:
         if self._fileio is None:
             raise IOError("file not opened yet, run object inside a context manager")
 
-        # Skip manifest header
-        for row in self._fileio:
-            print(row)
-            if row.lower().startswith("[data]"):
-                break
-
-        # get manifest columns
-        #print(next(self._fileio))#.lower().strip().split(","))
         columns = next(self._fileio).lower().strip().split(",")
 
         self.reader = DictReader(self._fileio, fieldnames=columns)
@@ -95,9 +87,7 @@ class AmpliconManifestValidator:
             "sims_id",
             "index",
             "assay",
-            "barcode_sequence",
-            "well",
-            "plate",
+            "barcode_sequence"
         ]
 
         actual_columns = self.reader.fieldnames
