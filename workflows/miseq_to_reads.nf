@@ -107,13 +107,13 @@ workflow MISEQ_TO_READS {
     validate_samplesheet_manifest(manifest_file, panel_names_list)
 
     // Create tag list file
-    get_taglist_file(params.study_name,
+    get_taglist_file(params.ena_study_name,
                     manifest_file)
 
     // Stage 1 - Step 1: BCL to CRAM
     BCL_TO_COLLATED_CRAM(params.run_id,
                         bcl_dir,
-                        params.study_name,
+                        params.ena_study_name,
                         get_taglist_file.out,
                         manifest_file)
     cram_ch = BCL_TO_COLLATED_CRAM.out // tuple (file_id, cram_file)
@@ -186,7 +186,7 @@ def miseq_to_reads_parameter_check(){
       }
     }
 
-    if (params.study_name == null){
+    if (params.ena_study_name == null){
       log.error("A study_name parameter must be provided for execution mode '${params.execution_mode}'.")
       err += 1
     }

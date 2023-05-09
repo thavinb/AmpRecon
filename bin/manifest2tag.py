@@ -6,9 +6,9 @@ import pandas as pd
 
 def __get_library_name(row):
     '''
-    assemble library name as [lims_id]_[assay]
+    assemble library name as [sample_id]_[primer_panel]
     '''
-    return f"{row['lims_id']}_{row['assay']}"
+    return f"{row['sample_id']}_{row['primer_panel']}"
 
 def manifest2taglist(manifest: str, study_id: str) -> None:
     """function which generates taglist file from manifest"""
@@ -19,7 +19,7 @@ def manifest2taglist(manifest: str, study_id: str) -> None:
 
     # rename columns for tag file
     manifest_df.rename(
-        columns={"index": "barcode_name"},
+        columns={"barcode_number": "barcode_name"},
         inplace=True,
     )
 
@@ -28,7 +28,7 @@ def manifest2taglist(manifest: str, study_id: str) -> None:
 
     # add other columns to tag_file
     tag_list_df["library_name"] = manifest_df.apply(__get_library_name, axis=1)
-    tag_list_df["sample_name"] = manifest_df["lims_id"]
+    tag_list_df["sample_name"] = manifest_df["sample_id"]
     tag_list_df["study_id"] = study_id
 
     # create tag_list
