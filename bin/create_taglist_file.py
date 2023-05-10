@@ -5,15 +5,16 @@ import pandas as pd
 
 
 def __get_library_name(row):
-    '''
+    """
     assemble library name as [sample_id]_[primer_panel]
-    '''
+    """
     return f"{row['sample_id']}_{row['primer_panel']}"
+
 
 def manifest2taglist(manifest: str, study_id: str) -> None:
     """function which generates taglist file from manifest"""
     # read in manifest
-    manifest_df = pd.read_csv(manifest)#, skiprows=lines2skip)
+    manifest_df = pd.read_csv(manifest)  # , skiprows=lines2skip)
     # lowercase the column names
     manifest_df.columns = [x.lower() for x in manifest_df.columns]
 
@@ -34,6 +35,7 @@ def manifest2taglist(manifest: str, study_id: str) -> None:
     # create tag_list
     tag_list_df.to_csv("tag_file.tsv", sep="\t", index=False)
 
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--manifest", "-m", help="Manifest file", required=True)
@@ -41,4 +43,3 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     manifest2taglist(args.manifest, args.study)
-

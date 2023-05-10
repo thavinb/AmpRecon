@@ -11,9 +11,8 @@ include { split_bam_by_readgroup } from '../modules/split_bam_by_readgroup.nf'
 include { cram_to_fastq_and_ena_cram } from '../modules/cram_to_fastq_and_ena_cram.nf'
 
 // - process to extract and validate information expected based on input params
-include { get_taglist_file } from '../modules/manifest2tag.nf'
-include { make_samplesheet_manifest } from '../modules/make_samplesheet_manifest.nf'
-include { validate_samplesheet_manifest } from '../modules/samplesheet_manifest_validation.nf'
+include { create_taglist_file } from '../modules/create_taglist_file.nf'
+include { validate_manifest } from '../modules/validate_manifest.nf'
 include { retrieve_miseq_run_from_s3 } from '../modules/retrieve_miseq_run_from_s3.nf'
 
 workflow BCL_TO_COLLATED_CRAM {
@@ -21,15 +20,17 @@ workflow BCL_TO_COLLATED_CRAM {
         run_id
         bcl_dir
         study_name
-        tag_file
-        manifest
+        manifest_file
 
     main:
         // convert basecalls
         basecalls_conversion(run_id, bcl_dir, study_name)
 
+        // Create tag list file
+        create_taglist_file(study_name, manifest_file)
+
         // decode multiplexed bam file
-        decode_multiplexed_bam(basecalls_conversion.out, tag_file)
+        decode_multiplexed_bam(basecalls_conversion.out, create_taglist_file.out)
 
         // find adapter contamination in bam
         bam_find_adapter(decode_multiplexed_bam.out.decoded_bam_file)
@@ -85,6 +86,7 @@ workflow COLLATED_CRAM_TO_SPLIT_CRAM_AND_FASTQ {
 workflow MISEQ_TO_READS {
   take:
     reference_ch // tuple (fasta, panel_name, snp_list)
+    manifest_file
 
   main:
       
@@ -97,33 +99,24 @@ workflow MISEQ_TO_READS {
       // Use supplied bcl dir if not running s3 entrypoint
       bcl_dir = params.bcl_dir
     }
-  
-    // process samplesheets manifest (necessary to get barcodes) and validate it
-    make_samplesheet_manifest(params.samplesheet_path)
-    manifest_file = make_samplesheet_manifest.out
+
+    // Validate the supplied manifest file
     panel_names_list = reference_ch.map{it -> it[1].toString()}.collect()
-
-    // Validate the manifest created from the samplesheet file
-    validate_samplesheet_manifest(manifest_file, panel_names_list)
-
-    // Create tag list file
-    get_taglist_file(params.ena_study_name,
-                    manifest_file)
+    validate_manifest(manifest_file, panel_names_list)
 
     // Stage 1 - Step 1: BCL to CRAM
     BCL_TO_COLLATED_CRAM(params.run_id,
                         bcl_dir,
                         params.ena_study_name,
-                        get_taglist_file.out,
                         manifest_file)
     cram_ch = BCL_TO_COLLATED_CRAM.out // tuple (file_id, cram_file)
 
     // get the relevant sample data from the manifest and link with cram files
     file_id_ch = manifest_file
-      | splitCsv(header: ["lims_id", "sims_id", "index", "assay", "barcode_sequence", "well", "plate"], skip: 18)
-      | map { row -> tuple(row.index, row.assay, row.lims_id) }
+      | splitCsv(header: ["sample_id", "primer_panel", "barcode_number", "barcode_sequence", "partner_sample_id", "collection_date", "collection_location", "collection_country", "study", "well", "plate_name"], skip: 18)
+      | map { row -> tuple(row.barcode_number, row.primer_panel, row.sample_id) }
       // Match (by index) assay and lims_id with associated CRAM file
-      | join(cram_ch)  // tuple (index, panel_name, lims_id, cram_file) 
+      | join(cram_ch)  // tuple (index, panel_name, sample_id, cram_file) 
       // append lims_id and assay panel_name to file_id (CRAM file simpleName)
       | map{it -> tuple("${it[3].simpleName}_${it[2]}_${it[1]}", it[1], it[2], it[3])} // tuple (fileId_limsId_panelName, panel_name, lims_id, cram_file)
 

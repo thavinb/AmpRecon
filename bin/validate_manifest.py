@@ -10,7 +10,13 @@ from csv import DictReader
 def parse_args():
     parser = ArgumentParser()
     parser.add_argument("--manifest", "-m", help="path to manifest to validate")
-    parser.add_argument("--panel_names", "-p", type=str, nargs="*", help="list of panel names to check for")
+    parser.add_argument(
+        "--panel_names",
+        "-p",
+        type=str,
+        nargs="*",
+        help="list of panel names to check for",
+    )
     return parser.parse_args()
 
 
@@ -83,11 +89,17 @@ class AmpliconManifestValidator:
     def _validate_integrity(self):
         """Validates integrity of the manifest, like columns, line length, and empty/NA values"""
         valid_columns = [
-            "lims_id",
-            "sims_id",
-            "index",
-            "assay",
-            "barcode_sequence"
+            "sample_id",
+            "primer_panel",
+            "barcode_number",
+            "barcode_sequence",
+            "partner_sample_id",
+            "collection_date",
+            "collection_location",
+            "collection_country",
+            "study",
+            "well",
+            "plate_name",
         ]
 
         actual_columns = self.reader.fieldnames
@@ -169,4 +181,3 @@ if __name__ == "__main__":
     args = parse_args()
     with AmpliconManifestValidator(args.manifest) as m:
         m.validate()
-
