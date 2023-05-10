@@ -6,7 +6,7 @@ process create_taglist_file {
 
     input:
       val(study_name)
-      val(manifest)
+      path(manifest)
 
     output:
       path("${tag_list}")

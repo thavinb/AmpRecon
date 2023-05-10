@@ -85,8 +85,8 @@ workflow COLLATED_CRAM_TO_SPLIT_CRAM_AND_FASTQ {
 
 workflow MISEQ_TO_READS {
   take:
-    reference_ch // tuple (fasta, panel_name, snp_list)
     manifest_file
+    reference_ch // tuple (fasta, panel_name, snp_list)
 
   main:
       
@@ -113,7 +113,7 @@ workflow MISEQ_TO_READS {
 
     // get the relevant sample data from the manifest and link with cram files
     file_id_ch = manifest_file
-      | splitCsv(header: ["sample_id", "primer_panel", "barcode_number", "barcode_sequence", "partner_sample_id", "collection_date", "collection_location", "collection_country", "study", "well", "plate_name"], skip: 18)
+      | splitCsv(header: ["sample_id", "primer_panel", "barcode_number", "barcode_sequence"])
       | map { row -> tuple(row.barcode_number, row.primer_panel, row.sample_id) }
       // Match (by index) assay and lims_id with associated CRAM file
       | join(cram_ch)  // tuple (index, panel_name, sample_id, cram_file) 
@@ -172,10 +172,10 @@ def miseq_to_reads_parameter_check(){
       err += 1
     }
 
-    if (params.samplesheet_path){
-      samplesheet = file(params.samplesheet_path)
-      if (!samplesheet.exists()){
-        log.error("${samplesheet} does not exists")
+    if (params.manifest_path){
+      samplesheet = file(params.manifest_path)
+      if (!manifest.exists()){
+        log.error("${manifest} does not exist.")
       }
     }
 

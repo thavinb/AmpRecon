@@ -43,7 +43,7 @@ log.info """
          --run_id             : ${params.run_id}
          --bcl_dir            : ${params.bcl_dir}
          --study_name         : ${params.study_name}
-         --samplesheet_path   : ${params.samplesheet_path}
+         --manifest_path   : ${params.manifest_path}
 
          (irods)
          --irods_manifest     : ${params.irods_manifest}
@@ -112,6 +112,7 @@ def printHelp() {
       --run_id : id to be used for the batch of data to be processed
       --bcl_dir: path to a miseq directory
       --study_name : <str>
+      --manifest_path: path to the manifest file
 
       (irods required)
       --irods_manifest : an tsv containing information of irods data to fetch
@@ -171,7 +172,8 @@ workflow {
 
   if (params.execution_mode == "in-country") {
     // process in country entry point
-    MISEQ_TO_READS(reference_ch)
+    manifest = Channel.fromPath(params.manifest_path, checkIfExists: true)
+    MISEQ_TO_READS(manifest, reference_ch)
     fastq_files_ch = MISEQ_TO_READS.out.fastq_files_ch
     file_id_reference_files_ch = MISEQ_TO_READS.out.file_id_reference_files_ch
     file_id_to_sample_id_ch = MISEQ_TO_READS.out.file_id_to_sample_id_ch

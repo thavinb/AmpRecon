@@ -44,7 +44,7 @@ To run from the **in-country** entry point:
 ```
 nextflow ../path/to/ampseq-pipeline/main.nf -profile sanger_lsf \
                 --execution_mode in-country --run_id 21045 \
-                --bcl_dir /path/to/my_bcl_dir/ --study_name test \
+                --bcl_dir /path/to/my_bcl_dir/ --study_name test --manifest_path manifest.csv \
                 --chrom_key_file_path chromKey.txt
                 --grc_settings_file_path grc_settings.json
                 --drl_information_file_path DRLinfo.txt
@@ -84,6 +84,7 @@ Required for **in-country**
 ```
 run_id : id to be used for the batch of data to be processed
 bcl_dir: path to a miseq directory
+manifest_path: path to the manifest comma separated values file.
 ```
 
 The pipeline needs a value for `--study_name` to be supplied, but the content is irrelevant for the pipeline execution.
@@ -149,7 +150,7 @@ PFA_GRC2_v1.0,PFA_GRC2_v1.0.fasta,PFA_GRC2_v1.0.regions.txt,PFA_GRC2_v1.0.annota
 PFA_Spec,PFA_Spec.fasta,PFA_Spec.regions.txt,PFA_Spec.annotation.vcf
 ```
 
-- `panel_name` : Defines the string it should look for a given panel, this strings should be the same provided by the user (via samplesheet or irods_manifest).
+- `panel_name` : Defines the string it should look for a given panel, this strings should be the same provided by the user (via the supplied manifest file).
 
 - `reference_file` : Path to the `reference.fasta` for use in alignment. Reference index files (.fai, .amb, .ann, .bwt, .pac and .sa) and a sequence dictionary file (reference_file_name.dict) should also be found at this location.
 

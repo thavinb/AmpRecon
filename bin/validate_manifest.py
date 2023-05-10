@@ -93,13 +93,6 @@ class AmpliconManifestValidator:
             "primer_panel",
             "barcode_number",
             "barcode_sequence",
-            "partner_sample_id",
-            "collection_date",
-            "collection_location",
-            "collection_country",
-            "study",
-            "well",
-            "plate_name",
         ]
 
         actual_columns = self.reader.fieldnames
@@ -123,7 +116,7 @@ class AmpliconManifestValidator:
     def _validate_assay_column(self, line: OrderedDict):
         """Checks whether the value in the assay column matches expected values"""
         try:
-            test = line["assay"]
+            test = line["primer_panel"]
         except KeyError:
             # Something is wrong with the file, should be picked up by other method
             # This simply assumes that validate_integrity hasn't been called yet
