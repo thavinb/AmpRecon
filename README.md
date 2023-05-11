@@ -44,7 +44,7 @@ To run from the **in-country** entry point:
 ```
 nextflow ../path/to/ampseq-pipeline/main.nf -profile sanger_lsf \
                 --execution_mode in-country --run_id 21045 \
-                --bcl_dir /path/to/my_bcl_dir/ --study_name test --manifest_path manifest.tsv \
+                --bcl_dir /path/to/my_bcl_dir/ --ena_study_name test --manifest_path manifest.tsv \
                 --chrom_key_file_path chromKey.txt
                 --grc_settings_file_path grc_settings.json
                 --drl_information_file_path DRLinfo.txt
@@ -87,7 +87,7 @@ bcl_dir: path to a miseq directory
 manifest_path: path to the manifest tab separated values file.
 ```
 
-The pipeline needs a value for `--study_name` to be supplied, but the content is irrelevant for the pipeline execution.
+The pipeline needs a value for `--ena_study_name` to be supplied, but the content is irrelevant for the pipeline execution.
 Therefore, choose wisely.
 
 Required for **iRODS**
