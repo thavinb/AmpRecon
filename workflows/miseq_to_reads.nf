@@ -113,7 +113,7 @@ workflow MISEQ_TO_READS {
 
     // get the relevant sample data from the manifest and link with cram files
     file_id_ch = manifest_file
-      | splitCsv(header: ["sample_id", "primer_panel", "barcode_number", "barcode_sequence"])
+      | splitCsv(header: true, sep: '\t')
       | map { row -> tuple(row.barcode_number, row.primer_panel, row.sample_id) }
       // Match (by index) assay and lims_id with associated CRAM file
       | join(cram_ch)  // tuple (index, panel_name, sample_id, cram_file) 

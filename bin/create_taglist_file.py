@@ -14,7 +14,7 @@ def __get_library_name(row):
 def manifest2taglist(manifest: str, study_id: str) -> None:
     """function which generates taglist file from manifest"""
     # read in manifest
-    manifest_df = pd.read_csv(manifest)  # , skiprows=lines2skip)
+    manifest_df = pd.read_csv(manifest, sep="\t")
     # lowercase the column names
     manifest_df.columns = [x.lower() for x in manifest_df.columns]
 

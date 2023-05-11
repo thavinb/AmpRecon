@@ -82,9 +82,9 @@ class AmpliconManifestValidator:
         if self._fileio is None:
             raise IOError("file not opened yet, run object inside a context manager")
 
-        columns = next(self._fileio).lower().strip().split(",")
+        columns = next(self._fileio).lower().strip().split("\t")
 
-        self.reader = DictReader(self._fileio, fieldnames=columns)
+        self.reader = DictReader(self._fileio, fieldnames=columns, delimiter="\t")
 
     def _validate_integrity(self):
         """Validates integrity of the manifest, like columns, line length, and empty/NA values"""
