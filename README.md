@@ -44,7 +44,7 @@ To run from the **in-country** entry point:
 ```
 nextflow ../path/to/ampseq-pipeline/main.nf -profile sanger_lsf \
                 --execution_mode in-country --run_id 21045 \
-                --bcl_dir /path/to/my_bcl_dir/ --study_name test --manifest_path manifest.csv \
+                --bcl_dir /path/to/my_bcl_dir/ --study_name test --manifest_path manifest.tsv \
                 --chrom_key_file_path chromKey.txt
                 --grc_settings_file_path grc_settings.json
                 --drl_information_file_path DRLinfo.txt
@@ -84,7 +84,7 @@ Required for **in-country**
 ```
 run_id : id to be used for the batch of data to be processed
 bcl_dir: path to a miseq directory
-manifest_path: path to the manifest comma separated values file.
+manifest_path: path to the manifest tab separated values file.
 ```
 
 The pipeline needs a value for `--study_name` to be supplied, but the content is irrelevant for the pipeline execution.
@@ -124,9 +124,21 @@ genotyping_bcftools : <bool> the BCFtools genotyping workflow will be run if thi
 
 By default the BCFtools genotyping workflow is prevented from running as the 'genotyping_bcftools' parameter is not set to 'true'.
 
+### In Country Manifest
+
+The in country manifest file must be a `.tsv` and the pipeline expects to find the following columns headers:
+
+- `sample_id`: a sample identifier;
+
+- `primer_panel`: primer panel name to be used (must match exactly what is provided at `panel_name` of the `panels_settings.csv`);
+
+- `barcode_number`: a unique number for each lanelet;
+
+- `barcode_sequence`: two DNA barcode sequences separated by a hyphen;
+
 ### iRODS Manifest
 
-The iRODS must be a `.tsv` and the pipeline expects to find the following columns headers:
+The iRODS manifest file must be a `.tsv` and the pipeline expects to find the following columns headers:
 
 - `sample_id`: a sample identification "tag", which is used on the pipeline output file names;
 

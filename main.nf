@@ -89,6 +89,7 @@ def printHelp() {
     nextflow /path/to/ampseq-pipeline/main.nf -profile sanger_lsf
       --execution_mode in-country --run_id 21045
       --bcl_dir /path/to/my_bcl_dir/ --study_name test
+      --manifest_path manifest.tsv
       --chrom_key_file_path chromKey.txt
       --grc_settings_file_path grc_settings.json
       --drl_information_file_path DRLinfo.txt
