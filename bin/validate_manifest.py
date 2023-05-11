@@ -96,9 +96,9 @@ class AmpliconManifestValidator:
         ]
 
         actual_columns = self.reader.fieldnames
-        if actual_columns != valid_columns:
+        if not set(valid_columns).issubset(actual_columns):
             raise self.InvalidColumnsError(
-                f"{self.base} - unexpected column names. "
+                f"{self.base} - Missing expected columns. "
                 f"Expected {', '.join(valid_columns)} - got {', '.join(actual_columns)}"
             )
 
