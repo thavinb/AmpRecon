@@ -1,8 +1,7 @@
 params.drl_haplotypes_output_filename = "drl_haplotype_calls.tsv"
-params.grc_2_filename = "GRC2.tsv"
+params.grc_2_filename = "GRC2.intermediate.tsv"
 
 process grc_amino_acid_caller {
-    publishDir "${params.results_dir}/", pattern: "${output_grc_2}", overwrite: true, mode: "copy"
     label "grc_tools"
     input:
         path(genotype_file)

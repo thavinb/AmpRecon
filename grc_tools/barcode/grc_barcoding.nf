@@ -1,8 +1,7 @@
 params.barcode_output_filename = "barcode_output.tsv"
 params.barcode_splitout_filename = "barcoding_output.split_out.tsv"
-process grc_barcoding {
-    publishDir "${params.results_dir}/", pattern: "${params.barcode_splitout_filename}", overwrite: true, mode: "copy"
 
+process grc_barcoding {
     label "grc_tools"
     input:
         path(genotype_file)

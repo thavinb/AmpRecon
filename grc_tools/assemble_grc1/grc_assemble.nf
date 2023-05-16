@@ -1,7 +1,6 @@
-params.grc_1_name = "GRC1.tsv"
+params.grc_1_name = "GRC1.intermediate.tsv"
 
 process grc_assemble {
-    publishDir "${params.results_dir}/", overwrite: true, mode: "copy"
     label "grc_tools"
     input:
         path(grc_components_list)

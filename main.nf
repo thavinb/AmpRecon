@@ -182,7 +182,8 @@ workflow {
 
   if (params.execution_mode == "irods") {
     // process IRODS entry point
-    SANGER_IRODS_TO_READS(params.irods_manifest, reference_ch)
+    manifest = Channel.fromPath(params.irods_manifest, checkIfExists: true)
+    SANGER_IRODS_TO_READS(manifest, reference_ch)
     // setup channels for downstream processing
     fastq_files_ch = SANGER_IRODS_TO_READS.out.fastq_ch // tuple (file_id, bam_file, run_id)
     file_id_reference_files_ch = SANGER_IRODS_TO_READS.out.file_id_reference_files_ch
@@ -194,7 +195,7 @@ workflow {
   lanelet_manifest_file = READS_TO_VARIANTS.out.lanelet_manifest
 
   // Variants to GRCs
-  VARIANTS_TO_GRCS(lanelet_manifest_file, chrom_key_file, kelch_reference_file, codon_key_file, drl_information_file)
+  VARIANTS_TO_GRCS(manifest, lanelet_manifest_file, chrom_key_file, kelch_reference_file, codon_key_file, drl_information_file)
 
 }
 
