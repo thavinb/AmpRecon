@@ -223,6 +223,7 @@ metadata_barcodes = add_metadata(manifest, barcodes)
 barcode_column_names = {
     "ID": "ssID",
     "partner_sample_id": "MalGEN_ID",
+    "study": "Study",
 }
 formatted_barcodes = format_file(metadata_barcodes, barcode_column_names, False)
 
