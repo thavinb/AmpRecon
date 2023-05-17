@@ -42,8 +42,8 @@ log.info """
          (in-country)
          --run_id             : ${params.run_id}
          --bcl_dir            : ${params.bcl_dir}
-         --study_name         : ${params.study_name}
-         --samplesheet_path   : ${params.samplesheet_path}
+         --ena_study_name         : ${params.ena_study_name}
+         --manifest_path   : ${params.manifest_path}
 
          (irods)
          --irods_manifest     : ${params.irods_manifest}
@@ -88,7 +88,8 @@ def printHelp() {
     (incountry)
     nextflow /path/to/ampseq-pipeline/main.nf -profile sanger_lsf
       --execution_mode in-country --run_id 21045
-      --bcl_dir /path/to/my_bcl_dir/ --study_name test
+      --bcl_dir /path/to/my_bcl_dir/ --ena_study_name test
+      --manifest_path manifest.tsv
       --chrom_key_file_path chromKey.txt
       --grc_settings_file_path grc_settings.json
       --drl_information_file_path DRLinfo.txt
@@ -111,7 +112,8 @@ def printHelp() {
       (incountry required)
       --run_id : id to be used for the batch of data to be processed
       --bcl_dir: path to a miseq directory
-      --study_name : <str>
+      --ena_study_name : <str>
+      --manifest_path: <str> path to the manifest file
 
       (irods required)
       --irods_manifest : an tsv containing information of irods data to fetch
@@ -171,7 +173,8 @@ workflow {
 
   if (params.execution_mode == "in-country") {
     // process in country entry point
-    MISEQ_TO_READS(reference_ch)
+    manifest = Channel.fromPath(params.manifest_path, checkIfExists: true)
+    MISEQ_TO_READS(manifest, reference_ch)
     fastq_files_ch = MISEQ_TO_READS.out.fastq_files_ch
     file_id_reference_files_ch = MISEQ_TO_READS.out.file_id_reference_files_ch
     file_id_to_sample_id_ch = MISEQ_TO_READS.out.file_id_to_sample_id_ch

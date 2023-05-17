@@ -10,7 +10,13 @@ from csv import DictReader
 def parse_args():
     parser = ArgumentParser()
     parser.add_argument("--manifest", "-m", help="path to manifest to validate")
-    parser.add_argument("--panel_names", "-p", type=str, nargs="*", help="list of panel names to check for")
+    parser.add_argument(
+        "--panel_names",
+        "-p",
+        type=str,
+        nargs="*",
+        help="list of panel names to check for",
+    )
     return parser.parse_args()
 
 
@@ -76,24 +82,23 @@ class AmpliconManifestValidator:
         if self._fileio is None:
             raise IOError("file not opened yet, run object inside a context manager")
 
-        columns = next(self._fileio).lower().strip().split(",")
+        columns = next(self._fileio).lower().strip().split("\t")
 
-        self.reader = DictReader(self._fileio, fieldnames=columns)
+        self.reader = DictReader(self._fileio, fieldnames=columns, delimiter="\t")
 
     def _validate_integrity(self):
         """Validates integrity of the manifest, like columns, line length, and empty/NA values"""
         valid_columns = [
-            "lims_id",
-            "sims_id",
-            "index",
-            "assay",
-            "barcode_sequence"
+            "sample_id",
+            "primer_panel",
+            "barcode_number",
+            "barcode_sequence",
         ]
 
         actual_columns = self.reader.fieldnames
-        if actual_columns != valid_columns:
+        if not set(valid_columns).issubset(actual_columns):
             raise self.InvalidColumnsError(
-                f"{self.base} - unexpected column names. "
+                f"{self.base} - Missing expected columns. "
                 f"Expected {', '.join(valid_columns)} - got {', '.join(actual_columns)}"
             )
 
@@ -111,7 +116,7 @@ class AmpliconManifestValidator:
     def _validate_assay_column(self, line: OrderedDict):
         """Checks whether the value in the assay column matches expected values"""
         try:
-            test = line["assay"]
+            test = line["primer_panel"]
         except KeyError:
             # Something is wrong with the file, should be picked up by other method
             # This simply assumes that validate_integrity hasn't been called yet
@@ -169,4 +174,3 @@ if __name__ == "__main__":
     args = parse_args()
     with AmpliconManifestValidator(args.manifest) as m:
         m.validate()
-

@@ -2,11 +2,11 @@
 
 nextflow.enable.dsl=2
 
-process get_taglist_file {
+process create_taglist_file {
 
     input:
       val(study_name)
-      val(manifest)
+      path(manifest)
 
     output:
       path("${tag_list}")
@@ -16,6 +16,6 @@ process get_taglist_file {
 
       """
       echo ${manifest}
-      manifest2tag.py -m $manifest --study $study_name
+      create_taglist_file.py -m $manifest --study $study_name
       """
 }
