@@ -221,8 +221,8 @@ metadata_barcodes = add_metadata(manifest, barcodes)
 
 # Format Barcodes data - change column names
 barcode_column_names = {
-    "ID": "ssID",
-    "partner_sample_id": "MalGEN_ID",
+    "partner_sample_id": "ssID",
+    "ID": "MalGEN_ID",
     "study": "Study",
 }
 formatted_barcodes = format_file(metadata_barcodes, barcode_column_names, False)
