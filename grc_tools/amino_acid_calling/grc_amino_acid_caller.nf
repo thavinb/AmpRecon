@@ -1,5 +1,5 @@
 params.drl_haplotypes_output_filename = "drl_haplotype_calls.tsv"
-params.grc_2_filename = "GRC2.intermediate.tsv"
+params.grc2_intermediate_name = "GRC2.intermediate.tsv"
 
 process grc_amino_acid_caller {
     label "grc_tools"
@@ -15,7 +15,7 @@ process grc_amino_acid_caller {
     script:
         grc_settings = params.grc_settings_file_path
         output_drl_haplotypes = params.drl_haplotypes_output_filename
-        output_grc_2 = params.grc_2_filename
+        output_grc_2 = params.grc2_intermediate_name
 
         """
         grc_amino_acid_caller.py \

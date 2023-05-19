@@ -1,6 +1,6 @@
-params.grc1_metadata_filename = params.run_id + "_GRC.txt"
-params.grc2_metadata_filename = params.run_id + "_GRC2.txt"
-params.barcode_split_formatted_filename = params.run_id + "_Barcodes.txt"
+params.grc1_name = params.run_id + "_GRC.txt"
+params.grc2_name = params.run_id + "_GRC2.txt"
+params.barcodes_name = params.run_id + "_Barcodes.txt"
 
 process add_metadata_and_format {
     publishDir "${params.results_dir}/", overwrite: true, mode: "copy"
@@ -13,12 +13,14 @@ process add_metadata_and_format {
         path(barcodes_file)
 
     output:
-        path("${params.grc1_metadata_filename}"), emit: grc1
-        path("${params.grc2_metadata_filename}"), emit: grc2
-        path("${params.barcode_split_formatted_filename}"), emit: barcodes
+        path("${output_grc1}"), emit: grc1
+        path("${output_grc2}"), emit: grc2
+        path("${output_barcodes}"), emit: barcodes
 
     script:
-        output_file_name = params.barcode_output_filename
+        output_grc1 = params.grc1_name
+        output_grc2 = params.grc2_name
+        output_barcodes = params.barcodes_name
 
         """
         grc_metadata_and_formatting.py \
@@ -26,8 +28,8 @@ process add_metadata_and_format {
             --grc1 ${grc1_file} \
             --grc2 ${grc2_file} \
             --barcodes_file ${barcodes_file} \
-            --output_file_grc1 "${params.grc1_metadata_filename}" \
-            --output_file_grc2 "${params.grc2_metadata_filename}" \
-            --output_file_barcodes "${params.barcode_split_formatted_filename}"
+            --output_file_grc1 "${output_grc1}" \
+            --output_file_grc2 "${output_grc2}" \
+            --output_file_barcodes "${output_barcodes}"
         """
 }
