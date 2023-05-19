@@ -57,7 +57,7 @@ To run from the **iRODS** entry point:
 
 ```
 nextflow ../ampseq-pipeline/main.nf -profile sanger_lsf \
-        --execution_mode irods \
+        --execution_mode irods --run_id 21045 \
         --irods_manifest ./input/irods_manifest.tsv
          --chrom_key_file_path chromKey.txt
         --grc_settings_file_path grc_settings.json
@@ -82,7 +82,7 @@ execution_mode : sets the entry point for the pipeline ("irods" or "in-country")
 Required for **in-country**
 
 ```
-run_id : id to be used for the batch of data to be processed
+run_id : id to be used for the batch of data to be processed. Also added as a prefix to the output GRC files
 bcl_dir: path to a miseq directory
 manifest_path: path to the manifest tab separated values file.
 ```
@@ -94,6 +94,7 @@ Required for **iRODS**
 
 ```
 irods_manifest : an tsv containing information of irods data to fetch
+run_id : Added as a prefix to the output GRC files
 ```
 
 An example of an irods manifest tsv is provided at [add path to example]
@@ -136,6 +137,16 @@ The in country manifest file must be a `.tsv` and the pipeline expects to find t
 
 - `barcode_sequence`: two DNA barcode sequences separated by a hyphen;
 
+- `partner_sample_id`: name allocated to the sample by partner. Metadata to be added to the final GRC files
+
+- `collection_date`: sample collection date. Metadata to be added to the final GRC files
+
+- `collection_location`: name of the location within the country where the sample was collected. Metadata to be added to the final GRC files
+
+- `collection_country`: name of country the sample was collected in. Metadata to be added to the final GRC files
+
+- `study`: full study ID of the sample. Metadata to be added to the final GRC files
+
 ### iRODS Manifest
 
 The iRODS manifest file must be a `.tsv` and the pipeline expects to find the following columns headers:
@@ -145,6 +156,16 @@ The iRODS manifest file must be a `.tsv` and the pipeline expects to find the fo
 - `primer_panel`: primer panel name to be used (must match exactly what is provided at `panel_name` of the `panels_settings.csv`);
 
 - `irods_path`: full valid iRODS path for a `.cram` file (ex: `/seq/illumina/runs/38/38344/lane2/plex1/38344_2#1.cram`).
+
+- `partner_sample_id`: name allocated to the sample by partner. Metadata to be added to the final GRC files
+
+- `collection_date`: sample collection date. Metadata to be added to the final GRC files
+
+- `collection_location`: name of the location within the country where the sample was collected. Metadata to be added to the final GRC files
+
+- `collection_country`: name of country the sample was collected in. Metadata to be added to the final GRC files
+
+- `study`: full study ID of the sample. Metadata to be added to the final GRC files
 
 The `.tsv` may have more columns at any order, but those are the only ones which will be considered.
 The pipeline builds an "internal id" set as `<cram_filename>_<sample_id>_<primer_panel>`, therefore, the pipeline will check if any combination of those values at the manifest are unique. If not, an error will be raised and the pipeline run will stop.

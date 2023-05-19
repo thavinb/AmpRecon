@@ -38,9 +38,9 @@ log.info """
          --kelch_reference_file_path: ${params.kelch_reference_file_path}
          --codon_key_file_path: ${params.codon_key_file_path}
          --drl_information_file_path: ${params.drl_information_file_path}
+         --run_id             : ${params.run_id}
 
          (in-country)
-         --run_id             : ${params.run_id}
          --bcl_dir            : ${params.bcl_dir}
          --ena_study_name         : ${params.ena_study_name}
          --manifest_path   : ${params.manifest_path}
@@ -76,7 +76,7 @@ def printHelp() {
   Usage:
     (irods)
     nextflow run /path/to/ampseq-pipeline/main.nf -profile sanger_lsf 
-      --execution_mode irods
+      --execution_mode irods  --run_id 21045
       --irods_manifest ./input/irods_smallset.tsv
       --chrom_key_file_path chromKey.txt
       --grc_settings_file_path grc_settings.json
@@ -125,6 +125,7 @@ def printHelp() {
       --s3_bucket_output : <str> s3 bucket name to upload data to
 
       (grc_creation)
+      --run_id : id to be used as a prefix for the output GRC files
       --grc_settings_file_path: <str> path to the GRC settings file.
       --chrom_key_file_path: <str> path to the chrom key file
       --kelch_reference_file_path: <str> path to the kelch13 reference sequence file
