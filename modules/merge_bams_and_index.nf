@@ -1,14 +1,13 @@
-
 process merge_bams_and_index {
     /*
      * Merges multiple bam files.
      */
 
     input:
-        tuple val(sample_id), file(bam_files)
+        tuple val(sample_key), file(bam_files)
 
     output:
-        tuple val(sample_id), path("${sample_id}.bam"), path("${sample_id}.bam.bai")
+        tuple val(sample_key), path("${sample_id}.bam"), path("${sample_id}.bam.bai")
 
     script:
         
