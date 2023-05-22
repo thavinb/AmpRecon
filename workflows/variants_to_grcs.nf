@@ -40,7 +40,7 @@ workflow VARIANTS_TO_GRCS {
         if (params.DEBUG_no_coi == false){
             // Complexity of infection estimation
             grc_estimate_coi(grc_barcoding.out.barcoding_file)
-            grc_estimate_coi.out.set(coi_grc_ch)
+            coi_grc_ch = grc_estimate_coi.out
         }
 
         if (params.DEBUG_no_coi == true){
