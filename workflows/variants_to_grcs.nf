@@ -12,9 +12,11 @@ include { grc_barcoding } from '../grc_tools/barcode/grc_barcoding.nf'
 include { grc_estimate_coi } from '../grc_tools/COI/grc_estimate_coi.nf'
 include { grc_amino_acid_caller } from '../grc_tools/amino_acid_calling/grc_amino_acid_caller.nf'
 include { grc_assemble } from '../grc_tools/assemble_grc1/grc_assemble.nf'
+include { add_metadata_and_format } from '../grc_tools/metadata/add_metadata_and_format.nf'
 
 workflow VARIANTS_TO_GRCS {
     take:
+        manifest_file
         lanelet_manifest_file
         chrom_key_file
         kelch_reference_file
@@ -55,11 +57,15 @@ workflow VARIANTS_TO_GRCS {
             .set{grc1_components}
         grc_assemble(grc1_components)
 
+        // Format and add metadata to GRCs and barcodes files
+        add_metadata_and_format(manifest_file, grc_assemble.out, grc_amino_acid_caller.out.grc2, grc_barcoding.out.barcoding_split_out_file)
+
 }
 
 workflow {
     // Files required for GRC creation
     Channel.fromPath(params.grc_settings_file_path, checkIfExists: true)
+    manifest_file = Channel.fromPath(params.manifest_path, checkIfExists: true)
     lanelet_manifest_file = Channel.fromPath(params.lanelet_manifest_path, checkIfExists: true)
     chrom_key_file = Channel.fromPath(params.chrom_key_file_path, checkIfExists: true)
     kelch_reference_file = Channel.fromPath(params.kelch_reference_file_path, checkIfExists: true)
@@ -67,6 +73,6 @@ workflow {
     drl_information_file = Channel.fromPath(params.drl_information_file_path, checkIfExists: true)
 
     // Run GRC creation workflow
-    VARIANTS_TO_GRCS(lanelet_manifest_file, chrom_key_file, kelch_reference_file, codon_key_file, drl_information_file)
+    VARIANTS_TO_GRCS(manifest_file, lanelet_manifest_file, chrom_key_file, kelch_reference_file, codon_key_file, drl_information_file)
 }
 

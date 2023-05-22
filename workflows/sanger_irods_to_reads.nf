@@ -32,14 +32,14 @@ workflow SANGER_IRODS_TO_READS {
         reference_ch // tuple (fasta, panel_name, snp_list)
     main:
         // load manifest content
-        irods_ch =  Channel.fromPath(irods_manifest, checkIfExists: true)
-                      | splitCsv(header: true, sep: '\t')
-                      //| map { row -> tuple(row.id_run, row.primer_panel, row.WG_lane) }
-                      | map { row ->
-                              WG_lane = "${row.irods_path}".split('/')[-1].split('\\.')[0]
-                              tuple(row.sample_id, row.primer_panel, WG_lane, row.irods_path) 
-                            }
-                      | map { it -> tuple("${it[2]}_${it[0]}_${it[1]}", it[1], it[3], it[0])} // tuple (WG_lane_sample_id_panel_name, panel_name, irods_path, sample_id)
+        irods_ch =  irods_manifest
+                    | splitCsv(header: true, sep: '\t')
+                    //| map { row -> tuple(row.id_run, row.primer_panel, row.WG_lane) }
+                    | map { row ->
+                        WG_lane = "${row.irods_path}".split('/')[-1].split('\\.')[0]
+                        tuple(row.sample_id, row.primer_panel, WG_lane, row.irods_path) 
+                    }
+                    | map { it -> tuple("${it[2]}_${it[0]}_${it[1]}", it[1], it[3], it[0])} // tuple (WG_lane_sample_id_panel_name, panel_name, irods_path, sample_id)
 
         // link file_id to sample_id
         irods_ch.map{it -> tuple(it[0], it[3])}.set{file_id_to_sample_id_ch}
