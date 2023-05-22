@@ -42,8 +42,8 @@ log.info """
          (in-country)
          --run_id             : ${params.run_id}
          --bcl_dir            : ${params.bcl_dir}
-         --ena_study_name         : ${params.ena_study_name}
-         --manifest_path   : ${params.manifest_path}
+         --ena_study_name     : ${params.ena_study_name}
+         --manifest_path      : ${params.manifest_path}
 
          (irods)
          --irods_manifest     : ${params.irods_manifest}
@@ -58,7 +58,7 @@ log.info """
          (DEBUG)
          --DEBUG_tile_limit   : ${params.DEBUG_tile_limit}
          --DEBUG_takes_n_bams : ${params.DEBUG_takes_n_bams}
-
+         --DEBUG_no_coi       : ${params.DEBUG_no_coi}
         ------------------------------------------
          Runtime data:
         -------------------------------------------

@@ -75,12 +75,13 @@ workflow READS_TO_VARIANTS {
         // Create channel of 2 lists: IDs and VCFs
         vcf_files_ch // tuple (file_id, vcf_path, vcf_index_path)
             .map{it -> tuple(it[0], it[1])}
-            .join(file_id_to_sample_id_ch) // tuple (file_id, vcf_path, sample_id)
+            .join(file_id_to_sample_id_ch) // tuple (file_id, vcf_path, sample_id) // may be not needed
             .multiMap { it ->
                 id_list: it[2]
                 vcf_list: it[1]
             }.set{lanelet_ch}
-    
+        
+        // not lanelets anymore after the bam merges
         // Write manifest of lanelet VCF files and sample IDs
         write_vcfs_manifest(lanelet_ch.id_list.collect(), lanelet_ch.vcf_list.collect())
         lanelet_manifest = write_vcfs_manifest.out

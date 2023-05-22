@@ -37,10 +37,15 @@ workflow VARIANTS_TO_GRCS {
 
         // Determine species
         grc_speciate(genotype_files_ch, grc_barcoding.out.barcoding_file)
+        if (params.DEBUG_no_coi == false){
+            // Complexity of infection estimation
+            grc_estimate_coi(grc_barcoding.out.barcoding_file)
+            grc_estimate_coi.out.set(coi_grc_ch)
+        }
 
-        // Complexity of infection estimation
-        grc_estimate_coi(grc_barcoding.out.barcoding_file)
-
+        if (params.DEBUG_no_coi == true){
+            coi_grc_ch = Channel.empty()
+        }
         // Assemble drug resistance haplotypes and GRC2
         grc_amino_acid_caller(genotype_files_ch, drl_information_file, codon_key_file)
 
@@ -49,7 +54,7 @@ workflow VARIANTS_TO_GRCS {
             .concat(grc_plasmepsin_cnv_caller.out)
             .concat(grc_barcoding.out.barcoding_file)
             .concat(grc_speciate.out)
-            .concat(grc_estimate_coi.out)
+            .concat(coi_grc_ch)
             .concat(grc_amino_acid_caller.out.drl_haplotypes)
             .collect()
             .set{grc1_components}
