@@ -9,6 +9,7 @@ include { READ_COUNTS } from './read_counts.nf'
 include { GENOTYPING_GATK } from './genotyping_gatk.nf'
 include { GENOTYPING_BCFTOOLS } from './genotyping_bcftools.nf'
 include { write_vcfs_manifest } from '../modules/write_vcfs_manifest.nf'
+include { merge_bams_and_index } from '../modules/bam_merge_and_index.nf'
 /*
 Here all workflows which are used regardless of the entry point (iRODS or inCountry)
 are setup
@@ -24,17 +25,27 @@ workflow READS_TO_VARIANTS {
     main:
 
         // alignment
-        file_id_reference_files_ch.map{it -> tuple(it[0], it[2], it[1])}.set{alignment_ref_ch} // tuple (file_id, fasta_file, panel_name)
-        ALIGNMENT(fastq_ch)
-        
+        file_id_reference_files_ch.map{it -> tuple(it[0], it[2], it[1])}.set{alignment_ref_ch} // tuple (file_id, fasta_file, panel_name)	
+
+	ALIGNMENT(fastq_ch)
+			   
+	ALIGNMENT.out
+	         .join( file_id_to_sample_id_ch )
+		 .join ( file_id_reference_files_ch )
+		 .map { it -> tuple("${it[3]}_${it[4]}", it[1]) } 
+		 .groupTuple()
+		 .set { bam_merge_ch } 
+ 
         // read counts
         READ_COUNTS(ALIGNMENT.out, alignment_ref_ch, annotations_ch)
+
+        merge_bams_and_index( bam_merge_ch )
 
         // genotyping
         if( params.genotyping_gatk == true ) {
             file_id_reference_files_ch.map{it -> tuple(it[0], it[2], it[3])}.set{gatk_genotyping_ref_ch} // tuple (file_id, fasta_file, snp_list)
             GENOTYPING_GATK(
-                ALIGNMENT.out,
+                merge_bams_and_index.out,
                 gatk_genotyping_ref_ch
             )
             GENOTYPING_GATK.out.set{genotyping_gatk_ch}
@@ -45,14 +56,14 @@ workflow READS_TO_VARIANTS {
         if( params.genotyping_bcftools == true ) {
             file_id_reference_files_ch.map{it -> tuple(it[0], it[2], it[3])}.set{bcftools_genotyping_ref_ch} // tuple (file_id, fasta_file, snp_list)
             GENOTYPING_BCFTOOLS(
-                ALIGNMENT.out,
+                merge_bams_and_index.out,
                 bcftools_genotyping_ref_ch
             )
             GENOTYPING_BCFTOOLS.out.set{genotyping_bcftools_ch}
         } else {
             Channel.empty().set{ genotyping_bcftools_ch }
         }
-
+	
         // concatonate genotyping workflow output channels
         genotyping_bcftools_ch.concat(genotyping_gatk_ch).set{vcf_files_ch}
 
