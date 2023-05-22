@@ -43,12 +43,12 @@ workflow READS_TO_VARIANTS {
 
 	file_id_reference_files_ch.join( file_id_to_sample_id_ch )
 				  .map { it -> tuple("${it[4]}_${it[1]}", it[0], it[1], it[2], it[3], it[4] ) }
-				  .set {test_ch}
+				  .set { sample_key_ref_ch }
 	
 
         // genotyping
         if( params.genotyping_gatk == true ) {
-            test_ch.map{it -> tuple(it[0], it[1], it[3], it[4])}.set{gatk_genotyping_ref_ch} // tuple (file_id, fasta_file, snp_list, sample_key)
+            sample_key_ref_ch.map{it -> tuple(it[0], it[1], it[3], it[4])}.set{gatk_genotyping_ref_ch} // tuple (file_id, fasta_file, snp_list, sample_key)
             GENOTYPING_GATK(
                 merge_bams_and_index.out,
                 gatk_genotyping_ref_ch
@@ -59,7 +59,7 @@ workflow READS_TO_VARIANTS {
         }
 
         if( params.genotyping_bcftools == true ) {
-            test_ch.map{it -> tuple(it[0],it[1], it[3], it[4])}.set{bcftools_genotyping_ref_ch} // tuple (file_id, fasta_file, snp_list, sample_key)
+            sample_key_ref_ch.map{it -> tuple(it[0],it[1], it[3], it[4])}.set{bcftools_genotyping_ref_ch} // tuple (file_id, fasta_file, snp_list, sample_key)
             GENOTYPING_BCFTOOLS(
                 merge_bams_and_index.out,
                 bcftools_genotyping_ref_ch
