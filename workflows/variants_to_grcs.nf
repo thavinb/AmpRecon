@@ -15,7 +15,7 @@ include { grc_assemble } from '../grc_tools/assemble_grc1/grc_assemble.nf'
 
 workflow VARIANTS_TO_GRCS {
     take:
-        lanelet_manifest_file
+        vcfs_manifest_file
         chrom_key_file
         kelch_reference_file
         codon_key_file
@@ -23,7 +23,7 @@ workflow VARIANTS_TO_GRCS {
 
     main:
         // Write genotype file
-        assemble_genotype_file(lanelet_manifest_file, chrom_key_file)
+        assemble_genotype_file(vcfs_manifest_file, chrom_key_file)
         genotype_files_ch = assemble_genotype_file.out
 
         // Call mutations at Kelch13 loci
