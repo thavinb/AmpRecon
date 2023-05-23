@@ -21,6 +21,6 @@ workflow ALIGNMENT {
     }
 
   emit:
-    bwa_alignment_and_post_processing.out
+    bwa_alignment_and_post_processing.out // tuple (file_id, bam_file, bai_file)
 }
 
