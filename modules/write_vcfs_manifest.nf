@@ -9,7 +9,7 @@ process write_vcfs_manifest {
         file("${mnf_out_nm}")
 
     script:
-    mnf_out_nm = "lanelet_vcf_manifest.csv"
+    mnf_out_nm = "vcfs_manifest.csv"
     """
 #!/usr/bin/python3
 

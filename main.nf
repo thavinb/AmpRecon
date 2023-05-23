@@ -23,7 +23,7 @@ ANSI_RESET = "\033[0m"
 
 log.info """
         ===========================================
-         AMPSEQ_0.0 (dev : prototype)
+         AMPSEQ_0.9 (dev : alpha)
          Used parameters:
         -------------------------------------------
          --execution_mode     : ${params.execution_mode}
@@ -191,10 +191,10 @@ workflow {
 
   // Reads to variants
   READS_TO_VARIANTS(fastq_files_ch, file_id_reference_files_ch, annotations_ch, file_id_to_sample_id_ch)
-  lanelet_manifest_file = READS_TO_VARIANTS.out.lanelet_manifest
+  vcfs_manifest_file = READS_TO_VARIANTS.out.vcfs_manifest
 
   // Variants to GRCs
-  VARIANTS_TO_GRCS(lanelet_manifest_file, chrom_key_file, kelch_reference_file, codon_key_file, drl_information_file)
+  VARIANTS_TO_GRCS(vcfs_manifest_file, chrom_key_file, kelch_reference_file, codon_key_file, drl_information_file)
 
 }
 
