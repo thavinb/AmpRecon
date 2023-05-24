@@ -23,7 +23,7 @@ ANSI_RESET = "\033[0m"
 
 log.info """
         ===========================================
-         AMPSEQ_0.9 (dev : alpha)
+         AMPSEQ_0.0 (dev : prototype)
          Used parameters:
         -------------------------------------------
          --execution_mode     : ${params.execution_mode}
@@ -38,12 +38,12 @@ log.info """
          --kelch_reference_file_path: ${params.kelch_reference_file_path}
          --codon_key_file_path: ${params.codon_key_file_path}
          --drl_information_file_path: ${params.drl_information_file_path}
+         --run_id             : ${params.run_id}
 
          (in-country)
-         --run_id             : ${params.run_id}
          --bcl_dir            : ${params.bcl_dir}
-         --ena_study_name     : ${params.ena_study_name}
-         --manifest_path      : ${params.manifest_path}
+         --ena_study_name         : ${params.ena_study_name}
+         --manifest_path   : ${params.manifest_path}
 
          (irods)
          --irods_manifest     : ${params.irods_manifest}
@@ -58,7 +58,7 @@ log.info """
          (DEBUG)
          --DEBUG_tile_limit   : ${params.DEBUG_tile_limit}
          --DEBUG_takes_n_bams : ${params.DEBUG_takes_n_bams}
-         --DEBUG_no_coi       : ${params.DEBUG_no_coi}
+
         ------------------------------------------
          Runtime data:
         -------------------------------------------
@@ -76,7 +76,7 @@ def printHelp() {
   Usage:
     (irods)
     nextflow run /path/to/ampseq-pipeline/main.nf -profile sanger_lsf 
-      --execution_mode irods
+      --execution_mode irods  --run_id 21045
       --irods_manifest ./input/irods_smallset.tsv
       --chrom_key_file_path chromKey.txt
       --grc_settings_file_path grc_settings.json
@@ -125,6 +125,7 @@ def printHelp() {
       --s3_bucket_output : <str> s3 bucket name to upload data to
 
       (grc_creation)
+      --run_id : id to be used as a prefix for the output GRC files
       --grc_settings_file_path: <str> path to the GRC settings file.
       --chrom_key_file_path: <str> path to the chrom key file
       --kelch_reference_file_path: <str> path to the kelch13 reference sequence file
@@ -182,7 +183,8 @@ workflow {
 
   if (params.execution_mode == "irods") {
     // process IRODS entry point
-    SANGER_IRODS_TO_READS(params.irods_manifest, reference_ch)
+    manifest = Channel.fromPath(params.irods_manifest, checkIfExists: true)
+    SANGER_IRODS_TO_READS(manifest, reference_ch)
     // setup channels for downstream processing
     fastq_files_ch = SANGER_IRODS_TO_READS.out.fastq_ch // tuple (file_id, bam_file, run_id)
     file_id_reference_files_ch = SANGER_IRODS_TO_READS.out.file_id_reference_files_ch
@@ -191,10 +193,10 @@ workflow {
 
   // Reads to variants
   READS_TO_VARIANTS(fastq_files_ch, file_id_reference_files_ch, annotations_ch, file_id_to_sample_id_ch)
-  vcfs_manifest_file = READS_TO_VARIANTS.out.vcfs_manifest
+  lanelet_manifest_file = READS_TO_VARIANTS.out.lanelet_manifest
 
   // Variants to GRCs
-  VARIANTS_TO_GRCS(vcfs_manifest_file, chrom_key_file, kelch_reference_file, codon_key_file, drl_information_file)
+  VARIANTS_TO_GRCS(manifest, lanelet_manifest_file, chrom_key_file, kelch_reference_file, codon_key_file, drl_information_file)
 
 }
 
@@ -264,3 +266,4 @@ def validate_general_params(){
   }
   return err
 }
+

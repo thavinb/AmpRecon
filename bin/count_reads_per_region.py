@@ -122,7 +122,7 @@ class QC:
     def _run_samtools(cls, args: str) -> List[str]:
         """Run samtools and wait for an exit status. Return the output"""
         attemps_left = 5
-        while attemps_left>0:
+        while attemps_left > 0:
             try:
                 process = subprocess.run(
                     cls._CMD_BASE + args,
@@ -141,9 +141,9 @@ class QC:
                 return stdout_lines
 
             except subprocess.CalledProcessError as err:
-                attemps_left -= 1 ;
-                if attemps_left>0:
-                    time.sleep(5.0) # Sleep 5 seconds
+                attemps_left -= 1
+                if attemps_left > 0:
+                    time.sleep(5.0)  # Sleep 5 seconds
                     continue
                 logger.exception(err)
                 raise RuntimeError(
@@ -224,9 +224,7 @@ class QC:
 
             logger.debug("Next region : {}".format(plex_entry))
 
-            rpt = self._CRAM_FILE_NAME_FORMAT.format(
-                plex_entry[0]
-            )
+            rpt = self._CRAM_FILE_NAME_FORMAT.format(plex_entry[0])
             cram_file = path.join(self.input_dir, rpt + ".bam")
 
             total0 = 0
@@ -379,6 +377,7 @@ class QC:
                     for field in [
                         rpt,
                         self._UNMAP_OR_UNUSED_KEY,
+                        self._UNMAP_OR_UNUSED_KEY,
                         numa,
                         total0,
                         int(count[self._UNMAP_OR_UNUSED_KEY].zero),
@@ -489,7 +488,9 @@ def main():
 
     # Log to file
     fh = logging.FileHandler(args.log_file, mode="w")
-    formatter = logging.Formatter("[%(asctime)s] {%(filename)s:%(lineno)d} %(levelname)s - %(message)s")
+    formatter = logging.Formatter(
+        "[%(asctime)s] {%(filename)s:%(lineno)d} %(levelname)s - %(message)s"
+    )
     fh.setFormatter(formatter)
     logger.addHandler(fh)
 
@@ -502,5 +503,3 @@ def main():
 
 if __name__ == "__main__":
     sys.exit(main())
-
-
