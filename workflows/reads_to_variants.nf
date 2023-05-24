@@ -9,7 +9,7 @@ include { READ_COUNTS } from './read_counts.nf'
 include { GENOTYPING_GATK } from './genotyping_gatk.nf'
 include { GENOTYPING_BCFTOOLS } from './genotyping_bcftools.nf'
 include { write_vcfs_manifest } from '../modules/write_vcfs_manifest.nf'
-include { merge_bams_and_index } from '../modules/bam_merge_and_index.nf'
+include { bam_merge_and_index } from '../modules/bam_merge_and_index.nf'
 /*
 Here all workflows which are used regardless of the entry point (iRODS or inCountry)
 are setup
@@ -40,7 +40,7 @@ workflow READS_TO_VARIANTS {
             .groupTuple()
             .set { bam_merge_ch } // tuple("sample_id_panel_name", [bam_file_1, bam_file_N]) N number of multiples 
 
-        merge_bams_and_index( bam_merge_ch )
+        bam_merge_and_index( bam_merge_ch )
 
         // -- | SET SAMPLE_TAG as channels keys | --
         // Here we set the sample_tag ("{sample_id}_{panel_name}") as the key for the channels (instead of the file_id)
@@ -54,7 +54,7 @@ workflow READS_TO_VARIANTS {
         if( params.genotyping_gatk == true ) {
             sample_key_ref_ch.map{it -> tuple(it[0], it[1], it[3], it[4])}.set{gatk_genotyping_ref_ch} // tuple (sample_tag, fasta_file, snp_list, sample_key)
             GENOTYPING_GATK(
-                merge_bams_and_index.out,
+                bam_merge_and_index.out,
                 gatk_genotyping_ref_ch
             )
             GENOTYPING_GATK.out.set{genotyping_gatk_ch}
@@ -65,7 +65,7 @@ workflow READS_TO_VARIANTS {
         if( params.genotyping_bcftools == true ) {
             sample_key_ref_ch.map{it -> tuple(it[0],it[1], it[3], it[4])}.set{bcftools_genotyping_ref_ch} // tuple (sample_tag, fasta_file, snp_list, sample_key)
             GENOTYPING_BCFTOOLS(
-                merge_bams_and_index.out,
+                bam_merge_and_index.out,
                 bcftools_genotyping_ref_ch
             )
             GENOTYPING_BCFTOOLS.out.set{genotyping_bcftools_ch}

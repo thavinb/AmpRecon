@@ -1,4 +1,4 @@
-process merge_bams_and_index {
+process bam_merge_and_index {
     /*
      * Merges multiple bam files.
      */
