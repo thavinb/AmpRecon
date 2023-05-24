@@ -83,13 +83,13 @@ workflow READS_TO_VARIANTS {
             .multiMap { it ->
                 id_list: it[2]
                 vcf_list: it[1]
-            }.set{vcfs_ch}
+            }.set{lanelet_ch}
         
         // Write manifest of VCF files per sample IDs
-        write_vcfs_manifest(vcfs_ch.id_list.collect(), vcfs_ch.vcf_list.collect())
-        vcfs_manifest = write_vcfs_manifest.out // (manifest_file)
+        write_vcfs_manifest(lanelet_ch.id_list.collect(), lanelet_ch.vcf_list.collect())
+        lanelet_manifest = write_vcfs_manifest.out // (manifest_file)
 
     emit:
-        vcfs_manifest // (manifest_file)
+        lanelet_manifest // (manifest_file)
 }
 
