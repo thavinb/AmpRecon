@@ -58,7 +58,7 @@ log.info """
          (DEBUG)
          --DEBUG_tile_limit   : ${params.DEBUG_tile_limit}
          --DEBUG_takes_n_bams : ${params.DEBUG_takes_n_bams}
-
+         --DEBUG_no_coi       : ${params.DEBUG_no_coi}
         ------------------------------------------
          Runtime data:
         -------------------------------------------
