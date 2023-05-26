@@ -42,14 +42,13 @@ log.info """
 
          (in-country)
          --bcl_dir            : ${params.bcl_dir}
-         --ena_study_name         : ${params.ena_study_name}
-         --manifest_path   : ${params.manifest_path}
+         --ena_study_name     : ${params.ena_study_name}
+         --manifest_path      : ${params.manifest_path}
 
          (irods)
          --irods_manifest     : ${params.irods_manifest}
 
          (s3)
-         --download_from_s3   : ${params.download_from_s3}
          --upload_to_s3       : ${params.upload_to_s3}
          --s3_uuid            : ${params.s3_uuid}
          --s3_bucket_input    : ${params.s3_bucket_input}
@@ -58,7 +57,7 @@ log.info """
          (DEBUG)
          --DEBUG_tile_limit   : ${params.DEBUG_tile_limit}
          --DEBUG_takes_n_bams : ${params.DEBUG_takes_n_bams}
-
+         --DEBUG_no_coi       : ${params.DEBUG_no_coi}
         ------------------------------------------
          Runtime data:
         -------------------------------------------
@@ -266,3 +265,4 @@ def validate_general_params(){
   }
   return err
 }
+

@@ -4,13 +4,13 @@ process bwa_alignment_and_post_processing {
     */
     publishDir "${params.results_dir}/", overwrite: true, mode: "copy"
     input:
-        tuple val(sample_tag), path(fastq), val(reference_fasta)
+        tuple val(file_id), path(fastq), val(reference_fasta)
 
     output:
-        tuple val(sample_tag), path(bam_file), path("${bam_file}.bai")
+        tuple val(file_id), path(bam_file), path("${bam_file}.bai")
 
     script:
-        bam_file="${sample_tag}.bam"
+        bam_file="${file_id}.bam"
 
         """
         set -e
