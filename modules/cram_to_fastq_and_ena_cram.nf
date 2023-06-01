@@ -128,7 +128,7 @@ process cram_to_fastq_and_ena_cram {
             threads=1 \
             SO='coordinate'   \
             level=0    \
-            fixmate=1 \
+            fixmates=1 \
             addupmarksupport=1 \
             tmpfile="${base_name}.tmp" \
             < "${base_name}.selected.bam" \
