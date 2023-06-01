@@ -21,7 +21,7 @@ process bwa_alignment_and_post_processing {
             "${fastq}" | \
             samtools view -bu - | \
             samtools sort -n - | \
-            samtools fixmate - - | \ 
+            samtools fixmate - - | \
             samtools sort -o ${bam_file}.sorted.bam 
         
         samtools index ${bam_file}.sorted.bam
