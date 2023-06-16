@@ -16,3 +16,4 @@ ampseq-NF-pipeline/*
 work/*
 output/*
 *.img
+*.pyc

@@ -1,0 +1,11 @@
+{
+    "grc_plasmepsin": {
+        "plasmepsin_loci" : [
+            {"Position": "Pf3D7_14_v3:289595", "Genotypes": ["C,T", "T"], "Variant": "Copy"},
+            {"Position": "Pf3D7_14_v3:289601", "Genotypes": ["C,T", "T"], "Variant": "Copy"},
+            {"Position": "Pf3D7_14_v3:289603", "Genotypes": ["T,A", "A"], "Variant": "Copy"},
+            {"Position": "Pf3D7_14_v3:289610", "Genotypes": ["T,C", "C"], "Variant": "Copy"}
+        ]
+    }
+}
+

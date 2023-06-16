@@ -1,56 +1,54 @@
 params.tabix='tabix'
-params.vcf_format='{sample}.GenotypeGVCFs.{alleles}.vcf.gz'
-params.gatk='GenomeAnalysisTK.jar'
+params.gatk='/bin/GenomeAnalysisTK.jar'
 params.bcftools='bcftools'
 params.bgzip='bgzip'
+params.suffix='genotyped_gatk.vcf'
 
 process genotype_vcf_at_given_alleles {
-    /**
-    * Runs the genotype_vcf_at_given_alleles.py script from docker
-    * Example call from https://notebooks.gesis.org/binder/jupyter/user/ipython-ipython-in-depth-47gm2yay/notebooks/binder/20191112_genotype_pf$
+    publishDir "${params.results_dir}/", overwrite: true, mode: "copy"
 
-    ./genotype_vcf_at_given_alleles.py \
-    --gvcf_fn /lustre/scratch116/malaria/pipelines/setups/pf_63/output/1/6/a/4/1363815/1_gatk_haplotype_caller_gatk3_v3/gatk.vcf.gz \
-    --alleles_fn /lustre/scratch118/malaria/team112/pipelines/resources/pfalciparum/pf_6x_genotyping.vcf.gz \
-    --genotyped_fn test_RCN11295.pf_6x.vcf \
-    --GenotypeGVCFs_format test_{sample}.GenotypeGVCFs.{alleles}.vcf.gz \
-    --overwrite
-
-    */
-    label 'genotyping'
-    
-    container 'gitlab-registry.internal.sanger.ac.uk/sanger-pathogens/docker-images/genotype_vcf_at_given_alleles:0.0.3'
+    label 'vcf_parsing'
 
     input:
         tuple val(sample_tag), path(gvcf_fn), path(gvcf_fn_index), val(reference_file), path(snp_list)
 
     output:
-        tuple val(sample_tag), path("${output_vcf_gz}"), emit: vcf_file
+        tuple val(sample_tag), path("${output_vcf_gz}"), path(output_vcf_gz_index), emit: vcf_file_and_index
 
-    script:
-        base_name_ref=gvcf_fn.getBaseName().replace(".recalibrated.vcf", "")
-        output_vcf="${base_name_ref}.gatk_genotyped.vcf"
-        output_vcf_gz="${output_vcf}.gz"
-        output_vcf_gz_index="${output_vcf_gz}.tbi"
-        java_memory = 8000 * task.attempt
+    script:        
+        java_memory = task.memory.mega - 200
 
-        vcf_format=params.vcf_format
         tabix=params.tabix
         gatk=params.gatk
         bcftools=params.bcftools
         bgzip=params.bgzip
+        suffix=params.suffix
+
+        output_base = gvcf_fn.getBaseName().replace(".recalibrated","").replace(".vcf", "")
+        genotyped_gvcf = "${output_base}.GenotypeGVCFs.vcf"
+
+        output_vcf="${output_base}.${suffix}"
+        output_vcf_gz="${output_vcf}.gz"
+        output_vcf_gz_index="${output_vcf_gz}.tbi"
 
         """
-        genotype_vcf_at_given_alleles.py \
-        --java_memory ${java_memory}m \
-        --gvcf_fn ${gvcf_fn} \
-        --alleles_fn ${snp_list} \
-        --genotyped_fn ${output_vcf} \
-        --GenotypeGVCFs_format ${vcf_format} \
-        --ref_fasta ${reference_file} \
-        --gatk_jar ${gatk} \
-        --bcftools ${bcftools} \
-        --bgzip ${bgzip} \
-        --overwrite
+        java -Xmx${java_memory}m \
+        -jar ${gatk} \
+        -T GenotypeGVCFs \
+        -R ${reference_file} \
+        --variant ${gvcf_fn} \
+        -allSites \
+        -L ${snp_list} \
+        -o ${genotyped_gvcf}
+
+        main ${genotyped_gvcf} \
+        ${snp_list} \
+        --output_suffix ${suffix}
+
+        # Compress and index (g)vcf
+        ${bgzip} -c ${output_vcf} > ${output_vcf_gz}
+        ${tabix} -p vcf ${output_vcf_gz}
+
+        rm ${genotyped_gvcf}*
         """
 }

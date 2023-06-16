@@ -1,0 +1,36 @@
+Bootstrap: docker
+From:ubuntu:23.04
+
+%post
+export DEBIAN_FRONTEND=noninteractive
+apt update
+apt upgrade -y
+apt install gcc git grep libcurl4-openssl-dev r-base build-essential python3 -y
+
+# get TheRealMcCoil code
+mkdir /app/
+cd /app/
+git clone https://github.com/AMarinhoSN/THEREALMcCOIL.git
+cd THEREALMcCOIL/
+
+# install library here
+Rscript -e 'install.packages("optparse", repos="https://cran.us.r-project.org")' #'install.packages("here", repos="http://cran.us.r-project.org")'
+Rscript -e 'install.packages("here", repos="http://cran.us.r-project.org")'
+Rscript -e 'install.packages("this.path",repos = "https://cran.us.r-project.org")'
+
+# compile cartegorical method
+cd categorical_method/
+R CMD SHLIB McCOIL_categorical_code.c llfunction_het.c
+# update path on the testing script
+sed -i '1s/.*/path="\/app\/THEREALMcCOIL\/categorical_method"/' test_R_code.R
+
+# recompile proportional method
+cd ../proportional_method/
+R CMD SHLIB McCOIL_prop_code.c llfunction.c
+sed -i '1s/.*/path="\/app\/THEREALMcCOIL\/proportional_method"/' test_R_code.R
+
+%runscript
+exec /bin/bash "$@"
+
+%startscript
+exec /bin/bash "$@"

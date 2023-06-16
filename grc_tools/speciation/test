@@ -1,0 +1,223 @@
+#!/usr/bin/env python3
+
+import unittest
+import os
+from speciation.speciation import Speciate
+import json
+import grc_speciate as speciate
+
+test_dir = os.path.dirname(os.path.realpath(__file__))
+
+
+class TestSpeciate(unittest.TestCase):
+    def setUp(self):
+        """
+        Set up input object for unit tests
+        """
+        input_file_path = os.path.join(test_dir, "test_files", "unit_test.txt")
+
+        config = json.load(open(os.path.join(test_dir, "config.json")))[
+            "grc_speciation"
+        ]
+        chrom_regex = config.pop("chrom_regex", "^Spec_[12]_(falciparum|vivax)$")
+        input_file = speciate.read_genotype_file(
+            input_file_path, config["species_ref"], chrom_regex
+        )
+        barcode = "AGXTGXCGTAGGCGCXCATCTTTXGTACTTAXTCTCGTTGAATTCXXGCGGGAACGXGGCTAGGCGCTAACACTCAGGTTAGCAATAAXCXTGCAACGAGC"
+
+        self.obj = Speciate(input_file["Sample1"], barcode, **config)
+
+    def test_read_genotype_file(self):
+        """
+        1) Create test input genotype file (gt_file)
+        2) Run _read_genotype_file
+        3) Check output per position matches
+        """
+
+        d_gt_file = {
+            "Spec_1_falciparum": {
+                "F94": {"Gen": "A", "Depth": "798"},
+                "F96": {"Gen": "A", "Depth": "798"},
+            },
+            "Spec_1_vivax": {
+                "F96": {"Gen": "T", "Depth": "798"},
+                "F97": {"Gen": "A,T", "Depth": "788,10"},
+            },
+        }
+
+        # run file through genotype file reading
+        allele_depth_dict = self.obj._read_genotype_file(d_gt_file)
+
+        truth = {
+            "F94": {"Pf": {"Allele": ["A"], "DP": 798}, "Pv": {"Allele": [], "DP": 0}},
+            "F96": {
+                "Pf": {"Allele": ["A"], "DP": 798},
+                "Pv": {"Allele": ["T"], "DP": 798},
+            },
+            "F97": {
+                "Pf": {"Allele": [], "DP": 0},
+                "Pv": {"Allele": ["A", "T"], "DP": 798},
+            },
+        }
+
+        # compare each position and assert identity
+        for pos in truth.keys():
+            self.assertEqual(allele_depth_dict[pos], truth[pos], pos)
+
+    def run_manipulate_maf(self, test, match):
+        """
+        1) Take in test dictionary
+        2) Run maniipulate_maf
+        3) assert equality of match dict with alleles_depth_dict
+        """
+        self.obj.alleles_depth_dict = test
+        self.obj._manipulate_maf()
+        self.assertEqual(self.obj.alleles_depth_dict, match)
+
+    def test_manipulate_maf(self):
+        """
+        Run 3 test cases through run_manipulate_maf
+        1) Ensure where MAF <0.01 Pf allele removed
+        2) Ensure where MAF >0.01 Pf allele intact
+        """
+        for dp, allele in zip([500, 50], [[], ["A"]]):
+            test = {
+                "F130": {
+                    "Pf": {"Allele": ["A"], "DP": 1},
+                    "Pv": {"Allele": ["A"], "DP": dp},
+                }
+            }
+
+            match = {
+                "F130": {
+                    "Pf": {"Allele": allele, "DP": 1},
+                    "Pv": {"Allele": ["A"], "DP": dp},
+                }
+            }
+
+            self.run_manipulate_maf(test, match)
+
+    def run_merge_alleles(self, test, match, key="F130"):
+        """
+        1) Take in test alleles_depth_dict
+        2) run merged_alleles
+        3) assert equality of merged alleles at key of interest with match
+        """
+        self.obj.alleles_depth_dict = test
+        self.obj.merged_alleles = self.obj._merge_alleles()
+        self.assertEqual(self.obj.merged_alleles[key], match)
+
+    def test_merge_alleles(self):
+        """
+        Run test cases through run_merge_alleles
+        Checking merging of alleles for Pf and Pv respecitvely
+        1) A + A -> A
+        2) AT + A -> AT
+        3) AT + AT -> AT
+        4) A + AT -> AT
+        """
+        test = {
+            "F130": {
+                "Pf": {"Allele": ["A"], "DP": 20},
+                "Pv": {"Allele": ["A"], "DP": 50},
+            }
+        }
+        match = ["A"]
+
+        self.run_merge_alleles(test, match)
+
+        test = {
+            "F130": {
+                "Pf": {"Allele": ["A", "T"], "DP": 20},
+                "Pv": {"Allele": ["A"], "DP": 50},
+            }
+        }
+        match = ["A", "T"]
+        self.run_merge_alleles(test, match)
+
+        test = {
+            "F130": {
+                "Pf": {"Allele": ["A", "T"], "DP": 20},
+                "Pv": {"Allele": ["A", "T"], "DP": 50},
+            }
+        }
+        match = ["A", "T"]
+        self.run_merge_alleles(test, match)
+
+        test = {
+            "F130": {
+                "Pf": {"Allele": ["A"], "DP": 20},
+                "Pv": {"Allele": ["A", "T"], "DP": 50},
+            }
+        }
+        match = ["A", "T"]
+        self.run_merge_alleles(test, match)
+
+    def test_match_loci(self):
+        """
+        1) Set simplified species_ref
+        2) Set merged alleles corresponding to species ref positions
+        3) set match dict with truth values
+        4) assert equality between matched_loci and match
+        """
+        self.obj.species_ref = {
+            "F23": {"Pf": "T", "Pk": "A", "Pv": "A", "Po": "T", "Pm": "T"},
+            "F60": {"Pf": "A", "Pk": "A", "Pv": "A", "Po": "A", "Pm": "T"},
+            "F61": {"Pf": "A", "Pk": "A", "Pv": "A", "Po": "A", "Pm": "T"},
+            "F81": {"Pf": "A", "Pk": "G", "Pv": "A", "Po": "A", "Pm": "A"},
+        }
+
+        self.obj.merged_alleles = {
+            "F23": ["T", "A"],
+            "F60": ["A"],
+            "F61": ["A"],
+            "F81": ["A"],
+        }
+
+        match = {"Pf": 1, "Pk": 0.75, "Pv": 1, "Po": 1, "Pm": 0.5}
+
+        matched_loci = self.obj._match_loci()
+        self.assertEqual(matched_loci, match)
+
+    def test_get_species_tag(self):
+        """
+        1) set matched_loci for test
+        2) set barcode1 (>51 positions covered)
+        3) set args with barcode1, Pf as default species, 51 as min barcode coverage for calling default species
+        4) run get_species_tag with args
+        5) assert equality (should be Pf/Pv both above 0.95)
+        6) Pf proportion down to 0.5, should still be Pf/Pv due to min barcode coverage
+        7) Pv proportion down to 0.5, should now be "-" because species list empty so do not override with Pf
+        8) Set barcode2 with <51 bases covered. Pv prop back to 1. Species should be Pv because it is above 0.95
+           and barcode coverage below 51 (so do not call default species)
+        """
+        self.obj.matched_loci = {
+            "Pf": 1.0,
+            "Pk": 0.7692307692307693,
+            "Pv": 1.0,
+            "Po": 0.8461538461538461,
+            "Pm": 0.8653846153846154,
+        }
+        barcode1 = "AGXTGXCGTAGGCGCXCATCTTTXGTACTTAXTCTCGTTGAATTCXXGCGGGAACGXGGCTAGGCGCTAACACTCAGGTTAGCAATAAXCXTGCAACGAGC"
+        args = (barcode1, "Pf", 51)
+
+        label = self.obj._get_species_tag(*args)
+        self.assertEqual(label, "Pf/Pv")
+
+        self.obj.matched_loci["Pf"] = 0.5
+        label = self.obj._get_species_tag(*args)
+        self.assertEqual(label, "Pf/Pv")
+
+        self.obj.matched_loci["Pv"] = 0.5
+        label = self.obj._get_species_tag(*args)
+        self.assertEqual(label, "-")
+
+        barcode2 = "XXTXXXXXTXXXXXXXXXXXTXTXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXGXXXXXXXCGXXXXXXXXXCXXXX"
+        args = (barcode2, "Pf", 51)
+        self.obj.matched_loci["Pv"] = 1.0
+        label = self.obj._get_species_tag(*args)
+        self.assertEqual(label, "Pv")
+
+
+if __name__ == "__main__":
+    unittest.main()

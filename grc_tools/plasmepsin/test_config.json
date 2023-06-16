@@ -1,0 +1,44 @@
+{
+    "grc_plasmepsin": {
+        "plasmepsin_loci": [
+            {"Position": "Pf3D7_14_v3:289595", "Genotypes": ["C,T", "T"], "Variant": "Copy"},
+            {"Position": "Pf3D7_14_v3:289601", "Genotypes": ["C,T", "T"], "Variant": "Copy"},
+            {"Position": "Pf3D7_14_v3:289603", "Genotypes": ["T,A", "A"], "Variant": "Copy"},
+            {"Position": "Pf3D7_14_v3:289610", "Genotypes": ["T,C", "C"], "Variant": "Copy"}
+        ],
+        "test_genotypes": {
+            "ID_1-Pf3D7_14_v3:289595": {"Gen": "T"},
+            "ID_1-Pf3D7_14_v3:289601": {"Gen": "G"},
+            "ID_1-Pf3D7_14_v3:289603": {"Gen": "G"},
+            "ID_1-Pf3D7_14_v3:289610": {"Gen": "G"},
+            "ID_2-Pf3D7_14_v3:289595": {"Gen": "G"},
+            "ID_2-Pf3D7_14_v3:289601": {"Gen": "G"},
+            "ID_2-Pf3D7_14_v3:289603": {"Gen": "G"},
+            "ID_2-Pf3D7_14_v3:289610": {"Gen": "G"},
+            "ID_3-Pf3D7_14_v3:289595": {"Gen": "-"},
+            "ID_3-Pf3D7_14_v3:289601": {"Gen": "-"},
+            "ID_3-Pf3D7_14_v3:289603": {"Gen": "-"},
+            "ID_3-Pf3D7_14_v3:289610": {"Gen": "-"},
+            "ID_4-Pf3D7_14_v3:289595": {"Gen": "C,T"},
+            "ID_4-Pf3D7_14_v3:289601": {"Gen": "G"},
+            "ID_4-Pf3D7_14_v3:289603": {"Gen": "G"},
+            "ID_4-Pf3D7_14_v3:289610": {"Gen": "G"}
+        },
+        "test_variants": {
+            "ID_1": "Copy",
+           "ID_2": "WT",
+            "ID_3": "-",
+            "ID_4": "Copy"
+        },
+        "genotype_file_column_names": [
+            "ID",
+            "Amplicon",
+            "Pos",
+            "Chr",
+            "Loc",
+            "Gen",
+            "Depth",
+            "Filt"
+        ]
+    }
+}
