@@ -23,7 +23,7 @@ ANSI_RESET = "\033[0m"
 
 log.info """
         ===========================================
-         AMPSEQ_0.0 (dev : prototype)
+         AMPSEQ_1.0
          Used parameters:
         -------------------------------------------
          --execution_mode     : ${params.execution_mode}

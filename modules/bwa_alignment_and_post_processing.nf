@@ -19,12 +19,14 @@ process bwa_alignment_and_post_processing {
         bwa mem -p -Y -K 100000000 -t 1 \
             "${reference_fasta}" \
             "${fastq}" | \
-            scramble -0 -I sam -O bam | \
-            samtools sort --threads 2 -o ${bam_file}.sorted.bam 
+            samtools view -bu - | \
+            samtools sort -n - | \
+            samtools fixmate - - | \
+            samtools sort -o ${bam_file}.sorted.bam 
         
         samtools index ${bam_file}.sorted.bam
 
-            mv ${bam_file}.sorted.bam ${bam_file}
-            mv ${bam_file}.sorted.bam.bai ${bam_file}.bai
+        mv ${bam_file}.sorted.bam ${bam_file}
+        mv ${bam_file}.sorted.bam.bai ${bam_file}.bai
         """
 }
