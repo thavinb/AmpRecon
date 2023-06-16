@@ -2,27 +2,26 @@
 
 Ampseq is a bioinformatics analysis pipeline for amplicon sequencing data. Currently supporting alignment and SNP variant calling on paired-end Illumina sequencing data.
 
-The pipeline has capabilities to generate variant call format (VCF) files directly from a bcl directory, as well as starting from aligned CRAM formatted files stored in Sanger's internal file storage system (iRODS). Our pipeline allows configurable reference handling, allowing high-throughput processing of data against multiple amplicon panels in a single pipeline run.
-
-We opted for industry standard Burrows-Wheeler Aligner (BWA) coupled to GATK4's haplotypecaller and genotypegvcf to call variants.
-
-# Pipeline summary
-
-Using the default run options, ampseq performs the following tasks:
-
-- Converts a .bcl directory into a BAM formatted file ([bambi i2b](https://wtsi-npg.github.io/bambi/#i2b))
-- Decodes multiplexed BAM file ([bambi decode](https://wtsi-npg.github.io/bambi/#decode))
-- Sequencing adapter contamination removal ([biobambam2 bamadapterfind](https://manpages.ubuntu.com/manpages/focal/en/man1/bamadapterfind.1.html))
-- BAM to CRAM conversion ([samtools split](http://www.htslib.org/doc/samtools-split.html))
-- Data cleaning and QC processes prior to alignment and SNP calling ([cram to bam](https://gitlab.internal.sanger.ac.uk/malariagen1/ampseq-pipeline/-/blob/develop/workflows/pipeline-subworkflows/cram-to-bam.nf))
-- Alignment to full reference / amplicon panel ([realignment](https://gitlab.internal.sanger.ac.uk/malariagen1/ampseq-pipeline/-/blob/develop/workflows/pipeline-subworkflows/realignment.nf))
-- SNP calling using GATK4 tools haplotypecaller and genotypegvcf joint genotyping protocol ([genotyping](https://gatk.broadinstitute.org/hc/en-us/articles/360036194592-Getting-started-with-GATK4))
+The pipeline has capabilities to output [Genetic Report Cards (GRCs)](https://www.malariagen.net/sites/default/files/GRC_UserGuide_10JAN19.pdf) and readcounts per pannel files  directly from a [Binary Base Calls (BCLs)](https://emea.illumina.com/informatics/sequencing-data-analysis/sequence-file-formats.html) file, as well as starting from aligned [CRAM](https://www.sanger.ac.uk/tool/cram/) formatted files stored in Sanger's internal file storage system (iRODS). In addition, the pipeline also outputs BAM per lanelet and VCFs per sample. Our pipeline allows configurable reference handling, allowing high-throughput processing of data against multiple amplicon panels in a single pipeline run.
 
 # Quick-start guide to Ampseq
 
 Ampseq v0.0.1 is currently only available on Sanger's internal high performance compute (HPC) clusters with access to nfs storage.
 
-**1. Setup**
+## 1. Setup
+
+### 1.1 - requirements
+
+The pipeline requires:
+
+-  [Nextflow](https://github.com/nextflow-io/nextflow), the pipeline was developed and tested on [version 22.04](https://github.com/nextflow-io/nextflow/releases/tag/v22.04.4). 
+
+- [Singularity](https://github.com/sylabs/singularity), the pipeline was developed and tested on the singularity [version 3.6.4](https://github.com/apptainer/singularity/releases/tag/v3.6.4).
+
+> **warning**
+> If Singularity is not available, the pipeline assumes all the softwares with the correct versions are available on the execution environment.
+
+### 1.2 - Download the pipeline
 
 clone the repository
 
@@ -31,10 +30,12 @@ git clone https://gitlab.internal.sanger.ac.uk/malariagen1/ampseq-pipeline.git
 cd ./ampseq-pipeine/
 ```
 
+### 1.3 - build containers
 **2. Run**
 
 Load nextflow module
 
+If **on the farm**, Nextflow can be made available by loading its module.
 ```
 module load nextflow/22.04.0-5697
 ```
@@ -42,8 +43,9 @@ module load nextflow/22.04.0-5697
 To run from the **in-country** entry point:
 
 ```
-nextflow ../path/to/ampseq-pipeline/main.nf -profile sanger_lsf \
-                --execution_mode in-country --run_id 21045 \
+nextflow /path/to/ampseq-pipeline/main.nf -profile sanger_lsf \
+                --execution_mode in-country \
+                --run_id 21045 \
                 --bcl_dir /path/to/my_bcl_dir/ --ena_study_name test --manifest_path manifest.tsv \
                 --chrom_key_file_path chromKey.txt
                 --grc_settings_file_path grc_settings.json
@@ -56,11 +58,12 @@ nextflow ../path/to/ampseq-pipeline/main.nf -profile sanger_lsf \
 To run from the **iRODS** entry point:
 
 ```
-nextflow ../ampseq-pipeline/main.nf -profile sanger_lsf \
-        --execution_mode irods --run_id 21045 \
-        --irods_manifest ./input/irods_manifest.tsv
-         --chrom_key_file_path chromKey.txt
-        --grc_settings_file_path grc_settings.json
+nextflow /path/to/ampseq-pipeline/main.nf -profile sanger_lsf \
+        --execution_mode irods \
+        --run_id 21045 \
+        --irods_manifest /path/to/irods_manifest.tsv
+        --chrom_key_file_path /path/to/chromKey.txt
+        --grc_settings_file_path /path/togrc_settings.json
         --drl_information_file_path DRLinfo.txt
         --codon_key_file_path codonKey.txt
         --kelch_reference_file_path kelchReference.txt
@@ -109,21 +112,23 @@ upload_to_s3: <bool> sets if needs to upload output data to an s3 bucket
 s3_bucket_output: <str> s3 bucket name to upload data to
 ```
 
-To use **GATK genotyping**
 
+**BCFtools genotyping** is used by default
+
+The usage of bcftools is set via the parameter `--genotyping_bcftools`
 ```
-genotyping_gatk : <bool> the GATK genotyping workflow will be run if this parameter is set to 'true'
-```
-
-By default the GATK genotyping workflow is launched as the 'genotyping_gatk' parameter is set to 'true'
-
-To use **BCFtools genotyping**
-
-```
-genotyping_bcftools : <bool> the BCFtools genotyping workflow will be run if this parameter is set to 'true'
+genotyping_bcftools : <bool>  // 'true' by default, set to 'false' to disable
 ```
 
-By default the BCFtools genotyping workflow is prevented from running as the 'genotyping_bcftools' parameter is not set to 'true'.
+The BCFtools genotyping portion of the ampseq pipeline requires a SNPs annotation VCF file for each reference genome used. This file location must be set at the `snp_list` column of the `panel_settings.csv`.
+
+**GATK genotyping** option is provided but not used by default
+
+The GATK genotyping workflow is launched as the `genotyping_gatk` parameter is set to `true`
+
+```
+genotyping_gatk : <bool> // 'false' by default
+```
 
 ### In Country Manifest
 
@@ -146,6 +151,10 @@ The in country manifest file must be a `.tsv` and the pipeline expects to find t
 - `collection_country`: name of country the sample was collected in. Metadata to be added to the final GRC files
 
 - `study`: full study ID of the sample. Metadata to be added to the final GRC files
+
+- `well`: a well identifier
+
+- `plate_name`: a plate identifier
 
 ### iRODS Manifest
 
@@ -178,9 +187,9 @@ Currently, this `.csv` should look like the example below:
 
 ```
 panel_name,reference_file,design_file,snp_list
-PFA_GRC1_v1.0,PFA_GRC1_v1.0.fasta,PFA_GRC1_v1.0.regions.txt,PFA_GRC1_v1.0.annotation.vcf
-PFA_GRC2_v1.0,PFA_GRC2_v1.0.fasta,PFA_GRC2_v1.0.regions.txt,PFA_GRC2_v1.0.annotation.vcf
-PFA_Spec,PFA_Spec.fasta,PFA_Spec.regions.txt,PFA_Spec.annotation.vcf
+PFA_GRC1_v1.0,/path/to/PFA_GRC1_v1.0.fasta,/path/to/PFA_GRC1_v1.0.regions.txt,/path/to/PFA_GRC1_v1.0.annotation.vcf
+PFA_GRC2_v1.0,/path/to/PFA_GRC2_v1.0.fasta,/path/to/PFA_GRC2_v1.0.regions.txt,/path/to/PFA_GRC2_v1.0.annotation.vcf
+PFA_Spec,/path/to/PFA_Spec.fasta,/path/to/PFA_Spec.regions.txt,/path/to/PFA_Spec.annotation.vcf
 ```
 
 - `panel_name` : Defines the string it should look for a given panel, this strings should be the same provided by the user (via the supplied manifest file).
@@ -191,9 +200,9 @@ PFA_Spec,PFA_Spec.fasta,PFA_Spec.regions.txt,PFA_Spec.annotation.vcf
 
 - `snp_list` : Path to the SNP list file, used as both an intervals file for GATK GenotypeGVCFs and as a targets file for BCFtools mpileup.
 
-The aim of this panel settings system is to detach the experimental design from the inner works of the pipeline and make it easier to experiment with its key steps. A custom `.csv` can be set to the pipeline by using the flag `--panels_settings`. If the user does not provide a `--panels_settings`, the pipeline default behaviour is to rely on files available at the repo (check `panels_resources` dir).
+The aim of this panel settings system is to detach the experimental design from the inner works of the pipeline and make it easier to experiment with its key steps. A `.csv` **must be privded** to the pipeline via `--panels_settings`.
 
-### Genotyping Settings
+### GATK Genotyping Settings
 
 The following parameter should be present within the nextflow.config file:
 
@@ -201,23 +210,14 @@ The following parameter should be present within the nextflow.config file:
 gatk3: <str> path to GATK3 GenomeAnalysisTK.jar file - only needed if GATK genotyping is enabled.
 ```
 
-### BCFtools Genotyping Requirements
-
-The BCFtools genotyping portion of the ampseq pipeline requires 2 additional files for every reference genome used. The first is the ploidy file and the second is an annotation VCF file of SNPs. These 2 files should be in the same directory as each associated reference genome FASTA file.
-
-```
-ploidy file: REFERENCE_GENOME_FILE_BASENAME.ploidy
-annotation VCF file naming convention: REFERENCE_GENOME_FILE_BASENAME.annotation.vcf
-```
-
 ### GRC Creation Requirements
 
-The GRC creation of the pipeline requires several additional files. These include a GRC settings JSON file, a chromKey file, a codonKey file, a Kelch13 reference sequence file and a drug resistance loci information file.
+The GRC creation of the pipeline requires several additional files. These include a GRC settings JSON file (`--grc_settings_file_path`), a chromKey file (`-- --chrom_key_file_path`), a codonKey file (`--condon_key_file_path`), a Kelch13 reference sequence file (`--kelch_reference_file_path`) and a drug resistance loci information file (`--drl_information_file_path`), which must be provided via nextflow parameters.
 
 ### Containers
 
 By default, the pipeline will look for the containers at `/nfs/gsu/team335/ampseq-containers/`. Another directory to look for the containers can be set using the `--containers_dir` flag at the nextflow command line.
-All recipes for the ampseq containers can be found at the `containers/` directory of this repository. Use the following command to build it:
+All recipes for the ampseq containers can be found at the `containers/` directory of this repository, and the following command can be used to build it:
 
 ```
 cd /path/to/ampseq-pipeline/containers/
@@ -225,19 +225,3 @@ bash buildContainers.sh
 ```
 
 The building process take a few minutes to finish and all necessary `.sif` files to run the pipeline will be generated.
-
-## Support
-
-[who should someone talk to regarding the maintenance and usage of the pipeline]
-
-## Authors and acknowledgment
-
-Show our appreciation to those who have contributed to the project.
-
-## License
-
-[add a license]
-
-## Project status
-
-[prototype]
