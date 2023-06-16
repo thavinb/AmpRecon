@@ -2,7 +2,9 @@
 
 Ampseq is a bioinformatics analysis pipeline for amplicon sequencing data. Currently supporting alignment and SNP variant calling on paired-end Illumina sequencing data.
 
-The pipeline has capabilities to output [Genetic Report Cards (GRCs)](https://www.malariagen.net/sites/default/files/GRC_UserGuide_10JAN19.pdf) and readcounts per pannel files  directly from a [Binary Base Calls (BCLs)](https://emea.illumina.com/informatics/sequencing-data-analysis/sequence-file-formats.html) file, as well as starting from aligned [CRAM](https://www.sanger.ac.uk/tool/cram/) formatted files stored in Sanger's internal file storage system (iRODS). In addition, the pipeline also outputs BAM per lanelet and VCFs per sample. Our pipeline allows configurable reference handling, allowing high-throughput processing of data against multiple amplicon panels in a single pipeline run.
+The pipeline has capabilities to output [Genetic Report Cards (GRCs)](https://www.malariagen.net/sites/default/files/GRC_UserGuide_10JAN19.pdf) and readcounts per pannel files  directly from a [Binary Base Calls (BCLs)](https://emea.illumina.com/informatics/sequencing-data-analysis/sequence-file-formats.html) file, as well as starting from aligned [CRAM](https://www.sanger.ac.uk/tool/cram/) formatted files stored in Sanger's internal file storage system which is based on [iRODS](https://irods.org) (Integrated Rule-Oriented Data System). In addition, the pipeline also outputs [BAM](https://en.wikipedia.org/wiki/Binary_Alignment_Map) per lanelet and [VCFs](https://samtools.github.io/hts-specs/VCFv4.2.pdf) per sample. Our pipeline allows configurable reference handling, allowing high-throughput processing of data against multiple amplicon panels in a single pipeline run.
+
+---
 
 # Quick-start guide to Ampseq
 
@@ -18,29 +20,25 @@ The pipeline requires:
 
 - [Singularity](https://github.com/sylabs/singularity), the pipeline was developed and tested on the singularity [version 3.6.4](https://github.com/apptainer/singularity/releases/tag/v3.6.4).
 
-> **warning**
+> **WARNING**
 > If Singularity is not available, the pipeline assumes all the softwares with the correct versions are available on the execution environment.
 
-### 1.2 - Download the pipeline
+### 1.2 - Download code base and build containers
 
-clone the repository
+All recipes for the ampseq containers can be found at the `containers/` directory of this repository, The building process take a few minutes to finish and all necessary `.sif` files to run the pipeline will be generated on the same dir.
 
 ```
+# clone repo
 git clone https://gitlab.internal.sanger.ac.uk/malariagen1/ampseq-pipeline.git
-cd ./ampseq-pipeine/
+# build containers
+cd ./ampseq-pipeine/containers/
+bash buildContainers.sh
 ```
 
-### 1.3 - build containers
-**2. Run**
+---
+## 2 - Run the pipeline 
 
-Load nextflow module
-
-If **on the farm**, Nextflow can be made available by loading its module.
-```
-module load nextflow/22.04.0-5697
-```
-
-To run from the **in-country** entry point:
+Assuming nextflow is available at the command line, to run from the **in-country** entry point:
 
 ```
 nextflow /path/to/ampseq-pipeline/main.nf -profile sanger_lsf \
@@ -52,7 +50,7 @@ nextflow /path/to/ampseq-pipeline/main.nf -profile sanger_lsf \
                 --drl_information_file_path DRLinfo.txt
                 --codon_key_file_path codonKey.txt
                 --kelch_reference_file_path kelchReference.txt
-                --containers_dir ./containers_dir/
+                --containers_dir /path/to/containers_dir/
 ```
 
 To run from the **iRODS** entry point:
@@ -70,9 +68,17 @@ nextflow /path/to/ampseq-pipeline/main.nf -profile sanger_lsf \
         --containers_dir ./containers_dir/
 ```
 
+> **NOTE**
+> If **on the farm**, Nextflow can be made available by loading its module.
+>```
+>module load nextflow/22.04.0-5697
+>```
+
 Use `-profile sanger_lsf` to make nextflow be able to submit task to the farm lsf queue.
 Use `-profile sanger_default` to run on the farm but local (this should be used only for dev porpuse).
 To use a panel resources different than the ones provided at this repository, the user needs to provide a custom pannels settings csv via `--panels_settings`.
+
+---
 
 ## Parameters
 
@@ -130,6 +136,12 @@ The GATK genotyping workflow is launched as the `genotyping_gatk` parameter is s
 genotyping_gatk : <bool> // 'false' by default
 ```
 
+**Containers**
+
+By default, the pipeline will look for the containers at `/nfs/gsu/team335/ampseq-containers/`. A different directory to look for the containers can be set using the `--containers_dir` flag at the nextflow command line.
+
+---
+## Input Files
 ### In Country Manifest
 
 The in country manifest file must be a `.tsv` and the pipeline expects to find the following columns headers:
@@ -214,14 +226,4 @@ gatk3: <str> path to GATK3 GenomeAnalysisTK.jar file - only needed if GATK genot
 
 The GRC creation of the pipeline requires several additional files. These include a GRC settings JSON file (`--grc_settings_file_path`), a chromKey file (`-- --chrom_key_file_path`), a codonKey file (`--condon_key_file_path`), a Kelch13 reference sequence file (`--kelch_reference_file_path`) and a drug resistance loci information file (`--drl_information_file_path`), which must be provided via nextflow parameters.
 
-### Containers
-
-By default, the pipeline will look for the containers at `/nfs/gsu/team335/ampseq-containers/`. Another directory to look for the containers can be set using the `--containers_dir` flag at the nextflow command line.
-All recipes for the ampseq containers can be found at the `containers/` directory of this repository, and the following command can be used to build it:
-
-```
-cd /path/to/ampseq-pipeline/containers/
-bash buildContainers.sh
-```
-
-The building process take a few minutes to finish and all necessary `.sif` files to run the pipeline will be generated.
+---
