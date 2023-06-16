@@ -1,10 +1,9 @@
-# AmpSeq-pipeline
+# AmpSeq
 
 Ampseq is a bioinformatics analysis pipeline for amplicon sequencing data. Currently supporting alignment and SNP variant calling on paired-end Illumina sequencing data.
 
-The pipeline has capabilities to output [Genetic Report Cards (GRCs)](https://www.malariagen.net/sites/default/files/GRC_UserGuide_10JAN19.pdf) and readcounts per pannel files  directly from a [Binary Base Calls (BCLs)](https://emea.illumina.com/informatics/sequencing-data-analysis/sequence-file-formats.html) file, as well as starting from aligned [CRAM](https://www.sanger.ac.uk/tool/cram/) formatted files stored in Sanger's internal file storage system which is based on [iRODS](https://irods.org) (Integrated Rule-Oriented Data System). In addition, the pipeline also outputs [BAM](https://en.wikipedia.org/wiki/Binary_Alignment_Map) per lanelet and [VCFs](https://samtools.github.io/hts-specs/VCFv4.2.pdf) per sample. Our pipeline allows configurable reference handling, allowing high-throughput processing of data against multiple amplicon panels in a single pipeline run.
+The pipeline has capabilities to output [Genetic Report Cards (GRCs)](https://www.malariagen.net/sites/default/files/GRC_UserGuide_10JAN19.pdf) and readcounts per pannel files  directly from [Binary Base Calls (BCLs)](https://emea.illumina.com/informatics/sequencing-data-analysis/sequence-file-formats.html) files, as well as starting from aligned [CRAM](https://www.sanger.ac.uk/tool/cram/) formatted files stored in Sanger's internal file storage system which is based on [iRODS](https://irods.org) (Integrated Rule-Oriented Data System). In addition, the pipeline also outputs [BAM](https://en.wikipedia.org/wiki/Binary_Alignment_Map) per lanelet and [VCFs](https://samtools.github.io/hts-specs/VCFv4.2.pdf) per sample. Our pipeline allows configurable reference handling, allowing high-throughput processing of data against multiple amplicon panels in a single pipeline run.
 
----
 
 # Quick-start guide to Ampseq
 
