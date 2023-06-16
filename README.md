@@ -167,6 +167,13 @@ The in country manifest file must be a `.tsv` and the pipeline expects to find t
 
 - `plate_name`: a plate identifier
 
+```
+sample_id	primer_panel	barcode_number	barcode_sequence	partner_sample_id	collection_date	collection_location	collection_country	study	well	plate_name
+ILCM4453	PFA_GRC1_v1.0	1	ATCACGTT-GTACTGAC	ILCM4453	2021-07-16	05at3a Samroung Romdul health center	Cambodia	130as-ICS	A01	PLATE_RCN_00190
+RAD3CC01	PFA_GRC2_v1.0	2	CGATGCAT-GTACTACC	TTCN3A01	2021-09-12	05a0qt Chambak health center	Cambodia	130as-ICS	A02	PLATE_RCN_00190
+RIALMC99	PFA_Spec	3	TTAACACT-GTACTGAC	IL21939L	2021-10-21	0406xq Chambak health center	Cambodia	130as-ICS	A03	PLATE_RCN_00190
+```
+
 ### iRODS Manifest
 
 The iRODS manifest file must be a `.tsv` and the pipeline expects to find the following columns headers:
@@ -189,7 +196,14 @@ The iRODS manifest file must be a `.tsv` and the pipeline expects to find the fo
 
 The `.tsv` may have more columns at any order, but those are the only ones which will be considered.
 The pipeline builds an "internal id" set as `<cram_filename>_<sample_id>_<primer_panel>`, therefore, the pipeline will check if any combination of those values at the manifest are unique. If not, an error will be raised and the pipeline run will stop.
-An example of a valid manifest can be found at this repository (`test_data/irods_mnf.tsv`).
+The content of valid manifest should look like the example bellow:
+
+```
+irods_path	sample_id	primer_panel	study_name	pipeline_id	taxon_id	common_name	name	supplier_name	donor_id	instrument_model	qc_complete	id_run	lane	tag	qc	WG_lane
+/seq/29632/29632_1#55.cram	ILL411270	PFA_GRC1_v1.0	Team 112 R&D	GBS	5833	Plasmodium Falciparum	3429STDY7977888	RCN15139	3429STDY7977888	MiSeq	2019-05-30 03:38:57	29632	1	55	1	29632_1#55
+/seq/29632/29632_1#149.cram	LMLPP1571	PFA_GRC2_v1.0	Team 112 R&D	GBS	5833	Plasmodium Falciparum	3429STDY7977888	RCN15139	3429STDY7977888	MiSeq	2019-05-30 03:38:57	29632	1	149	1	29632_1#149
+/seq/26381/26381_1#808.cram	JHG3639016I	PFA_Spec	Team 112 R&D	GBS	5833	Plasmodium Falciparum	3429STDY7977859	RCN15110        3429STDY7977888	MiSeq	2019-05-30 03:38:57	29632	1	149	1	29632_1#256
+```
 
 ### Panel Settings
 
