@@ -19,7 +19,7 @@ def load_lanelets(row):
 
 # get indexes
 def load_indexes(row):
-    return int(row["lanelet"].split("_")[:2][-1].split("#")[-1])
+    return int(row["lanelet"].replace("_T","").split("_")[:2][-1].split("#")[-1])
 
 # ------------------ #
 
