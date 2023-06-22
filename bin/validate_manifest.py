@@ -51,6 +51,7 @@ class AmpliconManifestValidator:
                 for key in line:
                     if line[key] is not None:
                         line[key] = line[key].strip()
+                
                 self._check_empty_or_na(line)
                 self._validate_assay_column(line)
                 self._validate_index_column(line)
@@ -103,7 +104,12 @@ class AmpliconManifestValidator:
             )
 
     def _check_empty_or_na(self, line: OrderedDict):
+        # only cols which are absolutely required are checked for empty and nan values
+        required_cols = ['sample_id', 'primer_panel', 'barcode_number','barcode_sequence']
         for key, value in line.items():
+            # skip non essentials cols
+            if key not in required_cols:
+                continue
             if not value:
                 raise self.EmptyValuesError(
                     f"{self.base} has empty values: {key, value} - {line}"
