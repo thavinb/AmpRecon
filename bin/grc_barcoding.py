@@ -179,7 +179,7 @@ def main(
     out_rows = []
     d_genotype_file = read_genotype_file(genotype_file_path, deconstruct_barcode_ref)
 
-    for sample, d_sample_genotype in d_genotype_file.items():
+    for sample, d_sample_genotype in sorted(d_genotype_file.items()):
         barcoding = Barcode(d_sample_genotype, barcode_ref)
         out_rows.append({"ID": sample, "Barcode": barcoding.barcode})
     return out_rows
