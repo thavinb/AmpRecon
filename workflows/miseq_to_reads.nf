@@ -144,6 +144,16 @@ workflow MISEQ_TO_READS {
     file_id_to_sample_id_ch // tuple (file_id, lims_id)
 }
 
+	
+workflow {
+    // File required for alignment input channel
+    manifest  = Channel.fromPath(params.manifest_path, checkIfExists: true)
+
+    // Input reference channel
+    reference_ch = channel_data.map { row -> tuple(row.reference_file, row.panel_name, row.snp_list) }
+  
+    MISEQ_TO_READS(manifest, reference_ch)
+}
 
 def miseq_to_reads_parameter_check(){
     /*
