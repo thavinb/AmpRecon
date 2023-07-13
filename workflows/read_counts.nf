@@ -34,3 +34,17 @@ workflow READ_COUNTS {
       upload_pipeline_output_to_s3(output_to_s3)
     }
 }
+
+workflow {
+    // File required for Read Counts input channels
+    channel_data = Channel.fromPath(params.channel_data_file, checkIfExists: true)
+        .splitCsv(header: true, sep: '\t')
+
+    // Read Counts input channels
+    indexed_bams_ch = channel_data.map { row -> tuple(row.file_id, row.bam_file, row.bam_index_file) }
+    file_id_reference_files_ch = channel_data.map { row -> tuple(row.file_id, row.panel_name, row.panel_name, row.panel_name) }
+    annotations_ch = channel_data.map { row -> tuple(row.panel_name, row.annotation_file) }
+
+    // Run Read Counts workflow
+    READ_COUNTS(indexed_bams_ch, file_id_reference_files_ch, annotations_ch)
+}

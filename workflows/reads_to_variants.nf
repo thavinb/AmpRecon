@@ -93,3 +93,17 @@ workflow READS_TO_VARIANTS {
         lanelet_manifest // (manifest_file)
 }
 
+workflow {
+    // File required for Reads to Variants input channels
+    channel_data = Channel.fromPath(params.channel_data_file, checkIfExists: true)
+        .splitCsv(header: true, sep: '\t')
+
+    // Reads to Variants input channels
+    fastq_ch = channel_data.map { row -> tuple(row.file_id, row.fastq_file, row.reference_file) }
+    file_id_reference_files_ch = channel_data.map { row -> tuple(row.file_id, row.panel_name, row.reference_file, row.snp_list) }
+    annotations_ch = channel_data.map { row -> tuple(row.panel_name, row.annotation_file) }
+    file_id_to_sample_id_ch = channel_data.map { row -> tuple(row.file_id, row.sample_id) }
+
+    // Run Reads to Variants workflow
+    READS_TO_VARIANTS(fastq_ch, file_id_reference_files_ch, annotations_ch, file_id_to_sample_id_ch)
+}

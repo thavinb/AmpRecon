@@ -40,3 +40,15 @@ workflow GENOTYPING_BCFTOOLS {
     genotyped_vcf_ch
 }
 
+workflow {
+    // File required for BCFTools Genotyping input channels
+    channel_data = Channel.fromPath(params.channel_data_file, checkIfExists: true)
+        .splitCsv(header: true, sep: '\t')
+
+    // BCFTools Genotyping input channels
+    input_file_ids_bams_indexes = channel_data.map { row -> tuple(row.file_id, row.bam_file, row.bam_index_file) }
+    file_id_reference_files_ch = channel_data.map { row -> tuple(row.file_id, row.reference_file, row.snp_list, row.sample_key) }
+
+    // Run BCFTools Genotyping workflow
+    GENOTYPING_BCFTOOLS(input_file_ids_bams_indexes, file_id_reference_files_ch)
+}
