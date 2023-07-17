@@ -41,9 +41,9 @@ workflow {
         .splitCsv(header: true, sep: '\t')
 
     // Read Counts input channels
-    indexed_bams_ch = channel_data.map { row -> tuple(row.file_id, row.bam_file, row.bam_index_file) }
+    indexed_bams_ch = channel_data.map { row -> tuple(row.file_id, file(row.bam_file), file(row.bam_index_file)) }
     file_id_reference_files_ch = channel_data.map { row -> tuple(row.file_id, row.panel_name, row.panel_name, row.panel_name) }
-    annotations_ch = channel_data.map { row -> tuple(row.panel_name, row.annotation_file) }
+    annotations_ch = channel_data.map { row -> tuple(row.panel_name, file(row.annotation_file)) }.unique()
 
     // Run Read Counts workflow
     READ_COUNTS(indexed_bams_ch, file_id_reference_files_ch, annotations_ch)
