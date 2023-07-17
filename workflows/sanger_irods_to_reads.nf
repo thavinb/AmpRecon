@@ -120,7 +120,7 @@ workflow {
         .splitCsv(header: true, sep: '\t')
 
     // Sanger iRODS to Reads input channels
-    irods_manifest = params.irods_manifest
+    irods_manifest = Channel.fromPath(params.irods_manifest)
     reference_ch = channel_data.map { row -> tuple(row.reference_file, row.panel_name, row.snp_list) }
 
     // Run Sanger iRODS to Reads workflow
