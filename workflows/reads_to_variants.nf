@@ -101,7 +101,7 @@ workflow {
     // Reads to Variants input channels
     fastq_ch = channel_data.map { row -> tuple(row.file_id, row.fastq_file, row.reference_file) }
     file_id_reference_files_ch = channel_data.map { row -> tuple(row.file_id, row.panel_name, row.reference_file, row.snp_list) }
-    annotations_ch = channel_data.map { row -> tuple(row.panel_name, row.annotation_file) }
+    annotations_ch = channel_data.map { row -> tuple(row.panel_name, file(row.annotation_file)) }.unique()
     file_id_to_sample_id_ch = channel_data.map { row -> tuple(row.file_id, row.sample_id) }
 
     // Run Reads to Variants workflow
