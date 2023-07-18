@@ -146,10 +146,12 @@ workflow MISEQ_TO_READS {
 
 	
 workflow {
-    // File required for alignment input channel
-    manifest  = Channel.fromPath(params.manifest_path, checkIfExists: true)
+    // File required for Miseq to Reads input channel
+    channel_data = Channel.fromPath(params.channel_data_file, checkIfExists: true)
+      .splitCsv(header: true, sep: '\t')
 
-    // Input reference channel
+    // Miseq to Reads input channels
+    manifest  = Channel.fromPath(params.manifest_path, checkIfExists: true)
     reference_ch = channel_data.map { row -> tuple(row.reference_file, row.panel_name, row.snp_list) }
   
     MISEQ_TO_READS(manifest, reference_ch)
