@@ -47,7 +47,7 @@ workflow {
 
     // BCFTools Genotyping input channels
     input_file_ids_bams_indexes = channel_data.map { row -> tuple(row.file_id, row.bam_file, row.bam_index_file) }
-    file_id_reference_files_ch = channel_data.map { row -> tuple(row.file_id, row.reference_file, row.snp_list, row.sample_key) }
+    file_id_reference_files_ch = channel_data.map { row -> tuple(row.file_id, row.sample_key, row.reference_file, row.snp_list) }
 
     // Run BCFTools Genotyping workflow
     GENOTYPING_BCFTOOLS(input_file_ids_bams_indexes, file_id_reference_files_ch)
