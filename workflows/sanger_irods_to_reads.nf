@@ -113,3 +113,16 @@ def irods_to_reads_parameter_check(){
 
     return err
 }
+
+workflow {
+    // File required for Sanger iRODS to Reads input channels
+    channel_data = Channel.fromPath(params.channel_data_file, checkIfExists: true)
+        .splitCsv(header: true, sep: '\t')
+
+    // Sanger iRODS to Reads input channels
+    irods_manifest = Channel.fromPath(params.irods_manifest)
+    reference_ch = channel_data.map { row -> tuple(row.reference_file, row.panel_name, row.snp_list) }
+
+    // Run Sanger iRODS to Reads workflow
+    SANGER_IRODS_TO_READS(irods_manifest, reference_ch)
+}

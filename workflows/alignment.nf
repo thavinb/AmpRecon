@@ -24,3 +24,14 @@ workflow ALIGNMENT {
     bwa_alignment_and_post_processing.out // tuple (file_id, bam_file, bai_file)
 }
 
+workflow {
+    // File required for alignment input channel
+    channel_data = Channel.fromPath(params.channel_data_file, checkIfExists: true)
+        .splitCsv(header: true, sep: '\t')
+
+    // alignment input channel
+    fastq_ch = channel_data.map { row -> tuple(row.file_id, row.fastq_file, row.reference_file) }
+  
+    // Run Alignment workflow
+    ALIGNMENT(fastq_ch)
+}
