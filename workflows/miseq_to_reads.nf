@@ -1,5 +1,25 @@
 #!/usr/bin/env nextflow
 
+/*
+    | MISEQ_TO_READS |-----------------------------------------
+    
+    This workflow takes a manifest file and path to a Miseq run 
+    directory. Basecalls and intensities from this Illumina Miseq
+    run are converted to BAM format and demultiplexed. Adapter 
+    sequences are found and moved, alignments undone and the
+    reads are output in FASTQ format.
+    
+    ENA submission ready CRAM files are also produced by this 
+    workflow. Reads in the FASTQ files are aligned to a reads to a
+    reference genome. The resulting file has its header rewritten,
+    is sorted by coordinate and is output in CRAM format.
+
+    A channel containing FASTQ file and associated reference genome is
+    is output by the workflow. This is in addition to channels that
+    link SNP list, annotation file and sample ID with file ID.
+    ------------------------------------------------------------------
+*/
+
 // enable dsl2
 nextflow.enable.dsl = 2
 

@@ -1,5 +1,29 @@
 #!/usr/bin/env nextflow
 
+/*
+    | READS_TO_VARIANTS |---------------------------------------------
+    
+    This workflow takes FASTQ files from iRODS and aligns the 
+    reads to a reference genome and performing a series of commands to
+    produce a coordinate sorted, indexed BAM file.
+
+    Per amplicon panel region read counts are determined from these BAM 
+    files. These per Amplicon panel regions are specificied through
+    a supplied annotation file.
+    
+    Variant call files are also produced from these alignment files.
+    Two separate genotyping workflows can be enabled or disabled to 
+    produce these variant call files, which are restricted to 
+    specific regions using a supplied SNP list.
+
+    A channel containing FASTQ file and associated reference genome is
+    is supplied to the workflow. This is in addition to channels that
+    link SNP list, annotation file and sample ID with file ID. A 
+    manifest linking sample IDs with associated VCF lanelet files is
+    output by this workflow.
+    ------------------------------------------------------------------
+*/
+
 // enable dsl2
 nextflow.enable.dsl = 2
 

@@ -1,5 +1,48 @@
 #!/usr/bin/env nextflow
 
+/*
+    | VARIANTS_TO_GRCS |-----------------------------------------
+    
+    This workflow takes a manifest file and and manifest for 
+    samples and lanelet VCFs as input. The variant calls in these 
+    VCFs are used to determine several key metrics, from which 
+    metadata enriched GRCs and barcodes files are assembled. Several
+    files are needed for these processes: 
+    [1] Chrom key file that the specifies amplicon regions, their genomic 
+    coordinates and reference alleles is for genotype file creation. 
+    [2] Codon key file for describing the genetic code by linking 
+    codons with associated amino acid.
+    [3] Kelch reference file which details the codons in the Kelch13
+    region - genomic location of each base, base at each position 
+    and amino acid.
+    [4] DRL information file that describes the amino acid position,
+    mutation name, and genomic position for each base in the locus 
+    for key drug resistance loci.
+    
+    A GRC settings file must also be supplied to the pipeline. This 
+    file details many important values for GRC creation. These include
+    minimum coverage values for Kelch13 mutation calling and species
+    calling, Kelch13 regions, Plasmepsin loci genotypes and variants, 
+    and amino acid calling / haplotype calling double heterozygous case
+    haplotype. It also contains values for a speciation default species 
+    and species order, species reference describing the allele for each 
+    species at particular loci and barcoding reference information:
+    chromosome, locus, reference allele.
+    
+    The lanelet VCFs specified in the lanelet manifest are used to
+    create a genotype file. This genotype file is used throughout
+    the workflow, for Kelch13 mutation calling, Plasmepsin copy
+    number variation calling, drug resistance haplotype assembly,
+    barcode assembly, species calling and complexity of infection 
+    estimation. The output from these processes are assembled into 
+    2 GRC files, which then have metadata from the manifest added 
+    to them.
+
+    2 resulting GRC files and a barcodes file that have had 
+    metadata added to them are output.
+    ------------------------------------------------------------------
+*/
+
 // enable dsl2
 nextflow.enable.dsl = 2
 
