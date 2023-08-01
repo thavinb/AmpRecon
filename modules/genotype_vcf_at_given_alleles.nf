@@ -5,7 +5,7 @@ params.bgzip='bgzip'
 params.suffix='genotyped_gatk.vcf'
 
 process genotype_vcf_at_given_alleles {
-    publishDir "${params.results_dir}/", overwrite: true, mode: "copy"
+    publishDir "${params.results_dir}/vcf_files", overwrite: true, mode: "copy"
 
     label 'vcf_parsing'
 
