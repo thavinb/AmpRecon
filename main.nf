@@ -206,7 +206,7 @@ workflow.onComplete {
         log.info """
             ===========================================
             ${ANSI_GREEN}Finished in ${workflow.duration}
-            See the report here ==> ${ANSI_RESET}/SOMEDIR/XXX_report.html
+            See the report here ==> ${ANSI_RESET}${workflow.launchDir}/report.html
             """
             .stripIndent()
     } else {
