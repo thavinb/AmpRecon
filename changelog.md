@@ -8,8 +8,8 @@ All notable changes to this project will be documented in this file.
 - **[Feature]**: None
 
 ### Changed
-- **[improvement]**: None
-
+- **[improvement]**: ENA cram files are now published on the output dir.
+- **[improvement]**: Output dir now is structured on subdirs.
 ### Fixed
 
 - **[Bug]** the manifest for in-country cannot have empty/NA values on any columns. This is a problem for test runs, which will always have empty values for metadata columns.
