@@ -3,7 +3,7 @@ nextflow.enable.dsl = 2
 
 process read_count_per_region {
     stageInMode 'copy'
-    publishDir "${params.results_dir}/", overwrite: true, mode: "copy"
+    publishDir "${params.results_dir}/read_counts/", overwrite: true, mode: "copy"
 
     input:
         path(bam_file_list)
