@@ -29,10 +29,11 @@ nextflow_workflow {
             assert workflow.success
             assert snapshot(workflow.out).match()
             with(workflow.out.fastq_ch) {
+                // test a tuple exists for every sample
                 assert size() == 4
                 //assert path(get(0)).readLines().size() == 1
-               // assert path(get(1)).readLines().size() == 1
-               // assert path(get(1)).md5 == "4a17df7a54b41a84df492da3f1bab1e3"
+                // assert path(get(1)).readLines().size() == 1
+                // assert path(get(1)).md5 == "4a17df7a54b41a84df492da3f1bab1e3"
             }
         }
 
