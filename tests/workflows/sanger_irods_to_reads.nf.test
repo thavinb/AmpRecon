@@ -35,6 +35,14 @@ nextflow_workflow {
                 // assert path(get(1)).readLines().size() == 1
                 // assert path(get(1)).md5 == "4a17df7a54b41a84df492da3f1bab1e3"
             }
+            with(workflow.out.file_id_reference_files_ch) {
+                // test whether channel tuple is correct length
+                assert get(0).size() == 4
+            }
+            with(workflow.out.file_id_to_sample_id_ch) {
+                // test whether channel tuple is correct length
+                assert get(0).size() == 2
+            }
         }
 
     }
