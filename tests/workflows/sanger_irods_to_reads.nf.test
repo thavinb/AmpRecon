@@ -1,0 +1,41 @@
+nextflow_workflow {
+
+    name "Test Workflow SANGER_IRODS_TO_READS"
+    script "workflows/sanger_irods_to_reads.nf"
+    workflow "SANGER_IRODS_TO_READS"
+
+    test("Should run without failures") {
+
+        when {
+            params {
+                // define parameters here.
+                irods_manifest = "/nfs/team335/production/resources/pipeline_resources/plasmodium/falciparum/amplicon/datasets/workflow-testing/sanger_irods_to_reads/irods_manifest_file.tsv"
+                channel_data_file = "/nfs/team335/production/resources/pipeline_resources/plasmodium/falciparum/amplicon/datasets/workflow-testing/sanger_irods_to_reads/sanger_irods_to_reads_workflow_data.tsv"
+                containers_dir = "/lustre/scratch126/gsu/malariagen/production/resources/pipeline_resources/plasmodium/falciparum/amplicon/ampseq_containers/"
+            }
+            workflow {
+                """
+                // define inputs of the workflow here.
+                channel_data = Channel.fromPath(params.channel_data_file, checkIfExists: true).splitCsv(header: true, sep: '\t')
+
+                // Sanger iRODS to Reads input channels
+                input[0] = Channel.fromPath(params.irods_manifest)
+                input[1] = channel_data.map { row -> tuple(row.reference_file, row.panel_name, row.snp_list) }
+                """
+            }
+        }
+
+        then {
+            assert workflow.success
+            assert snapshot(workflow.out).match()
+            with(workflow.out.fastq_ch) {
+                assert size() == 4
+                //assert path(get(0)).readLines().size() == 1
+               // assert path(get(1)).readLines().size() == 1
+               // assert path(get(1)).md5 == "4a17df7a54b41a84df492da3f1bab1e3"
+            }
+        }
+
+    }
+
+}
