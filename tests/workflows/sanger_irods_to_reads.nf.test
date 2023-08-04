@@ -29,17 +29,21 @@ nextflow_workflow {
             assert workflow.success
             //assert snapshot(workflow.out).match()
             with(workflow.out.fastq_ch) {
-                // test whether a tuple exists for every sample
+                // test whether a tuple exists for every lanelet
                 assert size() == path(params.irods_manifest).readLines().size() - 1
                 //assert path(get(0)).readLines().size() == 1
                 // assert path(get(1)).readLines().size() == 1
                 // assert path(get(1)).md5 == "4a17df7a54b41a84df492da3f1bab1e3"
             }
             with(workflow.out.file_id_reference_files_ch) {
+                // test whether a tuple exists for every lanelet
+                assert size() == path(params.irods_manifest).readLines().size() - 1
                 // test whether channel tuple is correct length
                 assert get(0).size() == 4
             }
             with(workflow.out.file_id_to_sample_id_ch) {
+                // test whether a tuple exists for every lanelet
+                assert size() == path(params.irods_manifest).readLines().size() - 1
                 // test whether channel tuple is correct length
                 assert get(0).size() == 2
             }
