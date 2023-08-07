@@ -240,3 +240,29 @@ gatk3: <str> path to GATK3 GenomeAnalysisTK.jar file - only needed if GATK genot
 The GRC creation of the pipeline requires several additional files. These include a GRC settings JSON file (`--grc_settings_file_path`), a chromKey file (`-- --chrom_key_file_path`), a codonKey file (`--condon_key_file_path`), a Kelch13 reference sequence file (`--kelch_reference_file_path`) and a drug resistance loci information file (`--drl_information_file_path`), which must be provided via nextflow parameters.
 
 ---
+
+## Running NF-tests
+
+The unit tests for the workflow are implemented using [NF-test](https://code.askimed.com/nf-test/).
+If not available already on the CLI,
+### Install NF-test
+
+1. Download NF-test:
+
+```{bash}
+wget -qO- https://code.askimed.com/install/nf-test | bash
+```
+
+2. Create an alias for the file you just downloaded, be sure you can execute the file.
+
+```{bash}
+alias nf-test="/path/to/my/nf-test"
+```
+
+### Run tests
+
+On the repository directory, run:
+
+```{bash}
+nf-test test tests/workflows/sanger_irods_to_reads.nf.test --profile sanger_default
+```
