@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Added
-- **[Feature]**: None
+- **[Feature]**: NF-test based unit test of the workflow `sanger_irods_to_reads.nf`
 
 ### Changed
 - **[improvement]**: ENA cram files are now published on the output dir.
