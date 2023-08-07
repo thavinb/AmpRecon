@@ -7,6 +7,8 @@ nextflow.enable.dsl = 2
 // - workflows
 
 include { parse_panel_settings } from './modules/parse_panels_settings.nf'
+include { miseq_to_reads_parameter_check } from './workflows/miseq_to_reads.nf'
+include { irods_to_reads_parameter_check } from './workflows/sanger_irods_to_reads.nf'
 include { SANGER_IRODS_TO_READS } from './workflows/sanger_irods_to_reads.nf'
 include { MISEQ_TO_READS } from './workflows/miseq_to_reads.nf'
 include { READS_TO_VARIANTS } from './workflows/reads_to_variants.nf'
@@ -157,6 +159,7 @@ workflow {
       printHelp()
       exit 0
   }
+  validate_general_params()
 
   // -- MAIN-EXECUTION ------------------------------------------------------
   // prepare panel resource channels
@@ -173,6 +176,7 @@ workflow {
 
   if (params.execution_mode == "in-country") {
     // process in country entry point
+    miseq_to_reads_parameter_check()
     manifest = Channel.fromPath(params.manifest_path, checkIfExists: true)
     MISEQ_TO_READS(manifest, reference_ch)
     fastq_files_ch = MISEQ_TO_READS.out.fastq_files_ch
@@ -181,6 +185,7 @@ workflow {
   }
 
   if (params.execution_mode == "irods") {
+    irods_to_reads_parameter_check()
     // process IRODS entry point
     manifest = Channel.fromPath(params.irods_manifest, checkIfExists: true)
     SANGER_IRODS_TO_READS(manifest, reference_ch)
@@ -218,6 +223,26 @@ workflow.onComplete {
     }
 }
 
+def __check_if_params_file_exist(param_name, param_value){
+  // --- GRC SETTINGS ---
+  def error = 0
+
+  if (!(param_value==null)){
+    param_file = file(param_value)
+    if (!param_file.exists()){
+      log.error("${param_file} does not exists")
+      error +=1
+    }
+  }
+
+  if (param_value==null){
+    log.error("${param_name} must be provided")
+    error +=1
+  }
+  // ----------------------
+  return error
+}
+
 def validate_general_params(){
   /*
   count errors on parameters which must be provided regardless of the workflow which will be executed
@@ -227,14 +252,37 @@ def validate_general_params(){
   <int> number of errors found
   */
 
-  def err = 0
+  def error = 0
   def valid_execution_modes = ["in-country", "irods"]
 
   // check if execution mode is valid
   if (!valid_execution_modes.contains(params.execution_mode)){
     log.error("The execution mode provided (${params.execution_mode}) is not valid. valid modes = ${valid_execution_modes}")
-    err += 1
+    error += 1
   }
+
+  // check if resources were provided
+  error += __check_if_params_file_exist("grc_settings_file_path", params.grc_settings_file_path)
+  error += __check_if_params_file_exist("panels_settings", params.panels_settings) 
+  error += __check_if_params_file_exist("chrom_key_file_path", params.chrom_key_file_path) 
+  error += __check_if_params_file_exist("kelch_reference_file_path", params.kelch_reference_file_path)
+  error += __check_if_params_file_exist("codon_key_file_path", params.codon_key_file_path)
+  error += __check_if_params_file_exist("drl_information_file_path", params.drl_information_file_path)
+  
+  // raise WARNING if debug params were set
+  if (!params.DEBUG_takes_n_bams == null){
+    log.warn("[DEBUG] takes_n_bams was set to ${params.DEBUG_takes_n_bams}")
+  }
+
+  if (!params.DEBUG_tile_limit == null){
+    log.warn("[DEBUG] tile_limit was set to ${params.DEBUG_tile_limit}")
+  }
+
+  if (params.DEBUG_no_coi == true){
+    log.warn("[DEBUG] no_coi was set to ${params.DEBUG_no_coi}")
+  }
+  // -------------------------------------------
+  
   // check if output dir exists, if not create the default
   if (params.results_dir){
     results_path = file(params.results_dir)
@@ -246,23 +294,22 @@ def validate_general_params(){
   
   // if S3 is requested, check if all s3 required parameters were provided
   // check S3 input bucket
-  if (!(params.s3_bucket_input==null)){
-    if (params.s3_uuid == null){
-      log.error("A s3 uuid parameter must be provided if a s3 bucket input is provided'.")
-      errors += 1
-    } 
-  }
+
   // check S3 output bucket
   if (params.upload_to_s3){
     if (params.s3_bucket_output == null){
       log.error("A s3_bucket_output parameter must be provided if upload_to_s3 is set to '${params.upload_to_s3}'.")
-      errors += 1
+      error += 1
     }
     if (params.s3_uuid==null){
       log.error("A s3_uuid must be provided if upload_to_s3 is required")
-      errors += 1
+      error += 1
     }
   }
-  return err
+
+  if (error > 0) {
+    log.error("Parameter errors were found, the pipeline will not run")
+    exit 1
+  }
 }
 
