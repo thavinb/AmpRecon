@@ -10,10 +10,8 @@ All notable changes to this project will be documented in this file.
 ### Changed
 - **[improvement]**: ENA cram files are now published on the output dir.
 - **[improvement]**: Output dir now is structured on subdirs.
+- **[improvement]**: Added missing parameter check calls.
 ### Fixed
-
-- **[Bug]** For some reason, the calls for parameters checks functions were not in place.
-  - **Fix**: The functions were adjusted to be self sufficient and not just return errors counts, and proper calls for the functions were added to `main.nf`, `miseq_to_reads.nf` and `sanger_irods_to_reads.nf`. In addition, checks if resource files were provided and the files exists were added.
 
 - **[Bug]** the manifest for in-country cannot have empty/NA values on any columns. This is a problem for test runs, which will always have empty values for metadata columns.
 
