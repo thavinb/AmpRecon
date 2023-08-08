@@ -170,6 +170,8 @@ workflow {
     channel_data = Channel.fromPath(params.channel_data_file, checkIfExists: true)
       .splitCsv(header: true, sep: '\t')
 
+    miseq_to_reads_parameter_check()
+
     // Miseq to Reads input channels
     manifest  = Channel.fromPath(params.manifest_path, checkIfExists: true)
     reference_ch = channel_data.map { row -> tuple(row.reference_file, row.panel_name, row.snp_list) }
