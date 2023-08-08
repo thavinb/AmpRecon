@@ -230,7 +230,7 @@ def __check_if_params_file_exist(param_name, param_value){
   if (!(param_value==null)){
     param_file = file(param_value)
     if (!param_file.exists()){
-      log.error("${param_file} does not exists")
+      log.error("${param_file} does not exist")
       error +=1
     }
   }
