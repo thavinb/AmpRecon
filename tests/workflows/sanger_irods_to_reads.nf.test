@@ -1,0 +1,107 @@
+nextflow_workflow {
+
+    name "Test Workflow SANGER_IRODS_TO_READS"
+    script "workflows/sanger_irods_to_reads.nf"
+    workflow "SANGER_IRODS_TO_READS"
+
+        test("Should fail when manifest file does not exist") {
+
+        when {
+            params {
+                irods_manifest = "./this_file_does_not_exist.csv"
+                channel_data_file = "/nfs/team335/production/resources/pipeline_resources/plasmodium/falciparum/amplicon/datasets/workflow-testing/sanger_irods_to_reads/sanger_irods_to_reads_workflow_data.tsv"
+                containers_dir = "/lustre/scratch126/gsu/malariagen/production/resources/pipeline_resources/plasmodium/falciparum/amplicon/ampseq_containers/"
+            }
+            workflow {
+                """
+                // Read in workflow channel data file
+                channel_data = Channel.fromPath(params.channel_data_file, checkIfExists: true).splitCsv(header: true, sep: '\t')
+
+                // SANGER_IRODS_TO_READS workflow input channels
+                input[0] = Channel.fromPath(params.irods_manifest)
+                input[1] = channel_data.map { row -> tuple(row.reference_file, row.panel_name, row.snp_list) }
+                """
+            }
+        }
+
+        then {
+            // Ensure workflow fails
+            assert workflow.failed
+        }
+    }
+
+
+    test("Should run without failures and output channels should be correct") {
+
+        when {
+            params {
+                irods_manifest = "/nfs/team335/production/resources/pipeline_resources/plasmodium/falciparum/amplicon/datasets/workflow-testing/sanger_irods_to_reads/irods_manifest_file.tsv"
+                channel_data_file = "/nfs/team335/production/resources/pipeline_resources/plasmodium/falciparum/amplicon/datasets/workflow-testing/sanger_irods_to_reads/sanger_irods_to_reads_workflow_data.tsv"
+                containers_dir = "/lustre/scratch126/gsu/malariagen/production/resources/pipeline_resources/plasmodium/falciparum/amplicon/ampseq_containers/"
+            }
+            workflow {
+                """
+                // Read in workflow channel data file
+                channel_data = Channel.fromPath(params.channel_data_file, checkIfExists: true).splitCsv(header: true, sep: '\t')
+
+                // SANGER_IRODS_TO_READS workflow input channels
+                input[0] = Channel.fromPath(params.irods_manifest)
+                input[1] = channel_data.map { row -> tuple(row.reference_file, row.panel_name, row.snp_list) }
+                """
+            }
+        }
+
+        then {
+            // Ensure workflow succeeded
+            assert workflow.success
+
+            // validate fastq_ch workflow output channel
+            with(workflow.out.fastq_ch) {
+                int number_of_lanelets = path(params.irods_manifest).readLines().size() - 1
+                // test whether a tuple exists for every lanelet
+                assert size() == number_of_lanelets
+
+                def md5_list = [
+                    "0dd029efe25ef48245e4cfaab0a52ac4",
+                    "d0a27bf0449dd6d9869511b916f6d2a6",
+                    "c2037440f5fe1f27642df21268f1696d",
+                    "51517e13efdcd47bbc65bf64a01c2bc6"
+                ]
+
+                // ensure that:
+                // 1) each channel tuple is the correct length
+                // 2) the FASTQ file in this tuple has an expected md5 hash
+                for (int index = 0; index < number_of_lanelets; index++) {
+                    assert get(index).size() == 3
+                    with(get(index)) {
+                        assert md5_list.contains(path(get(1)).md5)
+                    }
+                }
+            }
+            
+            // validate file_id_reference_files_ch workflow output channel
+            with(workflow.out.file_id_reference_files_ch) {
+                int number_of_lanelets = path(params.irods_manifest).readLines().size() - 1
+                // test whether a tuple exists for every lanelet
+                assert size() == number_of_lanelets
+
+                // test whether each channel tuple is the correct length
+                for (int index = 0; index < number_of_lanelets; index++) {
+                    assert get(index).size() == 4
+                }
+            }
+
+            // validate file_id_to_sample_id_ch workflow output channel
+            with(workflow.out.file_id_to_sample_id_ch) {
+                int number_of_lanelets = path(params.irods_manifest).readLines().size() - 1
+                // test whether a tuple exists for every lanelet
+                assert size() == number_of_lanelets
+
+                // test whether each channel tuple is the correct length
+                for (int index = 0; index < number_of_lanelets; index++) {
+                    assert get(index).size() == 2
+                }
+            }
+        }
+    }
+}
