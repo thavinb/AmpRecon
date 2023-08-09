@@ -170,6 +170,8 @@ workflow {
     channel_data = Channel.fromPath(params.channel_data_file, checkIfExists: true)
       .splitCsv(header: true, sep: '\t')
 
+    miseq_to_reads_parameter_check()
+
     // Miseq to Reads input channels
     manifest  = Channel.fromPath(params.manifest_path, checkIfExists: true)
     reference_ch = channel_data.map { row -> tuple(row.reference_file, row.panel_name, row.snp_list) }
@@ -192,29 +194,33 @@ def miseq_to_reads_parameter_check(){
     <int> the number of errors found
     */
 
-    def err = 0
+    def error = 0
 
     if (params.run_id == null){
       log.error("A run_id parameter must be provided for execution mode '${params.execution_mode}'.")
-      err += 1
+      error += 1
     }
 
     if (params.bcl_dir == null && params.s3_bucket_input == null){
       log.error("Either a bcl directory or a s3 bucket input must be specified for in-country execution_mode.")
-      err += 1
+      error += 1
     }
 
     if (params.manifest_path){
-      samplesheet = file(params.manifest_path)
+      manifest = file(params.manifest_path)
       if (!manifest.exists()){
         log.error("${manifest} does not exist.")
+        error += 1
       }
     }
 
     if (params.ena_study_name == null){
       log.error("A study_name parameter must be provided for execution mode '${params.execution_mode}'.")
-      err += 1
+      error += 1
     }
-    return err
+    if (error > 0) {
+      log.error("Parameter errors were found, the pipeline will not run")
+      exit 1
+    }
 }
 
