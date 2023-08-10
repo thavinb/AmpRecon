@@ -6,7 +6,7 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 - **[Feature]**: NF-test based unit test of the workflow `sanger_irods_to_reads.nf`
-
+- **[Feature]**: NF-test based unit test of the workflow `reads_to_grcs.nf`
 ### Changed
 - **[improvement]**: ENA cram files are now published on the output dir.
 - **[improvement]**: Output dir now is structured on subdirs.
