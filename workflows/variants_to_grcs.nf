@@ -108,6 +108,18 @@ workflow VARIANTS_TO_GRCS {
         // Format and add metadata to GRCs and barcodes files
         add_metadata_and_format(manifest_file, grc_assemble.out, grc_amino_acid_caller.out.grc2, grc_barcoding.out.barcoding_split_out_file)
 
+        // Those output channels were added to be used by nf-test 
+        grc1_no_metadata = grc_assemble.out 
+        grc1_with_metadata = add_metadata_and_format.out.grc1
+        grc2_with_metadata = add_metadata_and_format.out.grc2
+        barcodes = add_metadata_and_format.out.barcodes
+    
+    
+    emit:
+        grc1_no_metadata
+        grc1_with_metadata
+        grc2_with_metadata
+        barcodes
 }
 
 workflow {

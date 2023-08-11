@@ -1,0 +1,58 @@
+nextflow_workflow {
+
+    name "Test Workflow VARIANTS_TO_GRCS"
+    script "workflows/variants_to_grcs.nf"
+    workflow "VARIANTS_TO_GRCS"
+
+    def test_dir = "/nfs/team335/production/resources/pipeline_resources/plasmodium/falciparum/amplicon/datasets/workflow-testing/variants_to_grcs/"
+    def resources_dir = "/lustre/scratch126/gsu/malariagen/production/resources/pipeline_resources/plasmodium/falciparum/amplicon/general/"
+    def cont_dir = "/lustre/scratch126/gsu/malariagen/production/resources/pipeline_resources/plasmodium/falciparum/amplicon/ampseq_containers/"
+
+    test("Should run without failures") {
+        when {
+            params {
+                // define parameters here. Example:
+                // outdir = "tests/results"
+                manifest_path = "${test_dir}/manifest_file.tsv"
+                lanelet_manifest_path = "${test_dir}/lanelet_vcf_manifest_new.csv"
+                channel_data_file = "${test_dir}/lanelet_vcf_manifest.tsv"
+                containers_dir = "${cont_dir}"
+                chrom_key_file_path = "${resources_dir}/chromKey.txt"
+                kelch_reference_file_path = "${resources_dir}/kelchReference.txt"
+                codon_key_file_path = "${resources_dir}/codonKey.txt"
+                drl_information_file_path = "${resources_dir}/DRLinfo.txt"
+                grc_settings_file_path = "${resources_dir}/grc_settings.json"
+                grc1_name = "test"
+                grc2_name = "test"
+                barcodes_file = "test"
+            }
+
+            workflow {
+                """
+                // define inputs of the workflow here. Example:
+                // input[0] = file("test-file.txt")
+                manifest_file = Channel.fromPath(params.manifest_path, checkIfExists: true)
+                lanelet_manifest_file = Channel.fromPath(params.lanelet_manifest_path, checkIfExists: true)
+                chrom_key_file = Channel.fromPath(params.chrom_key_file_path, checkIfExists: true)
+                kelch_reference_file = Channel.fromPath(params.kelch_reference_file_path, checkIfExists: true)
+                codon_key_file = Channel.fromPath(params.codon_key_file_path, checkIfExists: true)
+                drl_information_file = Channel.fromPath(params.drl_information_file_path, checkIfExists: true)
+                
+                input[0] = manifest_file
+                input[1] = lanelet_manifest_file
+                input[2] = chrom_key_file
+                input[3] = kelch_reference_file
+                input[4] = codon_key_file
+                input[5] = drl_information_file
+                """
+            }
+        }
+
+        then {
+            // it should finish without errors
+            assert workflow.success
+            // the outputs should be exactly the same
+            assert snapshot(workflow.out).match()
+        }
+    }
+}

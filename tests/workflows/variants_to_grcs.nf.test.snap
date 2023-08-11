@@ -1,0 +1,33 @@
+{
+    "Should run without failures": {
+        "content": [
+            {
+                "0": [
+                    "GRC1.intermediate.tsv:md5,4ea14de1032466f4646ef4281a668f66"
+                ],
+                "1": [
+                    "test:md5,27ebb5bc0f2830b69cb545c7d153ba15"
+                ],
+                "2": [
+                    "test:md5,27ebb5bc0f2830b69cb545c7d153ba15"
+                ],
+                "3": [
+                    "null_Barcodes.txt:md5,b14f64719c281c1b83de9e2f5b0bf749"
+                ],
+                "barcodes": [
+                    "null_Barcodes.txt:md5,b14f64719c281c1b83de9e2f5b0bf749"
+                ],
+                "grc1_no_metadata": [
+                    "GRC1.intermediate.tsv:md5,4ea14de1032466f4646ef4281a668f66"
+                ],
+                "grc1_with_metadata": [
+                    "test:md5,27ebb5bc0f2830b69cb545c7d153ba15"
+                ],
+                "grc2_with_metadata": [
+                    "test:md5,27ebb5bc0f2830b69cb545c7d153ba15"
+                ]
+            }
+        ],
+        "timestamp": "2023-08-10T10:49:09+0000"
+    }
+}
