@@ -70,13 +70,23 @@ workflow VARIANTS_TO_GRCS {
         // Write genotype file
         assemble_genotype_file(lanelet_manifest_file, chrom_key_file)
         genotype_files_ch = assemble_genotype_file.out
-
+        
         // Call mutations at Kelch13 loci
-        grc_kelch13_mutation_caller(genotype_files_ch, kelch_reference_file, codon_key_file)
+        if (params.no_kelch == false){
+            grc_kelch13_mutation_caller(genotype_files_ch, kelch_reference_file, codon_key_file)
+            kelch_grc_ch = grc_kelch13_mutation_caller.out
+        } else {
+            kelch_grc_ch = Channel.empty()
+        }
 
         // Call copy number variation at Plasmepsin breakpoint
-        grc_plasmepsin_cnv_caller(genotype_files_ch)
-        
+        if (params.no_plasmepsin == false){
+            grc_plasmepsin_cnv_caller(genotype_files_ch)
+            plasmepsin_grc_ch = grc_plasmepsin_cnv_caller.out
+        } else {
+            plasmepsin_grc_ch = Channel.empty()
+        }
+
         // Create barcodes
         grc_barcoding(genotype_files_ch)
 
@@ -95,10 +105,10 @@ workflow VARIANTS_TO_GRCS {
         grc_amino_acid_caller(genotype_files_ch, drl_information_file, codon_key_file)
 
         // Assemble GRC1
-        grc_kelch13_mutation_caller.out
-            .concat(grc_plasmepsin_cnv_caller.out)
+        grc_speciate.out
+            .concat(kelch_grc_ch)
+            .concat(plasmepsin_grc_ch)
             .concat(grc_barcoding.out.barcoding_file)
-            .concat(grc_speciate.out)
             .concat(coi_grc_ch)
             .concat(grc_amino_acid_caller.out.drl_haplotypes)
             .collect()
@@ -135,4 +145,3 @@ workflow {
     // Run GRC creation workflow
     VARIANTS_TO_GRCS(manifest_file, lanelet_manifest_file, chrom_key_file, kelch_reference_file, codon_key_file, drl_information_file)
 }
-
