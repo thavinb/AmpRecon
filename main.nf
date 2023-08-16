@@ -174,9 +174,12 @@ workflow {
   // Files required for GRC creation
   Channel.fromPath(params.grc_settings_file_path, checkIfExists: true)
   chrom_key_file = Channel.fromPath(params.chrom_key_file_path, checkIfExists: true)
-  kelch_reference_file = Channel.fromPath(params.kelch_reference_file_path, checkIfExists: true)
   codon_key_file = Channel.fromPath(params.codon_key_file_path, checkIfExists: true)
   drl_information_file = Channel.fromPath(params.drl_information_file_path, checkIfExists: true)
+
+  if (params.no_kelch == false) {
+    kelch_reference_file = Channel.fromPath(params.kelch_reference_file_path, checkIfExists: true)
+  }
 
   if (params.execution_mode == "in-country") {
     // process in country entry point
