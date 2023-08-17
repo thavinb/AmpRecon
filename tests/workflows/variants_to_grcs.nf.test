@@ -25,6 +25,8 @@ nextflow_workflow {
                 grc1_name = "test"
                 grc2_name = "test"
                 barcodes_file = "test"
+                no_plasmepsin = false
+                no_kelch = false
             }
 
             workflow {

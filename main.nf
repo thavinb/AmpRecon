@@ -56,6 +56,10 @@ log.info """
          --s3_bucket_input    : ${params.s3_bucket_input}
          --s3_bucket_output   : ${params.s3_bucket_output}
 
+         (grc)
+         --no_plasmepsin      : ${params.no_plasmepsin}
+         --no_kelch           : ${params.no_kelch}
+
          (DEBUG)
          --DEBUG_tile_limit   : ${params.DEBUG_tile_limit}
          --DEBUG_takes_n_bams : ${params.DEBUG_takes_n_bams}
