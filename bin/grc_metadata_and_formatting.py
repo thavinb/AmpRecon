@@ -65,7 +65,7 @@ parser.add_argument(
 
 args = parser.parse_args()
 
-config = json.load(args.config)["metadata"]
+config = json.load(open(args.config))["metadata"]
 
 
 def read_file(input_file, key_column):
