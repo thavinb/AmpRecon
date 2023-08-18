@@ -7,6 +7,7 @@ All notable changes to this project will be documented in this file.
 ### Added
 - **[Feature]**: NF-test based unit test of the workflow `sanger_irods_to_reads.nf`
 - **[Feature]**: NF-test based unit test of the workflow `reads_to_grcs.nf`
+- **[Feature]**: Switches allow kelch-13 and plasmepsin GRC creation steps to be switched off
 ### Changed
 - **[improvement]**: ENA cram files are now published on the output dir.
 - **[improvement]**: Output dir now is structured on subdirs.
@@ -19,6 +20,9 @@ All notable changes to this project will be documented in this file.
 
 - **[Bug]** post processing of read couts files breaks when using test run ids standarad naming (`{run_id}_T`).
   - **Fix**: The `post_proc_read_counts.py` now removes any `_T` before recovering the lanelets.
+
+- **[Bug]**: Column names for Pf were hard-coded into metadata addition script, this blocked the usage of the pipeline with Pv. 
+  - **Fix**: Column ordering was abstracted to GRC settings file and metadata addition script was modified to include config file and read ordering from there.
 
 ## [1.0.0] - 2023-06-15
 
