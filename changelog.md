@@ -12,6 +12,7 @@ All notable changes to this project will be documented in this file.
 - **[improvement]**: ENA cram files are now published on the output dir.
 - **[improvement]**: Output dir now is structured on subdirs.
 - **[improvement]**: Added missing parameter check calls.
+- **[improvement]**: Allow kelch-reference file to not be specified if `no_kelch` flag set
 ### Fixed
 - **[Bug]**: Column names for Pf were hard-coded into metadata addition script, this blocked the usage of the pipeline with Pv. 
   - **Fix**: Column ordering was abstracted to GRC settings file and metadata addition script was modified to include config file and read ordering from there.
