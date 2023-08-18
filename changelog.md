@@ -13,6 +13,12 @@ All notable changes to this project will be documented in this file.
 - **[improvement]**: Output dir now is structured on subdirs.
 - **[improvement]**: Added missing parameter check calls.
 ### Fixed
+- **[Bug]**: Column names for Pf were hard-coded into metadata addition script, this blocked the usage of the pipeline with Pv. 
+  - **Fix**: Column ordering was abstracted to GRC settings file and metadata addition script was modified to include config file and read ordering from there.
+
+## [1.0.1] - 2023-07-13
+
+### Fixed
 
 - **[Bug]** the manifest for in-country cannot have empty/NA values on any columns. This is a problem for test runs, which will always have empty values for metadata columns.
 
@@ -20,9 +26,6 @@ All notable changes to this project will be documented in this file.
 
 - **[Bug]** post processing of read couts files breaks when using test run ids standarad naming (`{run_id}_T`).
   - **Fix**: The `post_proc_read_counts.py` now removes any `_T` before recovering the lanelets.
-
-- **[Bug]**: Column names for Pf were hard-coded into metadata addition script, this blocked the usage of the pipeline with Pv. 
-  - **Fix**: Column ordering was abstracted to GRC settings file and metadata addition script was modified to include config file and read ordering from there.
 
 ## [1.0.0] - 2023-06-15
 
