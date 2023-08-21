@@ -126,7 +126,6 @@ workflow VARIANTS_TO_GRCS {
     
     
     emit:
-        grc1_no_metadata
         grc1_with_metadata
         grc2_with_metadata
         barcodes
