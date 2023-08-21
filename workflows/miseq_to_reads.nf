@@ -35,74 +35,6 @@ include { create_taglist_file } from '../modules/create_taglist_file.nf'
 include { validate_manifest } from '../modules/validate_manifest.nf'
 include { retrieve_miseq_run_from_s3 } from '../modules/retrieve_miseq_run_from_s3.nf'
 
-workflow BCL_TO_COLLATED_CRAM {
-    take:
-        run_id
-        bcl_dir
-        study_name
-        manifest_file
-
-    main:
-        // convert basecalls
-        basecalls_conversion(run_id, bcl_dir, study_name)
-
-        // Create tag list file
-        create_taglist_file(study_name, manifest_file)
-
-        // decode multiplexed bam file
-        decode_multiplexed_bam(basecalls_conversion.out, create_taglist_file.out)
-
-        // find adapter contamination in bam
-        bam_find_adapter(decode_multiplexed_bam.out.decoded_bam_file)
-  
-        // split bam by read group into cram
-        split_bam_by_readgroup(bam_find_adapter.out)
-        cram_ch = split_bam_by_readgroup.out
-
-        // extract index from CRAM file name and add to channel
-        cram_ch
-          | flatten() // /path/to/runID_lane#index.cram
-          | map { it -> tuple(it.simpleName.split('#')[1], it) }
-          | set {final_cram_ch} // tuple (index, cram_file,)
-
-    emit:
-        final_cram_ch // tuple (index, cram_file)
-
-}
-
-workflow COLLATED_CRAM_TO_SPLIT_CRAM_AND_FASTQ {
-/*
-    | COLLATED_CRAM_TO_SPLIT_CRAM_AND_FASTQ |-----------------------------------------
-    
-    This workflow does the following to each CRAM file it is supplied:
-    [1] Undoes alignments, moves the adapter sequences and outputs the reads in fastq format.
-    [2] Aligns reads to a reference, rewrites the header, sorts by coordinate and outputs the alignments in CRAM format.
-    ------------------------------------------------------------------
-*/
-    take:
-        cram_ch // tuple (file_id, cram_file)
-        file_id_reference_files_ch // tuple (file_id, ref_fasta)
-
-    main:
-        // --| DEBUG |--------------------------------------------------
-        if (!(params.DEBUG_takes_n_bams == null)){
-            cram_ch = cram_ch.take(params.DEBUG_takes_n_bams)
-        }
-        // -------------------------------------------------------------
-
-        cram_ch // tuple(file_id, cram_file)
-              // get panel resource files
-              | join(file_id_reference_files_ch) // tuple (file_id, cram_file, ref_fasta)
-              | set{ crams_and_reference_files_ch }
-
-        // Create FASTQ and an ENA submission ready CRAM file 
-        cram_to_fastq_and_ena_cram(crams_and_reference_files_ch)
-        fastq_ch = cram_to_fastq_and_ena_cram.out.fastq
-  
-    emit:
-        fastq_ch  // tuple (file_id, fastq_file, reference_fasta_file, panel_name)
-}
-
 workflow MISEQ_TO_READS {
   take:
     manifest_file
@@ -124,13 +56,27 @@ workflow MISEQ_TO_READS {
     panel_names_list = reference_ch.map{it -> it[1].toString()}.collect()
     validate_manifest(manifest_file, panel_names_list)
 
-    // Stage 1 - Step 1: BCL to CRAM
-    BCL_TO_COLLATED_CRAM(params.run_id,
-                        bcl_dir,
-                        params.ena_study_name,
-                        manifest_file)
-    cram_ch = BCL_TO_COLLATED_CRAM.out // tuple (file_id, cram_file)
+    // convert basecalls
+    basecalls_conversion(params.run_id, bcl_dir, params.ena_study_name)
 
+    // Create tag list file
+    create_taglist_file(params.ena_study_name, manifest_file)
+
+    // decode multiplexed bam file
+    decode_multiplexed_bam(basecalls_conversion.out, create_taglist_file.out)
+
+    // find adapter contamination in bam
+    bam_find_adapter(decode_multiplexed_bam.out.decoded_bam_file)
+  
+    // split bam by read group into cram
+    split_bam_by_readgroup(bam_find_adapter.out)
+
+    // extract index from CRAM file name and add to channel
+    split_bam_by_readgroup.out
+      | flatten() // /path/to/runID_lane#index.cram
+      | map { it -> tuple(it.simpleName.split('#')[1], it) }
+      | set {cram_ch} // tuple (index, cram_file)
+    
     // get the relevant sample data from the manifest and link with cram files
     file_id_ch = manifest_file
       | splitCsv(header: true, sep: '\t')
@@ -147,13 +93,25 @@ workflow MISEQ_TO_READS {
       | map{it -> tuple(it[1], it[0], it[2], it[3])}
       | set{file_id_reference_files_ch} // tuple (file_id, panel_name, path/to/reference/genome, snp_list)
 
-    // Stage 1 - Step 2: Collated CRAM to FASTQ and split CRAM
     updated_cram_ch = file_id_ch.map{it -> tuple(it[0], it[3],)} // tuple (file_id, cram_file)
     reference_fasta_ch = file_id_reference_files_ch.map{it -> tuple(it[0], it[2])} // tuple (file_id, reference_fasta_file)
-    COLLATED_CRAM_TO_SPLIT_CRAM_AND_FASTQ(updated_cram_ch, reference_fasta_ch)
+
+    // --| DEBUG |--------------------------------------------------
+    if (!(params.DEBUG_takes_n_bams == null)){
+        updated_cram_ch = updated_cram_ch.take(params.DEBUG_takes_n_bams)
+    }
+    // -------------------------------------------------------------
+
+    updated_cram_ch // tuple(file_id, cram_file)
+      // get panel resource files
+      | join(reference_fasta_ch) // tuple (file_id, cram_file, ref_fasta)
+      | set{ crams_and_reference_files_ch }
+
+    // Create FASTQ and an ENA submission ready CRAM file 
+    cram_to_fastq_and_ena_cram(crams_and_reference_files_ch)
 
     // Output channel: fastq_file assigned its appropriate reference fasta
-    fastq_files_ch = COLLATED_CRAM_TO_SPLIT_CRAM_AND_FASTQ.out.fastq_ch // tuple (file_id, fastq_file, reference_fasta_file)
+    fastq_files_ch = cram_to_fastq_and_ena_cram.out.fastq // tuple (file_id, fastq_file, reference_fasta_file)
 
     // Output channel: file_id linked with lims_id
     file_id_ch.map{it -> tuple(it[0], it[2])}.set{file_id_to_sample_id_ch} // tuple (file_id, lims_id)
