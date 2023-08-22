@@ -1,0 +1,10 @@
+FROM python:3.8-buster AS spython-base
+RUN apt update -qq -y
+RUN apt upgrade -y
+RUN apt install gcc git grep libcurl4-openssl-dev r-base build-essential python3 -y
+RUN pip install --upgrade pip
+RUN pip install python-csv \
+pytest \
+pandas \
+pyvcf
+CMD exec /bin/bash/ "$@"
