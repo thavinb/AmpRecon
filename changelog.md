@@ -5,6 +5,7 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Added
+- **[Feature]**: NF-test based unit test of the workflow `miseq_to_reads.nf`
 - **[Feature]**: NF-test based unit test of the workflow `sanger_irods_to_reads.nf`
 - **[Feature]**: NF-test based unit test of the workflow `reads_to_grcs.nf`
 ### Changed
