@@ -265,4 +265,5 @@ On the repository directory, run:
 
 ```{bash}
 nf-test test tests/workflows/sanger_irods_to_reads.nf.test --profile sanger_default
+nf-test test tests/workflows/miseq_to_reads.nf.test --profile sanger_default
 ```
