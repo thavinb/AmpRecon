@@ -1,0 +1,3 @@
+[submodule "ampliconresources"]
+	path = ampliconresources
+	url = https://gitlab.internal.sanger.ac.uk/malariagen1/ampliconresources.git
