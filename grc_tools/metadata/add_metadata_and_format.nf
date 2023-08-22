@@ -21,6 +21,7 @@ process add_metadata_and_format {
         output_grc1 = params.grc1_name
         output_grc2 = params.grc2_name
         output_barcodes = params.barcodes_name
+        grc_settings = params.grc_settings_file_path
 
         """
         grc_metadata_and_formatting.py \
@@ -30,6 +31,7 @@ process add_metadata_and_format {
             --barcodes_file ${barcodes_file} \
             --output_file_grc1 "${output_grc1}" \
             --output_file_grc2 "${output_grc2}" \
-            --output_file_barcodes "${output_barcodes}"
+            --output_file_barcodes "${output_barcodes}" \
+            --config ${grc_settings}
         """
 }

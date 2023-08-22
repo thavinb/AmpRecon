@@ -174,9 +174,14 @@ workflow {
   // Files required for GRC creation
   Channel.fromPath(params.grc_settings_file_path, checkIfExists: true)
   chrom_key_file = Channel.fromPath(params.chrom_key_file_path, checkIfExists: true)
-  kelch_reference_file = Channel.fromPath(params.kelch_reference_file_path, checkIfExists: true)
   codon_key_file = Channel.fromPath(params.codon_key_file_path, checkIfExists: true)
   drl_information_file = Channel.fromPath(params.drl_information_file_path, checkIfExists: true)
+
+  if (params.no_kelch == false) {
+    kelch_reference_file = Channel.fromPath(params.kelch_reference_file_path, checkIfExists: true)
+  } else {
+    kelch_reference_file = Channel.empty()
+  }
 
   if (params.execution_mode == "in-country") {
     // process in country entry point
@@ -269,9 +274,12 @@ def validate_general_params(){
   error += __check_if_params_file_exist("grc_settings_file_path", params.grc_settings_file_path)
   error += __check_if_params_file_exist("panels_settings", params.panels_settings) 
   error += __check_if_params_file_exist("chrom_key_file_path", params.chrom_key_file_path) 
-  error += __check_if_params_file_exist("kelch_reference_file_path", params.kelch_reference_file_path)
   error += __check_if_params_file_exist("codon_key_file_path", params.codon_key_file_path)
   error += __check_if_params_file_exist("drl_information_file_path", params.drl_information_file_path)
+
+  if (params.no_kelch == false) {
+    error += __check_if_params_file_exist("kelch_reference_file_path", params.kelch_reference_file_path)
+  }
   
   // raise WARNING if debug params were set
   if (!params.DEBUG_takes_n_bams == null){
