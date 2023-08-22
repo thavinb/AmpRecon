@@ -45,27 +45,25 @@
         ]
     },
     "grc_amino_acid_caller" : {
+        "DR_DOUBLE_HETEROZYGOUS_CASES" : {
 
-	"DR_DOUBLE_HETEROZYGOUS_CASES" : {
+            "PfCRT" :[
+                    ["75", ["A,G", "A", "T,A"], "N", "E"]	
+                ],
+            "PfDHPS" :[ ["436", ["T,G", "C,G", "T"], "A", "C"],
+                    ["436", ["T,G", "C,T", "T"], "A", "F"],
+                    ["436", ["T,G", "C,A", "T"], "A", "Y"],
+                    ["436", ["C,G", "C,A", "T"], "A", "H"],
+                    ["540", ["A,G", "A", "A,T"], "E", "N"],
+                    ["540", ["A,T", "A", "A,T"], "K", "N"] 
+            ]
+        },
 
-		"PfCRT" : [
-					["75", ["A,G", "A", "T,A"], "N", "E"]	
-		],
-		"PfDHPS" : [ ["436", ["T,G", "C,G", "T"], "A", "C"],
-		 			 ["436", ["T,G", "C,T", "T"], "A", "F"],
-		 			 ["436", ["T,G", "C,A", "T"], "A", "Y"],
-		 			 ["436", ["C,G", "C,A", "T"], "A", "H"],
-		 			 ["540", ["A,G", "A", "A,T"], "E", "N"],
-		 			 ["540", ["A,T", "A", "A,T"], "K", "N"] 
-		]
-	},
-
-	"DR_HAPLOTYPE_SPECIAL_CASES" : {
-
-		"PfCRT" : { "73" : "V"}
-
-	}
+        "DR_HAPLOTYPE_SPECIAL_CASES" : {
+            "PfCRT" : { "73" : "V"}
+        }
     },
+    
     "grc_speciation": {
         "min_maf": 0.01,
         "match_threshold": 0.95,
