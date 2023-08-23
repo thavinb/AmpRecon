@@ -31,7 +31,7 @@ workflow READ_COUNTS {
     // upload read counts to S3 bucket
     if (params.upload_to_s3){
       read_count_per_region.out.set{output_to_s3}
-      upload_pipeline_output_to_s3(output_to_s3)
+      upload_pipeline_output_to_s3(output_to_s3, "read_counts")
     }
 }
 

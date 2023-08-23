@@ -17,7 +17,7 @@ workflow ALIGNMENT {
     // upload BAM files and index files to S3 bucket
     if (params.upload_to_s3){
       output_to_s3 = bwa_alignment_and_post_processing.out.map{it -> tuple(it[1], it[2])}.flatten()
-      upload_pipeline_output_to_s3(output_to_s3)
+      upload_pipeline_output_to_s3(output_to_s3, "bams")
     }
 
   emit:

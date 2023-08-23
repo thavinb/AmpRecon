@@ -33,7 +33,7 @@ workflow GENOTYPING_BCFTOOLS {
     // upload VCF files to S3 bucket
     if (params.upload_to_s3){
       bcftools_filter.out.map{ it -> it[1] }.set{output_to_s3}
-      upload_pipeline_output_to_s3(output_to_s3)
+      upload_pipeline_output_to_s3(output_to_s3, "vcfs")
     }
 
   emit:
