@@ -43,6 +43,7 @@ Staden 1.14.9
     BWA_VERSION=0.7.17
     STADEN_VERSION=1.14.9
     STADEN_TAG=io_lib-1-14-9
+    S3CMD_VERSION=2.0.1
     # Install requirements ---------------------
     apt update
     #apt upgrade -y
@@ -73,6 +74,9 @@ Staden 1.14.9
     # add python requirements
     pip install --upgrade pip
     pip install pandas
+
+    # Install S3cmd - assumes .s3cfg already exists in home directory
+    pip install s3cmd==${S3CMD_VERSION}
 
     # Setup HTSLib
     wget -O "htslib.tar.gz" https://github.com/samtools/htslib/archive/${HTSLIB_VERSION}.tar.gz
@@ -137,6 +141,7 @@ Staden 1.14.9
     make &&  mv bwa /usr/local/bin
     cd ..
     
+    # --- | Staden | -----------------------------------------------------------------------------|
     # Retrieve and compile Staden
     cd /tmp
     wget https://github.com/jkbonfield/io_lib/releases/download/${STADEN_TAG}/io_lib-${STADEN_VERSION}.tar.gz

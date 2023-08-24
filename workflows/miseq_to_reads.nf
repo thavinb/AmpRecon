@@ -34,6 +34,7 @@ include { cram_to_fastq_and_ena_cram } from '../modules/cram_to_fastq_and_ena_cr
 include { create_taglist_file } from '../modules/create_taglist_file.nf'
 include { validate_manifest } from '../modules/validate_manifest.nf'
 include { retrieve_miseq_run_from_s3 } from '../modules/retrieve_miseq_run_from_s3.nf'
+include { upload_pipeline_output_to_s3 } from '../modules/upload_pipeline_output_to_s3.nf'
 
 workflow MISEQ_TO_READS {
   take:
@@ -109,6 +110,12 @@ workflow MISEQ_TO_READS {
 
     // Create FASTQ and an ENA submission ready CRAM file 
     cram_to_fastq_and_ena_cram(crams_and_reference_files_ch)
+
+    // upload ENA-ready CRAM files to S3 bucket
+    if (params.upload_to_s3){
+      cram_to_fastq_and_ena_cram.out.cram.set{output_to_s3}
+      upload_pipeline_output_to_s3(output_to_s3, "crams")
+    }
 
     // Output channel: fastq_file assigned its appropriate reference fasta
     fastq_files_ch = cram_to_fastq_and_ena_cram.out.fastq // tuple (file_id, fastq_file, reference_fasta_file)

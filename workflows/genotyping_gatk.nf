@@ -40,7 +40,7 @@ workflow GENOTYPING_GATK {
     // upload VCF files / indices to S3 bucket
     if (params.upload_to_s3){
       genotyped_vcf_ch.map{it -> tuple(it[1], it[2])}.flatten().set{output_to_s3}
-      upload_pipeline_output_to_s3(output_to_s3)
+      upload_pipeline_output_to_s3(output_to_s3, "vcfs")
     }    
 
   emit:

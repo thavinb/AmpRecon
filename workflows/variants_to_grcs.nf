@@ -56,6 +56,7 @@ include { grc_estimate_coi } from '../grc_tools/COI/grc_estimate_coi.nf'
 include { grc_amino_acid_caller } from '../grc_tools/amino_acid_calling/grc_amino_acid_caller.nf'
 include { grc_assemble } from '../grc_tools/assemble_grc1/grc_assemble.nf'
 include { add_metadata_and_format } from '../grc_tools/metadata/add_metadata_and_format.nf'
+include { upload_pipeline_output_to_s3 } from '../modules/upload_pipeline_output_to_s3.nf'
 
 workflow VARIANTS_TO_GRCS {
     take:
@@ -124,7 +125,16 @@ workflow VARIANTS_TO_GRCS {
         grc2_with_metadata = add_metadata_and_format.out.grc2
         barcodes = add_metadata_and_format.out.barcodes
     
-    
+        // upload final GRCs, final Barcodes file and Genotype file to S3 bucket
+        if (params.upload_to_s3){
+            grc1_with_metadata
+                .concat(grc2_with_metadata)
+                .concat(barcodes)
+                .concat(genotype_files_ch)
+                .set{output_to_s3}
+            upload_pipeline_output_to_s3(output_to_s3, "grcs_barcodes")
+        }
+
     emit:
         grc1_with_metadata
         grc2_with_metadata
