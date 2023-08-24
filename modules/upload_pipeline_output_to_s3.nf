@@ -2,7 +2,6 @@ process upload_pipeline_output_to_s3 {
     /**
     * Uploads given files to an S3 bucket.
     */
-container = null
     input:
         path(files)
         val(file_prefix)
