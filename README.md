@@ -2,7 +2,7 @@
 
 Ampseq is a bioinformatics analysis pipeline for amplicon sequencing data. Currently supporting alignment and SNP variant calling on paired-end Illumina sequencing data.
 
-The pipeline has capabilities to output [Genetic Report Cards (GRCs)](https://www.malariagen.net/sites/default/files/GRC_UserGuide_10JAN19.pdf) and readcounts per pannel files  directly from [Binary Base Calls (BCLs)](https://emea.illumina.com/informatics/sequencing-data-analysis/sequence-file-formats.html) files, as well as starting from aligned [CRAM](https://www.sanger.ac.uk/tool/cram/) formatted files stored in Sanger's internal file storage system which is based on [iRODS](https://irods.org) (Integrated Rule-Oriented Data System). In addition, the pipeline also outputs [BAM](https://en.wikipedia.org/wiki/Binary_Alignment_Map) per lanelet and [VCFs](https://samtools.github.io/hts-specs/VCFv4.2.pdf) per sample. Our pipeline allows configurable reference handling, allowing high-throughput processing of data against multiple amplicon panels in a single pipeline run.
+The pipeline has capabilities to output [Genetic Report Cards (GRCs)](https://www.malariagen.net/sites/default/files/GRC_UserGuide_10JAN19.pdf) and readcounts per pannel files  directly from [Binary Base Calls (BCLs)](https://emea.illumina.com/informatics/sequencing-data-analysis/sequence-file-formats.html) files, as well as starting from aligned [CRAM](https://www.sanger.ac.uk/tool/cram/) formatted files stored in Sanger's internal file storage system which is based on [iRODS](https://irods.org) (Integrated Rule-Oriented Data System). In addition, the pipeline also outputs [BAM](https://en.wikipedia.org/wiki/Binary_Alignment_Map) per lanelet and [VCFs](https://samtools.github.io/hts-specs/VCFv4.2.pdf) per sample. Our pipeline allows configurable reference handling, allowing high-throughput processing of data against multiple amplicon panels in a single pipeline run. We allow both plasmodium falciparum and vivax species to be run through the invocation of a configuration file in the conf sub-directory of this repository
 
 
 # Quick-start guide to Ampseq
@@ -28,7 +28,7 @@ All recipes for the ampseq containers can be found at the `containers/` director
 
 ```
 # clone repo
-git clone https://gitlab.internal.sanger.ac.uk/malariagen1/ampseq-pipeline.git
+git clone --recurse-submodules https://gitlab.internal.sanger.ac.uk/malariagen1/ampseq-pipeline.git
 # build containers
 cd ./ampseq-pipeine/containers/
 bash buildContainers.sh
@@ -44,12 +44,8 @@ nextflow /path/to/ampseq-pipeline/main.nf -profile sanger_lsf \
                 --execution_mode in-country \
                 --run_id 21045 \
                 --bcl_dir /path/to/my_bcl_dir/ --ena_study_name test --manifest_path manifest.tsv \
-                --chrom_key_file_path chromKey.txt
-                --grc_settings_file_path grc_settings.json
-                --drl_information_file_path DRLinfo.txt
-                --codon_key_file_path codonKey.txt
-                --kelch_reference_file_path kelchReference.txt
                 --containers_dir /path/to/containers_dir/
+                -c /path/to/species/config
 ```
 
 To run from the **iRODS** entry point:
@@ -59,12 +55,8 @@ nextflow /path/to/ampseq-pipeline/main.nf -profile sanger_lsf \
         --execution_mode irods \
         --run_id 21045 \
         --irods_manifest /path/to/irods_manifest.tsv
-        --chrom_key_file_path /path/to/chromKey.txt
-        --grc_settings_file_path /path/togrc_settings.json
-        --drl_information_file_path DRLinfo.txt
-        --codon_key_file_path codonKey.txt
-        --kelch_reference_file_path kelchReference.txt
         --containers_dir ./containers_dir/
+        -c /path/to/species/config 
 ```
 
 > **NOTE**
@@ -85,6 +77,7 @@ Absolutely required
 
 ```
 execution_mode : sets the entry point for the pipeline ("irods" or "in-country")
+species_config/-c : stages the relevant reference files to run the species selected. Two configuration files for plasmodium vivax and plasmodium falciparum are provided in the repository in the conf sub-directory
 ```
 
 Required for **in-country**
