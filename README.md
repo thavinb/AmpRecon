@@ -198,6 +198,10 @@ irods_path	sample_id	primer_panel	study_name	pipeline_id	taxon_id	common_name	na
 /seq/26381/26381_1#808.cram	JHG3639016I	PFA_Spec	Team 112 R&D	GBS	5833	Plasmodium Falciparum	3429STDY7977859	RCN15110        3429STDY7977888	MiSeq	2019-05-30 03:38:57	29632	1	149	1	29632_1#256
 ```
 
+### Species configuration file
+
+Ampseq relies on a configuration file that specifies the species specific run settings. To invoke the pipeline it is imperative that one of these configuration files is passed at the command line using nextflow run's -c flag. If the user does not have a configuration file. They may use one of the ones provided in the conf sub-directory.
+
 ### Panel Settings
 
 The ampseq pipeline relies on a `panels_settings.csv` to define which files it should use on key pipeline steps according to the panel name provided for a given sample.
