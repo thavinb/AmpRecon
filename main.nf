@@ -33,8 +33,6 @@ log.info """
          --containers_dir     : ${params.containers_dir}
          --results_dir        : ${params.results_dir}
          --containers_dir     : ${params.containers_dir}
-         --genotyping_gatk    : ${params.genotyping_gatk}
-         --genotyping_bcftools: ${params.genotyping_bcftools}
          --grc_settings_file_path: ${params.grc_settings_file_path}
          --chrom_key_file_path: ${params.chrom_key_file_path}
          --kelch_reference_file_path: ${params.kelch_reference_file_path}
@@ -141,10 +139,6 @@ def printHelp() {
       --results_dir : <path>, output directory (Default: $launchDir/output/)
       --panels_settings : <path>, path to panel_settings.csv
       --containers_dir : <path>, path to a dir where the containers are located
-
-      (genotyping)
-      --gatk3: <str> path to GATK3 GenomeAnalysisTK.jar file
-      --
 
     Additional options:
       --help (Prints this help message. Default: false)
