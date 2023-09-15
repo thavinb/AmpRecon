@@ -158,7 +158,7 @@ def miseq_to_reads_parameter_check(){
     }
 
     if (params.bcl_dir == null){
-      log.error("A bcl directory must be specified for in-country execution_mode.")
+      log.error("A bcl directory must be specified when the 'execution_mode' parameter is set to 'in-country'.")
       error += 1
     }
 
