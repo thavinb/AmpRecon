@@ -103,9 +103,6 @@ An example of an irods manifest tsv is provided at [add path to example]
 To use **S3**
 
 ```
-s3_uuid : <str> a universally unique id which will be used to fetch data from s3,
-s3_bucket_input: <str> s3 bucket name to fetch data from, if is not provided, the pipeline will not retrieve miseq runs from s3
-
 upload_to_s3: <bool> sets if needs to upload output data to an s3 bucket
 s3_bucket_output: <str> s3 bucket name to upload data to
 ```
