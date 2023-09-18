@@ -103,9 +103,6 @@ An example of an irods manifest tsv is provided at [add path to example]
 To use **S3**
 
 ```
-s3_uuid : <str> a universally unique id which will be used to fetch data from s3,
-s3_bucket_input: <str> s3 bucket name to fetch data from, if is not provided, the pipeline will not retrieve miseq runs from s3
-
 upload_to_s3: <bool> sets if needs to upload output data to an s3 bucket
 s3_bucket_output: <str> s3 bucket name to upload data to
 ```
@@ -187,7 +184,7 @@ irods_path	sample_id	primer_panel	study_name	pipeline_id	taxon_id	common_name	na
 
 ### Species configuration file
 
-Ampseq relies on a configuration file that specifies the species specific run settings. To invoke the pipeline it is imperative that one of these configuration files is passed at the command line using nextflow run's -c flag. If the user does not have a configuration file. They may use one of the ones provided in the conf sub-directory.
+Ampseq relies on a configuration file that specifies the species specific run settings. To invoke the pipeline it is imperative that one of these configuration files is passed at the command line using nextflow run's -c flag. If the user does not have a configuration file. They may use one of the ones provided in the conf sub-directory. The species configuration file points to files present at the [ampliconresources submodule](https://gitlab.internal.sanger.ac.uk/malariagen1/ampliconresources/-/tree/main/).
 
 ### Panel Settings
 
