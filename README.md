@@ -197,7 +197,7 @@ irods_path	sample_id	primer_panel	study_name	pipeline_id	taxon_id	common_name	na
 
 ### Species configuration file
 
-Ampseq relies on a configuration file that specifies the species specific run settings. To invoke the pipeline it is imperative that one of these configuration files is passed at the command line using nextflow run's -c flag. If the user does not have a configuration file. They may use one of the ones provided in the conf sub-directory.
+Ampseq relies on a configuration file that specifies the species specific run settings. To invoke the pipeline it is imperative that one of these configuration files is passed at the command line using nextflow run's -c flag. If the user does not have a configuration file. They may use one of the ones provided in the conf sub-directory. The species configuration file points to files present at the [ampliconresources submodule](https://gitlab.internal.sanger.ac.uk/malariagen1/ampliconresources/-/tree/main/).
 
 ### Panel Settings
 
