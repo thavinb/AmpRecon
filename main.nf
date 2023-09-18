@@ -53,7 +53,6 @@ log.info """
          (s3)
          --upload_to_s3       : ${params.upload_to_s3}
          --s3_uuid            : ${params.s3_uuid}
-         --s3_bucket_input    : ${params.s3_bucket_input}
          --s3_bucket_output   : ${params.s3_bucket_output}
 
          (grc)
@@ -124,8 +123,7 @@ def printHelp() {
       --irods_manifest : an tsv containing information of irods data to fetch
       
       (if s3)
-      --s3_uuid : <str> a universally unique id which will be used to fetch data from s3, if is not provided, the pipeline will not retrieve miseq runs from s3
-      --s3_bucket_input : <str> s3 bucket name to fetch data from
+      --s3_uuid : <str> A s3_uuid must be provided if --upload_to_s3 is required
       --upload_to_s3 : <bool> sets if needs to upload output data to an s3 bucket
       --s3_bucket_output : <str> s3 bucket name to upload data to
 
@@ -305,7 +303,6 @@ def validate_general_params(){
   }
   
   // if S3 is requested, check if all s3 required parameters were provided
-  // check S3 input bucket
 
   // check S3 output bucket
   if (params.upload_to_s3){
