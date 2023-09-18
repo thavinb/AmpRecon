@@ -46,7 +46,6 @@ def validatePanelSettings(row){
     } else {
         reference_file = row.reference_file
     }
-    //reference_file = "${row.reference_file}"
     
     aligns_to_file = file(reference_file)
     if (!aligns_to_file.exists()){
@@ -64,8 +63,6 @@ def validatePanelSettings(row){
     }
 
     // check if dictionary file for reference genome exists
-    //reference_dictionary = file("${reference_file}").parent + "/" + file("${reference_file}").baseName+".dict"
-    //reference_dictionary_file = file(reference_dictionary)
     reference_dictionary_file = file(replaceFileExtension("${reference_file}", "dict"))
     if (!reference_dictionary_file.exists()){
         log.error("${reference_dictionary} provided for ${row.panel_name} does not exist.")
@@ -80,7 +77,6 @@ def validatePanelSettings(row){
         snp_list = row.snp_list
     }
 
-    //snp_list = "${row.snp_list}"
     snp_list_file = file(snp_list)
     if (!snp_list_file.exists()){
         log.error("${snp_list} provided for ${row.panel_name} does not exist.")
@@ -88,7 +84,6 @@ def validatePanelSettings(row){
     }
 
     // check if design_file is a valid path
-    //annotation_flpth = "${row.design_file}"
     if (row.design_file.startsWith("<ProjectDir>")){
         dsgn_path = addProjectDirAbsPathTo(row.design_file)
     } else {
@@ -109,11 +104,6 @@ def validatePanelSettings(row){
 
 def parse_panel_settings(panels_settings) {
     def source_dir = ""
-    //if (panels_settings == null) {
-    //    source_dir = "${projectDir}" // required to get the right path of resources at repo
-    //    panels_settings = "${source_dir}/panels_resources/panels_settings.csv"
-    //}
-
     // load panels settings content
     def panels_settings_ch = Channel.fromPath(panels_settings, checkIfExists: true)
                                 | splitCsv(header: true, sep: ',') 
