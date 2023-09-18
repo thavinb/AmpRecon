@@ -170,7 +170,7 @@ workflow {
   ref_and_annt_ch = parse_panel_settings(params.panels_settings)
   reference_ch = ref_and_annt_ch[0] // tuple(reference_file, panel_name, snp_list)
   annotations_ch = ref_and_annt_ch[1] // tuple(panel_name, design_file)
-
+  annotations_ch.view()
   // Files required for GRC creation
   Channel.fromPath(params.grc_settings_file_path, checkIfExists: true)
   chrom_key_file = Channel.fromPath(params.chrom_key_file_path, checkIfExists: true)

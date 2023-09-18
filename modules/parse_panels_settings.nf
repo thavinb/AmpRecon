@@ -145,9 +145,9 @@ def parse_panel_settings(panels_settings) {
                         | splitCsv(header: true, sep: ',')
                         | map { row ->
                             if (row.design_file.startsWith("<ProjectDir>")){
-                                dsgn_path = addProjectDirAbsPathTo(row.design_file)
+                                dsgn_path = file(addProjectDirAbsPathTo(row.design_file), checkIfExists: true)
                             } else {
-                                dsgn_path = row.design_file
+                                dsgn_path = file(row.design_file, checkIfExists: true)
                             }
                             tuple(
                                 row.panel_name,
