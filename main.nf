@@ -50,6 +50,9 @@ log.info """
          (irods)
          --irods_manifest     : ${params.irods_manifest}
 
+         (fastq_entry_point)
+         --fastq_manifest     : ${params.fastq_manifest}
+
          (s3)
          --upload_to_s3       : ${params.upload_to_s3}
          --s3_uuid            : ${params.s3_uuid}
@@ -100,7 +103,18 @@ def printHelp() {
       --drl_information_file_path DRLinfo.txt
       --codon_key_file_path codonKey.txt
       --kelch_reference_file_path kelchReference.txt
-      --containers_dir ./containers_dir/ 
+      --containers_dir ./containers_dir/
+
+    (fastq_entry_point)
+    nextflow /path/to/ampseq-pipeline/main.nf -profile sanger_lsf
+      --execution_mode fastq --run_id 21045 //not sure if run-id is need (experiment with it)
+      --fastq_manifest ./input/fastq_smallset.tsv
+      --chrom_key_file_path chromKey.txt
+      --grc_settings_file_path grc_settings.json
+      --drl_information_file_path DRLinfo.txt
+      --codon_key_file_path codonKey.txt
+      --kelch_reference_file_path kelchReference.txt
+      --containers_dir ./containers_dir/
 
   Description:
     Ampseq is a bioinformatics analysis pipeline for amplicon sequencing data.
@@ -123,6 +137,9 @@ def printHelp() {
       (irods required)
       --irods_manifest : an tsv containing information of irods data to fetch
       
+      (fastq entry point required)
+      --fastq_manifest: <str> path to the manifest file
+
       (if s3)
       --s3_uuid : <str> a universally unique id which will be used to fetch data from s3, if is not provided, the pipeline will not retrieve miseq runs from s3
       --s3_bucket_input : <str> s3 bucket name to fetch data from
@@ -144,7 +161,7 @@ def printHelp() {
 
       (genotyping)
       --gatk3: <str> path to GATK3 GenomeAnalysisTK.jar file
-      --
+    
 
     Additional options:
       --help (Prints this help message. Default: false)
@@ -202,6 +219,17 @@ workflow {
     fastq_files_ch = SANGER_IRODS_TO_READS.out.fastq_ch // tuple (file_id, bam_file, run_id)
     file_id_reference_files_ch = SANGER_IRODS_TO_READS.out.file_id_reference_files_ch
     file_id_to_sample_id_ch = SANGER_IRODS_TO_READS.out.file_id_to_sample_id_ch
+  }
+
+  if (params.execution_mode == "fastq") {
+    //fastq_entry_point_parameter_check() //TODO: not finished
+    // parse manifest
+    fq_mnf_ch = Channel.fromPath(params.fastq_manifest, checkIfExists: true)
+    FASTQ_ENTRY_POINT(fq_mnf_ch, reference_ch)
+    // setup channels for downstream processing
+    fastq_files_ch = FASTQ_ENTRY_POINT.out.fastq_files_ch // tuple (file_id, fastq_ch, path/to/reference/genome) 
+    file_id_reference_files_ch = FASTQ_ENTRY_POINT.out.file_id_reference_files_ch// tuple (file_id, panel_name, path/to/reference/genome, snp_list)
+    file_id_to_sample_id_ch = FASTQ_ENTRY_POINT.out.file_id_to_sample_id_ch// tuple (file_id, sample_id)  
   }
 
   // Reads to variants
