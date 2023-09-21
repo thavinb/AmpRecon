@@ -23,29 +23,29 @@ workflow FASTQ_ENTRY_POINT {
         // get the sample data from the manifest and create file_id (combination of sample_id and panel name)
         fastq_ch = fastq_manifest
                     | splitCsv(header: true,sep: '\t')
-                    | map { row -> tuple("${it[0]}_${it[1]}", row.sample_id, row.primer_panel, row.fastq_path) } // tuple(file_id, sample_id,panel_name,fastq_file)
+                    | map { row -> tuple(row.sample_id, row.primer_panel, row.fastq_path,"${row.sample_id}_${row.primer_panel}_id") } // tuple(sample_id, panel_name,fastq_file,file_id)
         
         //link everything from fastq_manifest with reference_ch
         fastq_ch
-          |  combine(reference_ch,  by: 1) // tuple (panel_name, file_id, sample_id, fastq_file, reference_fasta_file, snp_list)
+          |  combine(reference_ch,  by: 1) // tuple (panel_name, sample_id, fastq_file, file_id, reference_fasta_file, snp_list)
           |  set{fastq_ch_comb_reference_ch}
         
         //create fastq_files_ch: sample_id, fastq_file, reference_fasta_file
         fastq_ch_comb_reference_ch
-          |  map{it -> tuple(it[1], it[3], it[4])} // tuple (file_id, fastq_file, reference_fasta_file)
+          |  map{it -> tuple(it[3], it[2], it[4])} // tuple (file_id, fastq_file, reference_fasta_file)
           |  set{fastq_files_ch}
 
         //create file_id_reference_files_ch: sample_id, panel_name, reference_fasta_file, snp_list
         fastq_ch_comb_reference_ch
-          |  map{it -> tuple(it[1], it[0], it[4], it[5])} //tuple (file_id, panel_name, reference_fasta_file, snp_list)
+          |  map{it -> tuple(it[3], it[0], it[4], it[5])} //tuple (file_id, panel_name, reference_fasta_file, snp_list)
           |  set{file_id_reference_files_ch}
 
         // link 'file_id' to sample_id 
-        fastq_ch.map{it -> tuple("${it[0]}_${it[1]}",it[0])}.set{file_id_to_sample_id_ch}    // tuple(file_id,sample_id)
+        fastq_ch.map{it -> tuple(it[3],it[0])}.set{file_id_to_sample_id_ch}    // tuple(file_id, sample_id)
 
     emit:
-        fastq_files_ch // tuple (sample_id, fastq_file, reference_fasta_file)
-        file_id_reference_files_ch // tuple (sample_id, panel_name, reference_fasta_file, snp_list)
+        fastq_files_ch // tuple (file_id, fastq_file, reference_fasta_file)
+        file_id_reference_files_ch // tuple (file_id, panel_name, reference_fasta_file, snp_list)
         file_id_to_sample_id_ch // tuple (file_id, sample_id)
 }
 
