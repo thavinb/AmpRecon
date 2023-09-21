@@ -13,6 +13,8 @@ include { SANGER_IRODS_TO_READS } from './workflows/sanger_irods_to_reads.nf'
 include { MISEQ_TO_READS } from './workflows/miseq_to_reads.nf'
 include { READS_TO_VARIANTS } from './workflows/reads_to_variants.nf'
 include { VARIANTS_TO_GRCS } from './workflows/variants_to_grcs.nf'
+include { FASTQ_ENTRY_POINT } from './workflows/fastq_entry_point.nf'
+
 // logging info ----------------------------------------------------------------
 // This part of the code is based on the FASTQC PIPELINE (https://github.com/angelovangel/nxf-fastqc/blob/master/main.nf)
 
@@ -224,8 +226,8 @@ workflow {
   if (params.execution_mode == "fastq") {
     //fastq_entry_point_parameter_check() //TODO: not finished
     // parse manifest
-    fq_mnf_ch = Channel.fromPath(params.fastq_manifest, checkIfExists: true)
-    FASTQ_ENTRY_POINT(fq_mnf_ch, reference_ch)
+    manifest = Channel.fromPath(params.fastq_manifest, checkIfExists: true)
+    FASTQ_ENTRY_POINT(manifest, reference_ch)
     // setup channels for downstream processing
     fastq_files_ch = FASTQ_ENTRY_POINT.out.fastq_files_ch // tuple (file_id, fastq_ch, path/to/reference/genome) 
     file_id_reference_files_ch = FASTQ_ENTRY_POINT.out.file_id_reference_files_ch// tuple (file_id, panel_name, path/to/reference/genome, snp_list)
@@ -290,7 +292,7 @@ def validate_general_params(){
   */
 
   def error = 0
-  def valid_execution_modes = ["in-country", "irods"]
+  def valid_execution_modes = ["in-country", "irods", "fastq"]
 
   // check if execution mode is valid
   if (!valid_execution_modes.contains(params.execution_mode)){
