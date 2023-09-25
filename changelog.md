@@ -23,6 +23,7 @@ All notable changes to this project will be documented in this file.
 
 ### Removed
 - **[Change]**: Removed s3 input processes.
+- **[Change]**: Removed requirement for RunID to be an integer
 
 ## [1.0.1] - 2023-07-13
 
