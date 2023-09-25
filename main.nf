@@ -9,11 +9,13 @@ nextflow.enable.dsl = 2
 include { parse_panel_settings } from './modules/parse_panels_settings.nf'
 include { miseq_to_reads_parameter_check } from './workflows/miseq_to_reads.nf'
 include { irods_to_reads_parameter_check } from './workflows/sanger_irods_to_reads.nf'
+include { fastq_parameter_check } from './workflows/fastq_entry_point.nf'
 include { SANGER_IRODS_TO_READS } from './workflows/sanger_irods_to_reads.nf'
 include { MISEQ_TO_READS } from './workflows/miseq_to_reads.nf'
+include { FASTQ_ENTRY_POINT } from './workflows/fastq_entry_point.nf'
 include { READS_TO_VARIANTS } from './workflows/reads_to_variants.nf'
 include { VARIANTS_TO_GRCS } from './workflows/variants_to_grcs.nf'
-include { FASTQ_ENTRY_POINT } from './workflows/fastq_entry_point.nf'
+
 
 // logging info ----------------------------------------------------------------
 // This part of the code is based on the FASTQC PIPELINE (https://github.com/angelovangel/nxf-fastqc/blob/master/main.nf)
@@ -224,7 +226,7 @@ workflow {
   }
 
   if (params.execution_mode == "fastq") {
-    //fastq_entry_point_parameter_check() //TODO: not finished
+    fastq_parameter_check() 
     // parse manifest
     manifest = Channel.fromPath(params.fastq_manifest, checkIfExists: true)
     FASTQ_ENTRY_POINT(manifest, reference_ch)

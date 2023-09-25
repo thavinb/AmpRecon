@@ -2,7 +2,7 @@
 
 nextflow.enable.dsl=2
 
-process validate_irods_mnf {
+process validate_fastq_mnf {
 
     input:
         path(irods_mnf_file)
@@ -10,6 +10,6 @@ process validate_irods_mnf {
 
     script:
     """
-    validate_irods_mnf.py ${irods_mnf_file} ${panel_settings_file} irods
+    validate_irods_mnf.py ${irods_mnf_file} ${panel_settings_file} fastq
     """
 }

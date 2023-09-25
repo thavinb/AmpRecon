@@ -11,7 +11,7 @@ nextflow.enable.dsl = 2
 
 // import processes
 include { parse_panel_settings } from '../modules/parse_panels_settings.nf'
-//include { validate_fastq_mnf } from '../modules/validate_fastq_mnf.nf'
+include { validate_fastq_mnf } from '../modules/validate_fastq_mnf.nf'
 
 // -------------------------------------------------------------------------
 
@@ -49,7 +49,7 @@ workflow FASTQ_ENTRY_POINT {
         file_id_to_sample_id_ch // tuple (file_id, sample_id)
 }
 
-def fastq_entry_point_parameter_check(){
+def fastq_parameter_check(){
 
     /*
     This functions counts the number of errors on input parameters exclusively used on FASTQ entry point subworkflow
@@ -74,11 +74,11 @@ def fastq_entry_point_parameter_check(){
     if (params.fastq_manifest){
         fastq_manifest = file(params.fastq_manifest)
         if (!fastq_manifest.exists()){
-            log.error("The irods manifest file specified (${params.fastq_manifest}) does not exist.")
+            log.error("The fastq manifest file specified (${params.fastq_manifest}) does not exist.")
             error += 1
         }
         else {
-            validate_fastq_mnf(params.fastq_manifest, params.panels_settings) //TODO: write the python file to validate the manifest
+            validate_fastq_mnf(params.fastq_manifest, params.panels_settings)
         }
     }
 
@@ -96,7 +96,7 @@ workflow {
     
     fastq_manifest = Channel.fromPath(params.fastq_manifest)
     
-    //fastq_entry_point_parameter_check()
+    fastq_parameter_check()
 
     // Run FASTQ_ENTRY_POINT workflow
     FASTQ_ENTRY_POINT(fastq_manifest, reference_ch)
