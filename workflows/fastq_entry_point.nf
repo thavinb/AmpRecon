@@ -30,12 +30,12 @@ workflow FASTQ_ENTRY_POINT {
           |  combine(reference_ch,  by: 1) // tuple (panel_name, sample_id, fastq_file, file_id, reference_fasta_file, snp_list)
           |  set{fastq_ch_comb_reference_ch}
         
-        //create fastq_files_ch: sample_id, fastq_file, reference_fasta_file
+        //create fastq_files_ch: file_id, fastq_file, reference_fasta_file
         fastq_ch_comb_reference_ch
           |  map{it -> tuple(it[3], it[2], it[4])} // tuple (file_id, fastq_file, reference_fasta_file)
           |  set{fastq_files_ch}
 
-        //create file_id_reference_files_ch: sample_id, panel_name, reference_fasta_file, snp_list
+        //create file_id_reference_files_ch: file_id, panel_name, reference_fasta_file, snp_list
         fastq_ch_comb_reference_ch
           |  map{it -> tuple(it[3], it[0], it[4], it[5])} //tuple (file_id, panel_name, reference_fasta_file, snp_list)
           |  set{file_id_reference_files_ch}
