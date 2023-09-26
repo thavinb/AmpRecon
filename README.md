@@ -59,6 +59,18 @@ nextflow /path/to/ampseq-pipeline/main.nf -profile sanger_lsf \
         -c /path/to/species/config 
 ```
 
+
+To run from the **FASTQ** entry point:
+
+```
+nextflow /path/to/ampseq-pipeline/main.nf -profile sanger_lsf \
+        --execution_mode fastq \
+        --fastq_manifest /path/to/fastq_manifest.tsv
+        --containers_dir ./containers_dir/
+        -c /path/to/species/config 
+```
+
+
 > **NOTE**
 > If **on the farm**, Nextflow can be made available by loading its module.
 >```
@@ -99,6 +111,14 @@ run_id : Added as a prefix to the output GRC files
 ```
 
 An example of an irods manifest tsv is provided at [add path to example]
+
+Required for **FASTQ**
+
+```
+fastq_manifest : an tsv containing information for the fastq data
+```
+
+An example of an fastq manifest tsv is provided at [add path to example]
 
 To use **S3**
 
@@ -181,6 +201,23 @@ irods_path	sample_id	primer_panel	study_name	pipeline_id	taxon_id	common_name	na
 /seq/29632/29632_1#149.cram	LMLPP1571	PFA_GRC2_v1.0	Team 112 R&D	GBS	5833	Plasmodium Falciparum	3429STDY7977888	RCN15139	3429STDY7977888	MiSeq	2019-05-30 03:38:57	29632	1	149	1	29632_1#149
 /seq/26381/26381_1#808.cram	JHG3639016I	PFA_Spec	Team 112 R&D	GBS	5833	Plasmodium Falciparum	3429STDY7977859	RCN15110        3429STDY7977888	MiSeq	2019-05-30 03:38:57	29632	1	149	1	29632_1#256
 ```
+### FASTQ Manifest
+
+The FASTQ manifest file must be a `.tsv` and the pipeline expects to find the following columns headers:
+
+- `sample_id`: a sample identification "tag", which is used on the pipeline output file names;
+
+- `primer_panel`: primer panel name to be used (must match exactly what is provided at `panel_name` of the `panels_settings.csv`);
+
+- `fastq_path`: full valid FASTQ path for a `.fastq` file.
+
+```
+sample_id	primer_panel	fastq_path
+sample1	PFA_GRC1_v1.0	/path/to/fastq/sample1.fastq
+sample2	PFA_GRC2_v1.0	/path/to/fastq/sample2.fastq
+sample3	PFA_Spec	/path/to/fastq/sample3.fastq
+```
+
 
 ### Species configuration file
 
