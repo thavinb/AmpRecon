@@ -33,7 +33,6 @@ include { cram_to_fastq_and_ena_cram } from '../modules/cram_to_fastq_and_ena_cr
 // - process to extract and validate information expected based on input params
 include { create_taglist_file } from '../modules/create_taglist_file.nf'
 include { validate_manifest } from '../modules/validate_manifest.nf'
-include { retrieve_miseq_run_from_s3 } from '../modules/retrieve_miseq_run_from_s3.nf'
 include { upload_pipeline_output_to_s3 } from '../modules/upload_pipeline_output_to_s3.nf'
 
 workflow MISEQ_TO_READS {
@@ -42,16 +41,8 @@ workflow MISEQ_TO_READS {
     reference_ch // tuple (fasta, panel_name, snp_list)
 
   main:
-      
-    if (params.s3_bucket_input != null) {
-      retrieve_miseq_run_from_s3(params.s3_uuid)
-      bcl_dir = retrieve_miseq_run_from_s3.out
-    }
-  
-    else {
-      // Use supplied bcl dir if not running s3 entrypoint
-      bcl_dir = params.bcl_dir
-    }
+
+    bcl_dir = params.bcl_dir
 
     // Validate the supplied manifest file
     panel_names_list = reference_ch.map{it -> it[1].toString()}.collect()
@@ -162,8 +153,8 @@ def miseq_to_reads_parameter_check(){
       error += 1
     }
 
-    if (params.bcl_dir == null && params.s3_bucket_input == null){
-      log.error("Either a bcl directory or a s3 bucket input must be specified for in-country execution_mode.")
+    if (params.bcl_dir == null){
+      log.error("A bcl directory must be specified when the 'execution_mode' parameter is set to 'in-country'.")
       error += 1
     }
 

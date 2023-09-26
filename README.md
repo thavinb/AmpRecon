@@ -103,30 +103,14 @@ An example of an irods manifest tsv is provided at [add path to example]
 To use **S3**
 
 ```
-s3_uuid : <str> a universally unique id which will be used to fetch data from s3,
-s3_bucket_input: <str> s3 bucket name to fetch data from, if is not provided, the pipeline will not retrieve miseq runs from s3
-
 upload_to_s3: <bool> sets if needs to upload output data to an s3 bucket
 s3_bucket_output: <str> s3 bucket name to upload data to
 ```
 
 
-**BCFtools genotyping** is used by default
+**Genotyping**
 
-The usage of bcftools is set via the parameter `--genotyping_bcftools`
-```
-genotyping_bcftools : <bool>  // 'true' by default, set to 'false' to disable
-```
-
-The BCFtools genotyping portion of the ampseq pipeline requires a SNPs annotation VCF file for each reference genome used. This file location must be set at the `snp_list` column of the `panel_settings.csv`.
-
-**GATK genotyping** option is provided but not used by default
-
-The GATK genotyping workflow is launched as the `genotyping_gatk` parameter is set to `true`
-
-```
-genotyping_gatk : <bool> // 'false' by default
-```
+The genotyping portion of the ampseq pipeline requires a SNPs annotation VCF file for each reference genome used. This file location must be set at the `snp_list` column of the `panel_settings.csv`.
 
 **Containers**
 
@@ -200,7 +184,7 @@ irods_path	sample_id	primer_panel	study_name	pipeline_id	taxon_id	common_name	na
 
 ### Species configuration file
 
-Ampseq relies on a configuration file that specifies the species specific run settings. To invoke the pipeline it is imperative that one of these configuration files is passed at the command line using nextflow run's -c flag. If the user does not have a configuration file. They may use one of the ones provided in the conf sub-directory.
+Ampseq relies on a configuration file that specifies the species specific run settings. To invoke the pipeline it is imperative that one of these configuration files is passed at the command line using nextflow run's -c flag. If the user does not have a configuration file. They may use one of the ones provided in the conf sub-directory. The species configuration file points to files present at the [ampliconresources submodule](https://gitlab.internal.sanger.ac.uk/malariagen1/ampliconresources/-/tree/main/).
 
 ### Panel Settings
 
@@ -220,17 +204,9 @@ PFA_Spec,/path/to/PFA_Spec.fasta,/path/to/PFA_Spec.regions.txt,/path/to/PFA_Spec
 
 - `design_file` : Defines which annotation file should use for the `COMMON:REALIGNMENT:read_count_per_region`.
 
-- `snp_list` : Path to the SNP list file, used as both an intervals file for GATK GenotypeGVCFs and as a targets file for BCFtools mpileup.
+- `snp_list` : Path to the SNP list file, used as a targets file for BCFtools mpileup.
 
 The aim of this panel settings system is to detach the experimental design from the inner works of the pipeline and make it easier to experiment with its key steps. A `.csv` **must be privded** to the pipeline via `--panels_settings`.
-
-### GATK Genotyping Settings
-
-The following parameter should be present within the nextflow.config file:
-
-```
-gatk3: <str> path to GATK3 GenomeAnalysisTK.jar file - only needed if GATK genotyping is enabled.
-```
 
 ### GRC Creation Requirements
 

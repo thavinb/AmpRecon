@@ -1,1 +1,0 @@
-python3 test_grc_plasmepsin_cnv_caller.py
