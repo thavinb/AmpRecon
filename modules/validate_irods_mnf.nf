@@ -10,6 +10,6 @@ process validate_irods_mnf {
 
     script:
     """
-    validate_irods_mnf.py ${irods_mnf_file} ${panel_settings_file} irods
+    validate_irods_fastq_mnf.py ${irods_mnf_file} ${panel_settings_file} irods
     """
 }
