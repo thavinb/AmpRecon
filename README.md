@@ -65,6 +65,7 @@ To run from the **FASTQ** entry point:
 ```
 nextflow /path/to/ampseq-pipeline/main.nf -profile sanger_lsf \
         --execution_mode fastq \
+        --run_id 21045 \
         --fastq_manifest /path/to/fastq_manifest.tsv
         --containers_dir ./containers_dir/
         -c /path/to/species/config 
@@ -115,10 +116,11 @@ An example of an irods manifest tsv is provided at [add path to example]
 Required for **FASTQ**
 
 ```
-fastq_manifest : an tsv containing information for the fastq data
+fastq_manifest : an tsv containing information for the unpaired fastq data
+run_id : Added as a prefix to the output GRC files
 ```
 
-An example of an fastq manifest tsv is provided at [add path to example]
+An example of an fastq manifest tsv is provided at [add path to example]. Currently only unpaired fastqs are supported.
 
 To use **S3**
 
