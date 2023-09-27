@@ -3,6 +3,9 @@
 /*
     | FASTQ_ENTRY_POINT |-----------------------------------------
     
+    This workflow takes a manifest file containing the paths to the 
+    FASTQ files. 
+
     ------------------------------------------------------------------
 */
 
@@ -20,11 +23,17 @@ workflow FASTQ_ENTRY_POINT {
         fastq_manifest // fastq manifest file
         reference_ch // tuple (reference_fasta_file, panel_name, snp_list)
     main:        
+        index=0
         // get the sample data from the manifest and create file_id (combination of sample_id and panel name)
         fastq_ch = fastq_manifest
                     | splitCsv(header: true,sep: '\t')
-                    | map { row -> tuple(row.sample_id, row.primer_panel, row.fastq_path,"${row.sample_id}_${row.primer_panel}_id") } // tuple(sample_id, panel_name,fastq_file,file_id)
-        
+                    //temporary solution: added an underscore to ${row.sample_id}_${row.primer_panel} otherwise error in READS_TO_VARIANTS:bam_merge_and_index
+                    //| map { index, row -> tuple(row.sample_id, row.primer_panel, row.fastq_path,"${row.sample_id}_${row.primer_panel}_${index}") } // tuple(sample_id, panel_name,fastq_file,file_id)
+                    | map { row ->
+                            // Debug statements to check intermediate results
+                            index = index+1
+                            tuple(row.sample_id, row.primer_panel, row.fastq_path, "${row.sample_id}_${row.primer_panel}_${index}")
+    }
         //link everything from fastq_manifest with reference_ch
         fastq_ch
           |  combine(reference_ch,  by: 1) // tuple (panel_name, sample_id, fastq_file, file_id, reference_fasta_file, snp_list)
@@ -40,7 +49,7 @@ workflow FASTQ_ENTRY_POINT {
           |  map{it -> tuple(it[3], it[0], it[4], it[5])} //tuple (file_id, panel_name, reference_fasta_file, snp_list)
           |  set{file_id_reference_files_ch}
 
-        // link 'file_id' to sample_id 
+        // link 'file_id' to sample_id
         fastq_ch.map{it -> tuple(it[3],it[0])}.set{file_id_to_sample_id_ch}    // tuple(file_id, sample_id)
 
     emit:
