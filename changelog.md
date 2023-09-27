@@ -11,6 +11,7 @@ All notable changes to this project will be documented in this file.
 - **[Feature]**: NF-test based unit test of the workflow `sanger_irods_to_reads.nf`.
 - **[Feature]**: NF-test based unit test of the workflow `reads_to_grcs.nf`.
 - **[Feature]**: Switches allow kelch-13 and plasmepsin GRC creation steps to be switched off.
+- **[Feature]**: Added fastq entry point.
 ### Changed
 - **[improvement]**: ENA cram files are now published on the output dir.
 - **[improvement]**: Output dir now is structured on subdirs.
