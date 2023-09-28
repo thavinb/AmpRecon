@@ -27,10 +27,8 @@ workflow FASTQ_ENTRY_POINT {
         // get the sample data from the manifest and create file_id (combination of sample_id and panel name)
         fastq_ch = fastq_manifest
                     | splitCsv(header: true,sep: '\t')
-                    //temporary solution: added an underscore to ${row.sample_id}_${row.primer_panel} otherwise error in READS_TO_VARIANTS:bam_merge_and_index
-                    //| map { index, row -> tuple(row.sample_id, row.primer_panel, row.fastq_path,"${row.sample_id}_${row.primer_panel}_${index}") } // tuple(sample_id, panel_name,fastq_file,file_id)
                     | map { row ->
-                            // Debug statements to check intermediate results
+                            //added index to the file_id 
                             index = index+1
                             tuple(row.sample_id, row.primer_panel, row.fastq_path, "${row.sample_id}_${row.primer_panel}_${index}")
     }
