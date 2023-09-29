@@ -14,10 +14,10 @@ process bam_merge_and_index {
         """
         input_files=(${bam_files})
         if [ 1 == \${#input_files[@]} ]; then
-            cp ${bam_files} ${sample_key}.merged.bam
-	    else
-            samtools merge ${sample_key}.merged.bam ${bam_files}
-	    samtools index ${sample_key}.merged.bam
-        fi
+            cp ${bam_files} ${sample_key}.merged.bam;
+        else
+            samtools merge ${sample_key}.merged.bam ${bam_files};
+        fi;
+        samtools index ${sample_key}.merged.bam
         """
 }
