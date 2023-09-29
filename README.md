@@ -215,9 +215,15 @@ The FASTQ manifest file must be a `.tsv` and the pipeline expects to find the fo
 
 ```
 sample_id	primer_panel	fastq_path
-sample1	PFA_GRC1_v1.0	/path/to/fastq/sample1.fastq
-sample2	PFA_GRC2_v1.0	/path/to/fastq/sample2.fastq
-sample3	PFA_Spec	/path/to/fastq/sample3.fastq
+SPT73925	PFA_GRC1_v1.0	/path/to/fastq/110523_1#43.fastq
+SPT73925	PFA_GRC2_v1.0	/path/to/fastq/110523_1#139.fastq
+SPT73925	PFA_Spec	/path/to/fastq/110523_1#235.fastq
+SPT73795	PFA_GRC1_v1.0	/path/to/fastq/110523_1#84.fastq
+SPT73795	PFA_GRC2_v1.0	/path/to/fastq/110523_1#180.fastq
+SPT73795	PFA_Spec	/path/to/fastq/110523_1#276.fastq
+SPT72767	PFA_GRC1_v1.0	/path/to/fastq/110523_1#12.fastq
+SPT72767	PFA_GRC2_v1.0	/path/to/fastq/110523_1#108.fastq
+SPT72767	PFA_Spec	/path/to/fastq/110523_1#204.fastq
 ```
 
 

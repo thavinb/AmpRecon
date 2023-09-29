@@ -108,7 +108,7 @@ def printHelp() {
 
     (fastq_entry_point)
     nextflow /path/to/ampseq-pipeline/main.nf -profile sanger_lsf
-      --execution_mode fastq --run_id 21045 //not sure if run-id is need (experiment with it)
+      --execution_mode fastq --run_id 21045
       --fastq_manifest ./input/fastq_smallset.tsv
       --chrom_key_file_path chromKey.txt
       --grc_settings_file_path grc_settings.json
