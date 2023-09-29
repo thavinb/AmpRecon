@@ -7,7 +7,7 @@ process bam_merge_and_index {
         tuple val(sample_key), file(bam_files)
 
     output:
-        tuple val(sample_key), path("${sample_key}.bam"), path("${sample_key}.bam.bai")
+        tuple val(sample_key), path("${sample_key}.merged.bam"), path("${sample_key}.merged.bam.bai")
 
     script:
         
