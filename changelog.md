@@ -18,7 +18,8 @@ All notable changes to this project will be documented in this file.
 - **[improvement]**: Added missing parameter check calls.
 - **[improvement]**: Allow kelch-reference file to not be specified if `no_kelch` flag set.
 ### Fixed
-- **[Bug]**: upload data to s3 function is fixed
+- **[Bug]**: bug for runids with "_T" affecting read counts file fixed.
+- **[Bug]**: upload data to s3 function is fixed.
 - **[Bug]**: Column names for Pf were hard-coded into metadata addition script, this blocked the usage of the pipeline with Pv.
   - **Fix**: Column ordering was abstracted to GRC settings file and metadata addition script was modified to include config file and read ordering from there.
 
