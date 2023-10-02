@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## [Unreleased]
+## [1.1.1] - 2023-10-02
 
 ### Added
 - **[Feature]**: use ampseq resources files provided by submodule by default.
