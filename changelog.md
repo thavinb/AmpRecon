@@ -11,11 +11,15 @@ All notable changes to this project will be documented in this file.
 - **[Feature]**: NF-test based unit test of the workflow `sanger_irods_to_reads.nf`.
 - **[Feature]**: NF-test based unit test of the workflow `reads_to_grcs.nf`.
 - **[Feature]**: Switches allow kelch-13 and plasmepsin GRC creation steps to be switched off.
+
 ### Changed
 - **[improvement]**: ENA cram files are now published on the output dir.
 - **[improvement]**: Output dir now is structured on subdirs.
 - **[improvement]**: Added missing parameter check calls.
 - **[improvement]**: Allow kelch-reference file to not be specified if `no_kelch` flag set.
+- **[Change]**: Moved grc_tools nextflow scripts to modules directory.
+- **[Change]**: Updated README.md, added GRC_TOOLS.md to `repo/bin`
+
 ### Fixed
 - **[Bug]**: upload data to s3 function is fixed
 - **[Bug]**: Column names for Pf were hard-coded into metadata addition script, this blocked the usage of the pipeline with Pv.
