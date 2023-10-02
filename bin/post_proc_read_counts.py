@@ -15,7 +15,7 @@ PS: this is a requirement for Sanger specific analysis, by adding this we tied \
 
 # rename Rpt to lanelets
 def load_lanelets(row):
-    return "_".join(row["Rpt"].split("_")[:2])
+    return "_".join(row["Rpt"].replace("_T","").split("_")[:2])
 
 # get indexes
 def load_indexes(row):
