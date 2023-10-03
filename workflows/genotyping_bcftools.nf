@@ -33,10 +33,22 @@ workflow GENOTYPING_BCFTOOLS {
     // upload VCF files to S3 bucket
     if (params.upload_to_s3){
       bcftools_filter.out.map{ it -> it[1] }.set{output_to_s3}
-      upload_pipeline_output_to_s3(output_to_s3)
+      upload_pipeline_output_to_s3(output_to_s3, "vcfs")
     }
 
   emit:
     genotyped_vcf_ch
 }
 
+workflow {
+    // File required for BCFTools Genotyping input channels
+    channel_data = Channel.fromPath(params.channel_data_file, checkIfExists: true)
+        .splitCsv(header: true, sep: '\t')
+
+    // BCFTools Genotyping input channels
+    input_file_ids_bams_indexes = channel_data.map { row -> tuple(row.file_id, row.bam_file, row.bam_index_file) }
+    file_id_reference_files_ch = channel_data.map { row -> tuple(row.file_id, row.sample_key, row.reference_file, row.snp_list) }
+
+    // Run BCFTools Genotyping workflow
+    GENOTYPING_BCFTOOLS(input_file_ids_bams_indexes, file_id_reference_files_ch)
+}

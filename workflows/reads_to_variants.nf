@@ -1,12 +1,34 @@
 #!/usr/bin/env nextflow
 
+/*
+    | READS_TO_VARIANTS |---------------------------------------------
+    
+    This workflow takes FASTQ files from iRODS and aligns the 
+    reads to a reference genome and performing a series of commands to
+    produce a coordinate sorted, indexed BAM file.
+
+    Per amplicon panel region read counts are determined from these BAM 
+    files. These per Amplicon panel regions are specificied through
+    a supplied annotation file.
+    
+    Variant call files are also produced from these alignment files.
+    A genotyping workflows is run to produce variant call files, 
+    which are restricted to specific regions using a supplied SNP list.
+
+    A channel containing FASTQ file and associated reference genome is
+    is supplied to the workflow. This is in addition to channels that
+    link SNP list, annotation file and sample ID with file ID. A 
+    manifest linking sample IDs with associated VCF lanelet files is
+    output by this workflow.
+    ------------------------------------------------------------------
+*/
+
 // enable dsl2
 nextflow.enable.dsl = 2
 
 // import subworkflows
 include { ALIGNMENT } from './alignment.nf'
 include { READ_COUNTS } from './read_counts.nf'
-include { GENOTYPING_GATK } from './genotyping_gatk.nf'
 include { GENOTYPING_BCFTOOLS } from './genotyping_bcftools.nf'
 include { write_vcfs_manifest } from '../modules/write_vcfs_manifest.nf'
 include { bam_merge_and_index } from '../modules/bam_merge_and_index.nf'
@@ -50,31 +72,13 @@ workflow READS_TO_VARIANTS {
             .map { it -> tuple("${it[4]}_${it[1]}", it[0], it[1], it[2], it[3], it[4] ) } 
             .set { sample_key_ref_ch } // tuple ("{sample_id}_{panel_name}", file_id, panel_name, reference_fasta_file, snp_list, sample_id)
 
-        // genotyping
-        if( params.genotyping_gatk == true ) {
-            sample_key_ref_ch.map{it -> tuple(it[0], it[1], it[3], it[4])}.set{gatk_genotyping_ref_ch} // tuple (sample_tag, fasta_file, snp_list, sample_key)
-            GENOTYPING_GATK(
-                bam_merge_and_index.out,
-                gatk_genotyping_ref_ch
-            )
-            GENOTYPING_GATK.out.set{genotyping_gatk_ch}
-        } else {
-            Channel.empty().set{ genotyping_gatk_ch }
-        }
-
-        if( params.genotyping_bcftools == true ) {
-            sample_key_ref_ch.map{it -> tuple(it[0],it[1], it[3], it[4])}.set{bcftools_genotyping_ref_ch} // tuple (sample_tag, fasta_file, snp_list, sample_key)
-            GENOTYPING_BCFTOOLS(
-                bam_merge_and_index.out,
-                bcftools_genotyping_ref_ch
-            )
-            GENOTYPING_BCFTOOLS.out.set{genotyping_bcftools_ch}
-        } else {
-            Channel.empty().set{ genotyping_bcftools_ch }
-        }
-	
-        // concatonate genotyping workflow output channels
-        genotyping_bcftools_ch.concat(genotyping_gatk_ch).set{vcf_files_ch}
+        // Genotyping
+        sample_key_ref_ch.map{it -> tuple(it[0],it[1], it[3], it[4])}.set{genotyping_ref_ch} // tuple (sample_tag, fasta_file, snp_list, sample_key)
+        GENOTYPING_BCFTOOLS(
+            bam_merge_and_index.out,
+            genotyping_ref_ch
+        )
+        GENOTYPING_BCFTOOLS.out.set{vcf_files_ch}
 
         // Create channel of 2 lists: IDs and VCFs
         vcf_files_ch // tuple (sample_tag, vcf_path, vcf_index_path)
@@ -93,3 +97,17 @@ workflow READS_TO_VARIANTS {
         lanelet_manifest // (manifest_file)
 }
 
+workflow {
+    // File required for Reads to Variants input channels
+    channel_data = Channel.fromPath(params.channel_data_file, checkIfExists: true)
+        .splitCsv(header: true, sep: '\t')
+
+    // Reads to Variants input channels
+    fastq_ch = channel_data.map { row -> tuple(row.file_id, row.fastq_file, row.reference_file) }
+    file_id_reference_files_ch = channel_data.map { row -> tuple(row.file_id, row.panel_name, row.reference_file, row.snp_list) }
+    annotations_ch = channel_data.map { row -> tuple(row.panel_name, file(row.annotation_file)) }.unique()
+    file_id_to_sample_id_ch = channel_data.map { row -> tuple(row.file_id, row.sample_id) }
+
+    // Run Reads to Variants workflow
+    READS_TO_VARIANTS(fastq_ch, file_id_reference_files_ch, annotations_ch, file_id_to_sample_id_ch)
+}

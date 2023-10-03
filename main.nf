@@ -7,6 +7,8 @@ nextflow.enable.dsl = 2
 // - workflows
 
 include { parse_panel_settings } from './modules/parse_panels_settings.nf'
+include { miseq_to_reads_parameter_check } from './workflows/miseq_to_reads.nf'
+include { irods_to_reads_parameter_check } from './workflows/sanger_irods_to_reads.nf'
 include { SANGER_IRODS_TO_READS } from './workflows/sanger_irods_to_reads.nf'
 include { MISEQ_TO_READS } from './workflows/miseq_to_reads.nf'
 include { READS_TO_VARIANTS } from './workflows/reads_to_variants.nf'
@@ -23,7 +25,7 @@ ANSI_RESET = "\033[0m"
 
 log.info """
         ===========================================
-         AMPSEQ_1.0
+         AMPSEQ v1.1.1
          Used parameters:
         -------------------------------------------
          --execution_mode     : ${params.execution_mode}
@@ -31,8 +33,6 @@ log.info """
          --containers_dir     : ${params.containers_dir}
          --results_dir        : ${params.results_dir}
          --containers_dir     : ${params.containers_dir}
-         --genotyping_gatk    : ${params.genotyping_gatk}
-         --genotyping_bcftools: ${params.genotyping_bcftools}
          --grc_settings_file_path: ${params.grc_settings_file_path}
          --chrom_key_file_path: ${params.chrom_key_file_path}
          --kelch_reference_file_path: ${params.kelch_reference_file_path}
@@ -51,8 +51,11 @@ log.info """
          (s3)
          --upload_to_s3       : ${params.upload_to_s3}
          --s3_uuid            : ${params.s3_uuid}
-         --s3_bucket_input    : ${params.s3_bucket_input}
          --s3_bucket_output   : ${params.s3_bucket_output}
+
+         (grc)
+         --no_plasmepsin      : ${params.no_plasmepsin}
+         --no_kelch           : ${params.no_kelch}
 
          (DEBUG)
          --DEBUG_tile_limit   : ${params.DEBUG_tile_limit}
@@ -118,8 +121,7 @@ def printHelp() {
       --irods_manifest : an tsv containing information of irods data to fetch
       
       (if s3)
-      --s3_uuid : <str> a universally unique id which will be used to fetch data from s3, if is not provided, the pipeline will not retrieve miseq runs from s3
-      --s3_bucket_input : <str> s3 bucket name to fetch data from
+      --s3_uuid : <str> A s3_uuid must be provided if --upload_to_s3 is required
       --upload_to_s3 : <bool> sets if needs to upload output data to an s3 bucket
       --s3_bucket_output : <str> s3 bucket name to upload data to
 
@@ -135,10 +137,6 @@ def printHelp() {
       --results_dir : <path>, output directory (Default: $launchDir/output/)
       --panels_settings : <path>, path to panel_settings.csv
       --containers_dir : <path>, path to a dir where the containers are located
-
-      (genotyping)
-      --gatk3: <str> path to GATK3 GenomeAnalysisTK.jar file
-      --
 
     Additional options:
       --help (Prints this help message. Default: false)
@@ -157,6 +155,7 @@ workflow {
       printHelp()
       exit 0
   }
+  validate_general_params()
 
   // -- MAIN-EXECUTION ------------------------------------------------------
   // prepare panel resource channels
@@ -167,12 +166,18 @@ workflow {
   // Files required for GRC creation
   Channel.fromPath(params.grc_settings_file_path, checkIfExists: true)
   chrom_key_file = Channel.fromPath(params.chrom_key_file_path, checkIfExists: true)
-  kelch_reference_file = Channel.fromPath(params.kelch_reference_file_path, checkIfExists: true)
   codon_key_file = Channel.fromPath(params.codon_key_file_path, checkIfExists: true)
   drl_information_file = Channel.fromPath(params.drl_information_file_path, checkIfExists: true)
 
+  if (params.no_kelch == false) {
+    kelch_reference_file = Channel.fromPath(params.kelch_reference_file_path, checkIfExists: true)
+  } else {
+    kelch_reference_file = Channel.empty()
+  }
+
   if (params.execution_mode == "in-country") {
     // process in country entry point
+    miseq_to_reads_parameter_check()
     manifest = Channel.fromPath(params.manifest_path, checkIfExists: true)
     MISEQ_TO_READS(manifest, reference_ch)
     fastq_files_ch = MISEQ_TO_READS.out.fastq_files_ch
@@ -181,6 +186,7 @@ workflow {
   }
 
   if (params.execution_mode == "irods") {
+    irods_to_reads_parameter_check()
     // process IRODS entry point
     manifest = Channel.fromPath(params.irods_manifest, checkIfExists: true)
     SANGER_IRODS_TO_READS(manifest, reference_ch)
@@ -206,7 +212,7 @@ workflow.onComplete {
         log.info """
             ===========================================
             ${ANSI_GREEN}Finished in ${workflow.duration}
-            See the report here ==> ${ANSI_RESET}/SOMEDIR/XXX_report.html
+            See the report here ==> ${ANSI_RESET}${workflow.launchDir}/report.html
             """
             .stripIndent()
     } else {
@@ -218,6 +224,26 @@ workflow.onComplete {
     }
 }
 
+def __check_if_params_file_exist(param_name, param_value){
+  // --- GRC SETTINGS ---
+  def error = 0
+
+  if (!(param_value==null)){
+    param_file = file(param_value)
+    if (!param_file.exists()){
+      log.error("${param_file} does not exist")
+      error +=1
+    }
+  }
+
+  if (param_value==null){
+    log.error("${param_name} must be provided")
+    error +=1
+  }
+  // ----------------------
+  return error
+}
+
 def validate_general_params(){
   /*
   count errors on parameters which must be provided regardless of the workflow which will be executed
@@ -227,14 +253,40 @@ def validate_general_params(){
   <int> number of errors found
   */
 
-  def err = 0
+  def error = 0
   def valid_execution_modes = ["in-country", "irods"]
 
   // check if execution mode is valid
   if (!valid_execution_modes.contains(params.execution_mode)){
     log.error("The execution mode provided (${params.execution_mode}) is not valid. valid modes = ${valid_execution_modes}")
-    err += 1
+    error += 1
   }
+
+  // check if resources were provided
+  error += __check_if_params_file_exist("grc_settings_file_path", params.grc_settings_file_path)
+  error += __check_if_params_file_exist("panels_settings", params.panels_settings) 
+  error += __check_if_params_file_exist("chrom_key_file_path", params.chrom_key_file_path) 
+  error += __check_if_params_file_exist("codon_key_file_path", params.codon_key_file_path)
+  error += __check_if_params_file_exist("drl_information_file_path", params.drl_information_file_path)
+
+  if (params.no_kelch == false) {
+    error += __check_if_params_file_exist("kelch_reference_file_path", params.kelch_reference_file_path)
+  }
+  
+  // raise WARNING if debug params were set
+  if (!params.DEBUG_takes_n_bams == null){
+    log.warn("[DEBUG] takes_n_bams was set to ${params.DEBUG_takes_n_bams}")
+  }
+
+  if (!params.DEBUG_tile_limit == null){
+    log.warn("[DEBUG] tile_limit was set to ${params.DEBUG_tile_limit}")
+  }
+
+  if (params.DEBUG_no_coi == true){
+    log.warn("[DEBUG] no_coi was set to ${params.DEBUG_no_coi}")
+  }
+  // -------------------------------------------
+  
   // check if output dir exists, if not create the default
   if (params.results_dir){
     results_path = file(params.results_dir)
@@ -245,24 +297,22 @@ def validate_general_params(){
   }
   
   // if S3 is requested, check if all s3 required parameters were provided
-  // check S3 input bucket
-  if (!(params.s3_bucket_input==null)){
-    if (params.s3_uuid == null){
-      log.error("A s3 uuid parameter must be provided if a s3 bucket input is provided'.")
-      errors += 1
-    } 
-  }
+
   // check S3 output bucket
   if (params.upload_to_s3){
     if (params.s3_bucket_output == null){
       log.error("A s3_bucket_output parameter must be provided if upload_to_s3 is set to '${params.upload_to_s3}'.")
-      errors += 1
+      error += 1
     }
     if (params.s3_uuid==null){
       log.error("A s3_uuid must be provided if upload_to_s3 is required")
-      errors += 1
+      error += 1
     }
   }
-  return err
+
+  if (error > 0) {
+    log.error("Parameter errors were found, the pipeline will not run")
+    exit 1
+  }
 }
 

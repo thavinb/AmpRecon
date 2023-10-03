@@ -1,5 +1,48 @@
 #!/usr/bin/env nextflow
 
+/*
+    | VARIANTS_TO_GRCS |-----------------------------------------
+    
+    This workflow takes a manifest file and and manifest for 
+    samples and lanelet VCFs as input. The variant calls in these 
+    VCFs are used to determine several key metrics, from which 
+    metadata enriched GRCs and barcodes files are assembled. Several
+    files are needed for these processes: 
+    [1] Chrom key file that the specifies amplicon regions, their genomic 
+    coordinates and reference alleles is for genotype file creation. 
+    [2] Codon key file for describing the genetic code by linking 
+    codons with associated amino acid.
+    [3] Kelch reference file which details the codons in the Kelch13
+    region - genomic location of each base, base at each position 
+    and amino acid.
+    [4] DRL information file that describes the amino acid position,
+    mutation name, and genomic position for each base in the locus 
+    for key drug resistance loci.
+    
+    A GRC settings file must also be supplied to the pipeline. This 
+    file details many important values for GRC creation. These include
+    minimum coverage values for Kelch13 mutation calling and species
+    calling, Kelch13 regions, Plasmepsin loci genotypes and variants, 
+    and amino acid calling / haplotype calling double heterozygous case
+    haplotype. It also contains values for a speciation default species 
+    and species order, species reference describing the allele for each 
+    species at particular loci and barcoding reference information:
+    chromosome, locus, reference allele.
+    
+    The lanelet VCFs specified in the lanelet manifest are used to
+    create a genotype file. This genotype file is used throughout
+    the workflow, for Kelch13 mutation calling, Plasmepsin copy
+    number variation calling, drug resistance haplotype assembly,
+    barcode assembly, species calling and complexity of infection 
+    estimation. The output from these processes are assembled into 
+    2 GRC files, which then have metadata from the manifest added 
+    to them.
+
+    2 resulting GRC files and a barcodes file that have had 
+    metadata added to them are output.
+    ------------------------------------------------------------------
+*/
+
 // enable dsl2
 nextflow.enable.dsl = 2
 
@@ -13,6 +56,7 @@ include { grc_estimate_coi } from '../grc_tools/COI/grc_estimate_coi.nf'
 include { grc_amino_acid_caller } from '../grc_tools/amino_acid_calling/grc_amino_acid_caller.nf'
 include { grc_assemble } from '../grc_tools/assemble_grc1/grc_assemble.nf'
 include { add_metadata_and_format } from '../grc_tools/metadata/add_metadata_and_format.nf'
+include { upload_pipeline_output_to_s3 } from '../modules/upload_pipeline_output_to_s3.nf'
 
 workflow VARIANTS_TO_GRCS {
     take:
@@ -27,13 +71,23 @@ workflow VARIANTS_TO_GRCS {
         // Write genotype file
         assemble_genotype_file(lanelet_manifest_file, chrom_key_file)
         genotype_files_ch = assemble_genotype_file.out
-
+        
         // Call mutations at Kelch13 loci
-        grc_kelch13_mutation_caller(genotype_files_ch, kelch_reference_file, codon_key_file)
+        if (params.no_kelch == false){
+            grc_kelch13_mutation_caller(genotype_files_ch, kelch_reference_file, codon_key_file)
+            kelch_grc_ch = grc_kelch13_mutation_caller.out
+        } else {
+            kelch_grc_ch = Channel.empty()
+        }
 
         // Call copy number variation at Plasmepsin breakpoint
-        grc_plasmepsin_cnv_caller(genotype_files_ch)
-        
+        if (params.no_plasmepsin == false){
+            grc_plasmepsin_cnv_caller(genotype_files_ch)
+            plasmepsin_grc_ch = grc_plasmepsin_cnv_caller.out
+        } else {
+            plasmepsin_grc_ch = Channel.empty()
+        }
+
         // Create barcodes
         grc_barcoding(genotype_files_ch)
 
@@ -52,10 +106,10 @@ workflow VARIANTS_TO_GRCS {
         grc_amino_acid_caller(genotype_files_ch, drl_information_file, codon_key_file)
 
         // Assemble GRC1
-        grc_kelch13_mutation_caller.out
-            .concat(grc_plasmepsin_cnv_caller.out)
+        grc_speciate.out
+            .concat(kelch_grc_ch)
+            .concat(plasmepsin_grc_ch)
             .concat(grc_barcoding.out.barcoding_file)
-            .concat(grc_speciate.out)
             .concat(coi_grc_ch)
             .concat(grc_amino_acid_caller.out.drl_haplotypes)
             .collect()
@@ -65,6 +119,26 @@ workflow VARIANTS_TO_GRCS {
         // Format and add metadata to GRCs and barcodes files
         add_metadata_and_format(manifest_file, grc_assemble.out, grc_amino_acid_caller.out.grc2, grc_barcoding.out.barcoding_split_out_file)
 
+        // Those output channels were added to be used by nf-test 
+        grc1_no_metadata = grc_assemble.out 
+        grc1_with_metadata = add_metadata_and_format.out.grc1
+        grc2_with_metadata = add_metadata_and_format.out.grc2
+        barcodes = add_metadata_and_format.out.barcodes
+    
+        // upload final GRCs, final Barcodes file and Genotype file to S3 bucket
+        if (params.upload_to_s3){
+            grc1_with_metadata
+                .concat(grc2_with_metadata)
+                .concat(barcodes)
+                .concat(genotype_files_ch)
+                .set{output_to_s3}
+            upload_pipeline_output_to_s3(output_to_s3, "grcs_barcodes")
+        }
+
+    emit:
+        grc1_with_metadata
+        grc2_with_metadata
+        barcodes
 }
 
 workflow {
@@ -80,4 +154,3 @@ workflow {
     // Run GRC creation workflow
     VARIANTS_TO_GRCS(manifest_file, lanelet_manifest_file, chrom_key_file, kelch_reference_file, codon_key_file, drl_information_file)
 }
-

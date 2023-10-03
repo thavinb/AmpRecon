@@ -31,6 +31,20 @@ workflow READ_COUNTS {
     // upload read counts to S3 bucket
     if (params.upload_to_s3){
       read_count_per_region.out.set{output_to_s3}
-      upload_pipeline_output_to_s3(output_to_s3)
+      upload_pipeline_output_to_s3(output_to_s3, "read_counts")
     }
+}
+
+workflow {
+    // File required for Read Counts input channels
+    channel_data = Channel.fromPath(params.channel_data_file, checkIfExists: true)
+        .splitCsv(header: true, sep: '\t')
+
+    // Read Counts input channels
+    indexed_bams_ch = channel_data.map { row -> tuple(row.file_id, file(row.bam_file), file(row.bam_index_file)) }
+    file_id_reference_files_ch = channel_data.map { row -> tuple(row.file_id, row.panel_name, row.panel_name, row.panel_name) }
+    annotations_ch = channel_data.map { row -> tuple(row.panel_name, file(row.annotation_file)) }.unique()
+
+    // Run Read Counts workflow
+    READ_COUNTS(indexed_bams_ch, file_id_reference_files_ch, annotations_ch)
 }

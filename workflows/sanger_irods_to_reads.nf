@@ -94,22 +94,39 @@ def irods_to_reads_parameter_check(){
     <int> the number of errors found
     */
 
-    def err = 0
+    def error = 0
     if (params.irods_manifest == null){
         log.error("An irods_manifest parameter must be provided for execution mode '${params.execution_mode}'.")
-        err += 1
+        error += 1
     }
 
     if (params.irods_manifest){
         irods_manifest = file(params.irods_manifest)
         if (!irods_manifest.exists()){
             log.error("The irods manifest file specified (${params.irods_manifest}) does not exist.")
-            err += 1
+            error += 1
         }
         else {
             validate_irods_mnf(params.irods_manifest, params.panels_settings)
         }
     }
 
-    return err
+    if (error > 0) {
+        log.error("Parameter errors were found, the pipeline will not run")
+        exit 1
+    }
+}
+
+workflow {
+    // File required for Sanger iRODS to Reads input channels
+    channel_data = Channel.fromPath(params.channel_data_file, checkIfExists: true)
+        .splitCsv(header: true, sep: '\t')
+
+    irods_to_reads_parameter_check()
+    // Sanger iRODS to Reads input channels
+    irods_manifest = Channel.fromPath(params.irods_manifest)
+    reference_ch = channel_data.map { row -> tuple(row.reference_file, row.panel_name, row.snp_list) }
+
+    // Run Sanger iRODS to Reads workflow
+    SANGER_IRODS_TO_READS(irods_manifest, reference_ch)
 }
