@@ -361,6 +361,7 @@ First, the variants are organised into genotypes on a per-locus basis, and `geno
 
 Once barcodes for each sample have been assembled, the GRC creation process moves to species-detection. At this stage, the pipeline assigns each sample a species tag, either "Pf" for _P. falciparum_ or "Pv" for _P. vivax_. This stage of analysis is able to identify species co-infections on a per-sample basis. The workflow is described in [Figure 2](./speciation_flow.png) below.  
 
+<mark>TODO:<mark> update this flowchart
 ![speciation_flowchart](./speciation_flow.png)
 *Figure 2: The Workflow used in the speciation stage of GRC creation*  
 

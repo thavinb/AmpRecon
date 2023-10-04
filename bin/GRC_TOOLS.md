@@ -1,4 +1,7 @@
 # Documentation for Python Scripts Used in GRC Creation  
+
+**NB**: All scripts described here require Python>=3.8; other requirements are noted as applicable.
+
 - [Genotype File Creation](#genotype-file-creation)  
 - [Kelch13](#kelch13-mutation-detection)  
 - [Plasmepsin CNV Detection](#plasmepsin-copy-number-variation-detection)  
@@ -13,7 +16,7 @@
 **Called From**: `grc_assemble_genotype_file.nf`  
 
 #### Requirements
-* Python>3.7  
+
 * PyVCF>0.6.8  
 
 ## Usage  
@@ -50,9 +53,6 @@ write_genotypes_file.py [-h] [--vcf_files VCF_FILES]
 **Description**: Call kelch13 mutations from input genotype file.  
 **Called From**: `grc_kelch13_mutation_caller.nf`  
 
-#### Requirements  
-* Python>3.7  
-
 ## Usage  
 
 ```
@@ -82,9 +82,6 @@ grc_kelch13_mutation_caller.py [-h] [--genotype_files GENOTYPE_FILES]
 **Description**: Call copy-number variants for the plasmepsin locus.  
 **Called From**: `grc_plasmepsin_cnv_caller.nf`  
 
-#### Requirements  
-* Python>3.7  
-
 ## Usage  
 
 ```
@@ -112,7 +109,6 @@ grc_plasmepsin_cnv_caller.py [-h] [--genotype_files GENOTYPE_FILES]
 
 #### Requirements  
 
-* Python>3.7  
 * tqdm  
 
 ## Usage  
@@ -147,7 +143,7 @@ grc_barcoding.py [-h] [--genotype_files GENOTYPE_FILES]
 **Called From**: `grc_speciate.nf`  
 
 #### Requirements  
-* Python > 3.8  
+
 * tqdm  
 
 ## Usage  
@@ -186,6 +182,9 @@ grc_speciate.py [-h] [--genotype_files GENOTYPE_FILES]
 
 #### Requirements  
 
+* [THEREALMcCOIL - (slightly modified version)](https://github.com/AMarinhoSN/THEREALMcCOIL)
+* Singularty
+
 ## Usage  
 
 ```
@@ -193,6 +192,25 @@ grc_process_mccoil_io.py [-h] [-write_mccoil_in] [-write_coi_grc] [--barcodes_fi
                             [--barcode_def_file BARCODE_DEF_FILE]
                             [--mccoil_sum_file MCCOIL_SUM_FILE(s)]
                             [--output_file OUTPUT_FILE]
+```  
+
+Ideally, use Singularity to build from the definition file in THEREALMcCOIL repository - this will handle all dependencies. Within the container, typical usage would be as follows (see the repository for more information on the options taken by THEREALMcCOIL):  
+
+```
+## generate McCOIL input files
+python3 grc_process_mccoil_io.py -write_mccoil_in \
+            --barcodes_files $BARCODES_IN --config $BARCODE_DEF \
+            --output_file RUN_ID.tsv
+
+## run McCOIL
+Rscript /app/THEREALMcCOIL/runMcCOIL.R -i RUN_ID.tsv \
+            --totalRun NTOTAL --totalBurnIn NBURN --seed 123456 \
+            --outPrefix RUN_ID --maxCOI 20 --M0 5
+
+## convert McCOIL outputs to GRC-ready form
+python3 grc_process_mccoil_io.py -write_coi_grc \
+            --mccoil_sum_file RUN_ID_summary.txt \
+            --output_file RUN_ID_out.grc
 ```  
 
 ## Parameters  
