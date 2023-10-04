@@ -46,7 +46,7 @@ You can now run the pipeline from BCL input as follows:
 ```
 nextflow /path/to/ampseq-pipeline/main.nf -profile sanger_lsf \
                 --execution_mode in-country \
-                --run_id 21045 \
+                --run_id 12345 \
                 --bcl_dir /path/to/my_bcl_dir/ \
                 --ena_study_name test \
                 --manifest_path manifest.tsv \
@@ -59,7 +59,7 @@ Alternatively, lauch the pipeline run with input from **iRODS**:
 ```
 nextflow /path/to/ampseq-pipeline/main.nf -profile sanger_lsf \
         --execution_mode irods \
-        --run_id 21045 \
+        --run_id 12345 \
         --irods_manifest /path/to/irods_manifest.tsv
         --containers_dir ./containers_dir/
         -c /path/to/species/config
@@ -111,7 +111,7 @@ Using the bundled Singularity recipes is the recommended mode of operation. A li
 - tqdm  
 
 This list is non-exhaustive and does not include OS/filesystem/runtime utilites.  
-- <mark>TODO:<mark> populate this list
+<mark>TODO:<mark> add versions where needed/appropriate  
 
 [**(&uarr;)**](#contents)  
 
@@ -124,6 +124,7 @@ The AmpSeq repository has a script, `path/to/ampseq-pipeline/containers/buildCon
 [**(&uarr;)**](#contents)  
 
 ## Running on farm5  
+<mark>TODO:<mark> potentially too Sanger-specific, generalise.
 
 If you are working on Sanger's farm5, Nextflow can be made available by loading its module as follows:  
 
@@ -149,18 +150,18 @@ Use `-profile standard` for a no-frills execution setup. <mark>TODO:<mark> expan
 
 - `--execution_mode` : Sets the entry point for the pipeline. This can be "irods" (the expected input type is CRAM files) or "in-country" (the expected input type is BCL files).  
 - `--run_id` : Numeric identifier to be used for the batch of data to be processed. `run_id` is used as a prefix for the output GRC files.  
-- `--species_config`/`-c` : stages the relevant reference amplicon panels to analyse data against specific species. Configuration files for P. falciparum and P. vivax are provided in the repository in `path/to/ampseq-pipeline/conf` <mark>TODO:<mark> check whether this makes it into the public release (seems deprecated?)  
+- `--species_config`/`-c` : stages the relevant reference amplicon panels to analyse data against specific species. Configuration files for P. falciparum and P. vivax are provided in the repository in `path/to/ampseq-pipeline/conf`  
 
 Based on which execution mode you specify, there are further parameters that need to be specified:  
 
 #### `--execution_mode irods`
 
-- `--irods_manifest` : Full path to the run manifest. This is a tab-separated file containing details of samples and corresponding sequencing files to be fetched from iRODS. A sample iRODS manifest can be found [here](404.NOT.FOUND).  
+- `--irods_manifest` : Full path to the run manifest. This is a tab-separated file containing details of samples and corresponding sequencing files to be fetched from iRODS.  
 
 #### `--execution_mode in-country`
 
 - `--bcl_dir` : Full path to the location of BCL files.  
-- `--manifest_path`: Full path to the run manifest. This is a tab-separated file containing details of samples and corresponding sequencing files. A sample manifest can be found [here](404.NOT.FOUND)  
+- `--manifest_path`: Full path to the run manifest. This is a tab-separated file containing details of samples and corresponding sequencing files.  
 
 [**(&uarr;)**](#contents)  
 
@@ -276,41 +277,41 @@ For each sample ID specified in the manifest, AmpSeq generates a BAM file and a 
 
 ## Read Counts per Panel  
 
-<mark>TODO:<mark> clarify  
+<mark>TODO:<mark> TBC  
 
-- `Rpt` : Sample identifier.  
+- `Rpt` : Sample/lanelet identifier.  
 
 - `Region` : The amplicon to which the row data corresponds.  
 
-- `Total_reads` :
+- `Total_reads` : The total number of reads in a given sample/lanelet.  
 
-- `Total_region_reads` :
+- `Total_region_reads` : The total number of reads in a given sample/lanelet that mapped successfully.  
 
-- `Region_reads` :
+- `Region_reads` : The total number of reads aligned to the corresponding amplicon region.  
 
-- `Perc of total reads` :
+- `Perc of total reads` : `Region_reads` as a percentage of `Total_reads`.  
 
-- `Perc of mapped to region reads` :
+- `Perc of mapped to region reads` : `Region_reads` as a percentage of `Total_region_reads`.  
 
-- `Total_region_reads MQ>=10` :
+- `Total_region_reads MQ>=10` : The number of `Total_region_reads` with mean base quality greater than or equal to 10.  
 
-- `Region_reads MQ>=10` :
+- `Region_reads MQ>=10` : The number of `Region_reads` with mean base quality greater than or equal to 10.  
 
-- `Region_reads 1 MQ>=10` :
+- `Region_reads 1 MQ>=10` : The number of forward `Region_reads` with mean base quality greater than or equal to 10.  
 
-- `Region_reads 2 MQ>=10` :
+- `Region_reads 2 MQ>=10` : The number of reverse `Region_reads` with mean base quality greater than or equal to 10.  
 
-- `Perc Region_reads 1 MQ>=10` :
+- `Perc Region_reads 1 MQ>=10` : `Region_reads 1 MQ>=10` as a percentage of `Region_reads MQ>=10`.  
 
-- `Perc of mapped to region reads MQ>=10` :
+- `Perc of mapped to region reads MQ>=10` : `Region_reads MQ>=10` as a percentage of `Total_region_reads MQ>=10`.  
 
-- `Region_fragments represented MQ>=10` :
+- `Region_fragments represented MQ>=10` : The number of read pairs represented, with mean base quality greater than or equal to 10.  
 
-- `Region_fragments both MQ>=10` :
+- `Region_fragments both MQ>=10` : The number of read pairs represented, where both reads in the pair have mean base quality greater than or equal to 10.  
 
-- `Perc of total fragments` :
+- `Perc of total fragments` : `Region_fragments represented MQ>=10` as a percentage of the total number of read-pairs in the sample.  
 
-- `Perc of mapped to region fragments` :
+- `Perc of mapped to region fragments` : `Region_fragments represented MQ>=10` as a percentage of the total number of read-pairs mapped to the corresponding region.  
 
 [**(&uarr;)**](#contents)  
 
@@ -404,7 +405,7 @@ nf-test test tests/workflows/miseq_to_reads.nf.test --profile sanger_default
 - `--execution_mode` (str) [Valid: "irods" or "in-country"]: Mode of execution  
 - `--results_dir` (path) [Default: "launch_dir/output/"]: output directory  
 - `--panels_settings` (path) : Path to panel_settings.csv
-- `--containers_dir` (path) [Default: "/nfs/gsu/team335/ampseq-containers/"]: <mark>TODO:<mark> confirm this, path to a dir where the containers are located  
+- `--containers_dir` (path) [Default: "/nfs/gsu/team335/ampseq-containers/"]: <mark>TODO:<mark> confirm default value, path to a dir where the containers are located  
 
 ### `--execution_mode irods`  
 
