@@ -9,10 +9,14 @@ nextflow.enable.dsl = 2
 include { parse_panel_settings } from './modules/parse_panels_settings.nf'
 include { miseq_to_reads_parameter_check } from './workflows/miseq_to_reads.nf'
 include { irods_to_reads_parameter_check } from './workflows/sanger_irods_to_reads.nf'
+include { fastq_parameter_check } from './workflows/fastq_entry_point.nf'
 include { SANGER_IRODS_TO_READS } from './workflows/sanger_irods_to_reads.nf'
 include { MISEQ_TO_READS } from './workflows/miseq_to_reads.nf'
+include { FASTQ_ENTRY_POINT } from './workflows/fastq_entry_point.nf'
 include { READS_TO_VARIANTS } from './workflows/reads_to_variants.nf'
 include { VARIANTS_TO_GRCS } from './workflows/variants_to_grcs.nf'
+
+
 // logging info ----------------------------------------------------------------
 // This part of the code is based on the FASTQC PIPELINE (https://github.com/angelovangel/nxf-fastqc/blob/master/main.nf)
 
@@ -47,6 +51,9 @@ log.info """
 
          (irods)
          --irods_manifest     : ${params.irods_manifest}
+
+         (fastq_entry_point)
+         --fastq_manifest     : ${params.fastq_manifest}
 
          (s3)
          --upload_to_s3       : ${params.upload_to_s3}
@@ -97,7 +104,18 @@ def printHelp() {
       --drl_information_file_path DRLinfo.txt
       --codon_key_file_path codonKey.txt
       --kelch_reference_file_path kelchReference.txt
-      --containers_dir ./containers_dir/ 
+      --containers_dir ./containers_dir/
+
+    (fastq_entry_point)
+    nextflow /path/to/ampseq-pipeline/main.nf -profile sanger_lsf
+      --execution_mode fastq --run_id 21045
+      --fastq_manifest ./input/fastq_smallset.tsv
+      --chrom_key_file_path chromKey.txt
+      --grc_settings_file_path grc_settings.json
+      --drl_information_file_path DRLinfo.txt
+      --codon_key_file_path codonKey.txt
+      --kelch_reference_file_path kelchReference.txt
+      --containers_dir ./containers_dir/
 
   Description:
     Ampseq is a bioinformatics analysis pipeline for amplicon sequencing data.
@@ -120,6 +138,9 @@ def printHelp() {
       (irods required)
       --irods_manifest : an tsv containing information of irods data to fetch
       
+      (fastq entry point required)
+      --fastq_manifest: <str> path to the manifest file
+
       (if s3)
       --s3_uuid : <str> A s3_uuid must be provided if --upload_to_s3 is required
       --upload_to_s3 : <bool> sets if needs to upload output data to an s3 bucket
@@ -137,6 +158,7 @@ def printHelp() {
       --results_dir : <path>, output directory (Default: $launchDir/output/)
       --panels_settings : <path>, path to panel_settings.csv
       --containers_dir : <path>, path to a dir where the containers are located
+
 
     Additional options:
       --help (Prints this help message. Default: false)
@@ -194,6 +216,17 @@ workflow {
     fastq_files_ch = SANGER_IRODS_TO_READS.out.fastq_ch // tuple (file_id, bam_file, run_id)
     file_id_reference_files_ch = SANGER_IRODS_TO_READS.out.file_id_reference_files_ch
     file_id_to_sample_id_ch = SANGER_IRODS_TO_READS.out.file_id_to_sample_id_ch
+  }
+
+  if (params.execution_mode == "fastq") {
+    fastq_parameter_check() 
+    // parse manifest
+    manifest = Channel.fromPath(params.fastq_manifest, checkIfExists: true)
+    FASTQ_ENTRY_POINT(manifest, reference_ch)
+    // setup channels for downstream processing
+    fastq_files_ch = FASTQ_ENTRY_POINT.out.fastq_files_ch // tuple (file_id, fastq_ch, path/to/reference/genome) 
+    file_id_reference_files_ch = FASTQ_ENTRY_POINT.out.file_id_reference_files_ch// tuple (file_id, panel_name, path/to/reference/genome, snp_list)
+    file_id_to_sample_id_ch = FASTQ_ENTRY_POINT.out.file_id_to_sample_id_ch// tuple (file_id, sample_id)  
   }
 
   // Reads to variants
@@ -254,7 +287,7 @@ def validate_general_params(){
   */
 
   def error = 0
-  def valid_execution_modes = ["in-country", "irods"]
+  def valid_execution_modes = ["in-country", "irods", "fastq"]
 
   // check if execution mode is valid
   if (!valid_execution_modes.contains(params.execution_mode)){
