@@ -13,6 +13,7 @@ Align data to specific amplicon panels, perform variant-calling, and produce gen
 8. [Essential Parameter](#essential-parameters)  
         &rarr; [`--execution_mode irods`](#execution_mode-irods)  
         &rarr; [`--execution_mode in-country`](#execution_mode-in-country)  
+        &rarr; [`--execution_mode fastq`](#execution_mode-fastq)  
 9. [Input Files](#input-files)  
         &rarr; [iRODS Manifest](#irods-manifest)  
         &rarr; [In-Country Manifest](#in-country-manifest)  
@@ -54,6 +55,17 @@ nextflow /path/to/ampseq-pipeline/main.nf -profile sanger_lsf \
                 -c /path/to/species/config
 ```  
 
+If starting from FASTQ files, run the pipeline as follows:  
+```
+nextflow /path/to/ampseq-pipeline/main.nf -profile sanger_lsf \
+        --execution_mode fastq \
+        --run_id 12345 \
+        --fastq_manifest /path/to/fastq_manifest.tsv
+        --containers_dir /path/to/containers_dir/
+        -c /path/to/species/config 
+```
+
+
 Alternatively, lauch the pipeline run with input from **iRODS**:  
 <mark>TODO:<mark> check this  
 ```
@@ -61,7 +73,7 @@ nextflow /path/to/ampseq-pipeline/main.nf -profile sanger_lsf \
         --execution_mode irods \
         --run_id 12345 \
         --irods_manifest /path/to/irods_manifest.tsv
-        --containers_dir ./containers_dir/
+        --containers_dir /path/to/containers_dir/
         -c /path/to/species/config
 ```  
 > **!!!WARNING!!!**  
@@ -75,7 +87,7 @@ nextflow /path/to/ampseq-pipeline/main.nf -profile sanger_lsf \
 
 AmpSeq is a bioinformatics analysis pipeline for amplicon sequencing data. It currently supports alignment and SNP variant-calling functions and works with paired-end Illumina sequencing data.
 
-AmpSeq can accept as input either [Binary Base Call (BCL) files](https://emea.illumina.com/informatics/sequencing-data-analysis/sequence-file-formats.html), or aligned [CRAM files](https://www.sanger.ac.uk/tool/cram/). In the latter case, the pipeline expects to pull CRAM files from the Sanger Institute's internal file storage system, which is based on [iRODS](https://irods.org) (Integrated Rule-Oriented Data System). The main outputs include:  
+AmpSeq can accept as input [Binary Base Call (BCL) files](https://emea.illumina.com/informatics/sequencing-data-analysis/sequence-file-formats.html), FASTQ files, or aligned [CRAM files](https://www.sanger.ac.uk/tool/cram/). In the latter case, the pipeline expects to pull CRAM files from the Sanger Institute's internal file storage system, which is based on [iRODS](https://irods.org) (Integrated Rule-Oriented Data System). The main outputs include:  
 - aligned reads in the form of [BAM files](https://en.wikipedia.org/wiki/Binary_Alignment_Map), one for each lanelet
 - SNP variants in the form of [VCF files](https://samtools.github.io/hts-specs/VCFv4.2.pdf), one for each sample
 - [Genetic Report Cards (GRCs)](https://www.malariagen.net/sites/default/files/GRC_UserGuide_10JAN19.pdf), tabular files that describe key features of interest
@@ -84,7 +96,6 @@ AmpSeq can accept as input either [Binary Base Call (BCL) files](https://emea.il
 AmpSeq supports the analysis of data from _Plasmodium falciparum_ and _P. vivax_ - this behaviour can be controlled by modifying the `.config` files in `path/to/ampseq-pipeline/conf`.  
 
 Figure 1 (below) shows an overview of the pipeline's operation.  
-
 <mark>TODO:<mark> add workflow diagram  
 
 [**(&uarr;)**](#contents)  
@@ -170,6 +181,10 @@ Based on which execution mode you specify, there are further parameters that nee
 - `--bcl_dir` : Full path to the location of BCL files.  
 - `--manifest_path`: Full path to the run manifest. This is a tab-separated file containing details of samples and corresponding sequencing files.  
 
+#### `--execution_mode fastq`
+
+- `--fastq_manifest` : Full path to FASTQ manifest. This is a tsv containing tab-separated file containing details of samples and corresponding unpaired fastq data.  
+
 [**(&uarr;)**](#contents)  
 
 ---
@@ -178,13 +193,13 @@ Based on which execution mode you specify, there are further parameters that nee
 
 ## iRODS Manifest  
 
-The iRODS manifest file must be a `.tsv`. The pipeline expects to find the following columns headers:  
+The iRODS manifest file must be a `.tsv`. The pipeline can contain the following column headers. Note that `irods_path`, `sample_id`, and `primer_panel` columns are essential:  
 
 - `sample_id`: a sample identifier tag. This is used to prefix output files.  
 
 - `primer_panel`: primer panel name to be used (must exactly match the value of `panel_name` in `panels_settings.csv`; more on `panels_settings.csv` [here](#panel-settings)).  
 
-- `irods_path`: full path to iRODS location for the required `.cram` files (e.g.: `/seq/illumina/runs/38/38344/lane2/plex1/38344_2#1.cram`).  
+- `irods_path`: full path to iRODS location for the required `.cram` files (e.g.: `/seq/illumina/runs/38/12345/lane2/plex1/12345_2#1.cram`).  
 
 - `partner_sample_id`: (alternative) name allocated to the sample. This will be part of the metadata to be added to the final GRC files.  
 
@@ -198,7 +213,7 @@ The iRODS manifest file must be a `.tsv`. The pipeline expects to find the follo
 
 The iRODS mainfest can have more columns in any order, but these are the only ones which will be considered. The pipeline builds and uses an "internal id" as follows: `<cram_filename>_<sample_id>_<primer_panel>`. The pipeline will check to make sure that any combination of these values in the manifest is unique. If not, the pipeline will throw an error and stop running.  
 
-A valid iRODS manifest should look like the representative example below. Please note that the manifest is expected to be a **tab-separated** file. Note that the manifest can contain more columns but these three are essential.  
+A valid iRODS manifest would look like the representative example below. Please note that the manifest is expected to be a **tab-separated** file. Note that the manifest can contain more columns as described above but these three are essential.  
 
 | irods_path | sample_id | primer_panel |
 |------------|-----------|--------------|
@@ -241,6 +256,33 @@ A valid In-Country manifest should look like the representative example below. P
 | <sample_id> | PFA_GRC1_v1.0 | 1 | ATCACGTT-GTACTGAC | <alt_sample_id> | 2021-07-16 | Health Centre ABC | Cambodia | <study_name> | A01 | PLATE_RCN_00190 | False |
 | <sample_id> | PFA_GRC2_v1.0 | 2 | CGATGCAT-GTACTACC | <alt_sample_id> | 2021-09-12 | Hospital 123 | Cambodia | <study_name> | A02 | PLATE_RCN_00190 | False |
 | <sample_id> | PFA_Spec | 3 | TTAACACT-GTACTGAC | <alt_sample_id> | 2021-10-21 | Hospital 456 | Cambodia | <study_name> | A03 | PLATE_RCN_00190 | False |
+
+[**(&uarr;)**](#contents)  
+
+## FASTQ Manifest
+
+The FASTQ manifest file must be a `.tsv` and the pipeline expects to find the following columns headers:
+
+- `sample_id`: a sample identification tag. This is used to prefix output files.  
+
+- `primer_panel`: primer panel name to be used (must exactly match the value of `panel_name` in `panels_settings.csv`; more on `panels_settings.csv` [here](#panel-settings)).  
+
+- `fastq_path`: full valid FASTQ path for a `.fastq` file.  
+
+A valid FASTQ manifest should look like the representative example below. Please note that the manifest is expected to be a **tab-separated** file.
+
+
+| sample_id | primer_panel | fastq_path |
+|-----------|--------------|------------|
+| SPT73925 | PFA_GRC1_v1.0 | /path/to/fastq/110523_1#43.fastq |
+| SPT73925 | PFA_GRC2_v1.0 | /path/to/fastq/110523_1#139.fastq |
+| SPT73925 | PFA_Spec | /path/to/fastq/110523_1#235.fastq |
+| SPT73795 | PFA_GRC1_v1.0 | /path/to/fastq/110523_1#84.fastq |
+| SPT73795 | PFA_GRC2_v1.0 | /path/to/fastq/110523_1#180.fastq |
+| SPT73795 | PFA_Spec | /path/to/fastq/110523_1#276.fastq |
+| SPT72767 | PFA_GRC1_v1.0 | /path/to/fastq/110523_1#12.fastq |
+| SPT72767 | PFA_GRC2_v1.0 | /path/to/fastq/110523_1#108.fastq |
+| SPT72767 | PFA_Spec | /path/to/fastq/110523_1#204.fastq |
 
 [**(&uarr;)**](#contents)  
 
