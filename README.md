@@ -198,13 +198,13 @@ The iRODS manifest file must be a `.tsv`. The pipeline expects to find the follo
 
 The iRODS mainfest can have more columns in any order, but these are the only ones which will be considered. The pipeline builds and uses an "internal id" as follows: `<cram_filename>_<sample_id>_<primer_panel>`. The pipeline will check to make sure that any combination of these values in the manifest is unique. If not, the pipeline will throw an error and stop running.  
 
-A valid iRODS manifest should look like the representative example below. Please note that the manifest is expected to be a **tab-separated** file.
+A valid iRODS manifest should look like the representative example below. Please note that the manifest is expected to be a **tab-separated** file. Note that the manifest can contain more columns but these three are essential.  
 
-| irods_path | sample_id | primer_panel | study_name | pipeline_id | taxon_id | common_name | name | supplier_name | donor_id | instrument_model | qc_complete | id_run | lane | tag | qc | WG_lane |
-|------------|-----------|--------------|------------|-------------|----------|-------------|------|--------------|----------|------------------|-------------|--------|------|-----|----|---------|
-| /seq/29632/29632_1#55.cram | ILL411270 | PFA_GRC1_v1.0 | Team 112 R&D | GBS | 5833 | Plasmodium_Falciparum | 3429STDY7977888 | RCN15139 | 3429STDY7977888 | MiSeq | 2019-05-30 03:38:57 | 29632 | 1 | 55 | 1 | 29632_1#55 |
-| /seq/29632/29632_1#149.cram | LMLPP1571 | PFA_GRC2_v1.0 | Team 112 R&D | GBS | 5833 | Plasmodium_Falciparum | 3429STDY7977888 | RCN15139 | 3429STDY7977888 | MiSeq | 2019-05-30 03:38:57 | 29632 | 1 | 149 | 1 | 29632_1#149 |
-| /seq/26381/26381_1#808.cram | JHG3639016I | PFA_Spec | Team 112 R&D | GBS | 5833 | Plasmodium_Falciparum | 3429STDY7977859 | RCN15110    | 3429STDY7977888 | MiSeq | 2019-05-30 03:38:57 | 29632 | 1 | 149 | 1 | 29632_1#256 |
+| irods_path | sample_id | primer_panel |
+|------------|-----------|--------------|
+| /seq/12345/12345_1#55.cram | <sample_id> | PFA_GRC1_v1.0 |
+| /seq/12345/12345_1#149.cram | <sample_id> | PFA_GRC2_v1.0 |
+| /seq/12345/12345_1#808.cram | <sample_id> | PFA_Spec |
 
 [**(&uarr;)**](#contents)  
 
@@ -236,11 +236,11 @@ The in country manifest file must be a `.tsv`. The pipeline expects to find the 
 
 A valid In-Country manifest should look like the representative example below. Please note that the manifest is expected to be a **tab-separated** file.
 
-| sample_id | primer_panel | barcode_number | barcode_sequence | partner_sample_id | collection_date | collection_location | collection_country | study | well | plate_name |
+| sample_id | primer_panel | barcode_number | barcode_sequence | partner_sample_id | collection_date | collection_location | collection_country | study | well | plate_name | is_control |
 |-----------|--------------|----------------|------------------|-------------------|-----------------|--------------------|--------------------|-------|------|------------|
-| ILCM4453 | PFA_GRC1_v1.0 | 1 | ATCACGTT-GTACTGAC | ILCM4453 | 2021-07-16 | 05at3a Samroung Romdul health center | Cambodia | 130as-ICS | A01 | PLATE_RCN_00190 |
-| RAD3CC01 | PFA_GRC2_v1.0 | 2 | CGATGCAT-GTACTACC | TTCN3A01 | 2021-09-12 | 05a0qt Chambak health center | Cambodia | 130as-ICS | A02 | PLATE_RCN_00190 |
-| RIALMC99 | PFA_Spec | 3 | TTAACACT-GTACTGAC | IL21939L | 2021-10-21 | 0406xq Chambak health center | Cambodia | 130as-ICS | A03 | PLATE_RCN_00190 |
+| <sample_id> | PFA_GRC1_v1.0 | 1 | ATCACGTT-GTACTGAC | <alt_sample_id> | 2021-07-16 | Health Centre ABC | Cambodia | <study_name> | A01 | PLATE_RCN_00190 | False |
+| <sample_id> | PFA_GRC2_v1.0 | 2 | CGATGCAT-GTACTACC | <alt_sample_id> | 2021-09-12 | Hospital 123 | Cambodia | <study_name> | A02 | PLATE_RCN_00190 | False |
+| <sample_id> | PFA_Spec | 3 | TTAACACT-GTACTGAC | <alt_sample_id> | 2021-10-21 | Hospital 456 | Cambodia | <study_name> | A03 | PLATE_RCN_00190 | False |
 
 [**(&uarr;)**](#contents)  
 
