@@ -47,15 +47,15 @@
 nextflow.enable.dsl = 2
 
 // import modules
-include { assemble_genotype_file } from '../grc_tools/genotype_file_creation/assemble_genotype_file.nf'
-include { grc_kelch13_mutation_caller } from '../grc_tools/kelch13/grc_kelch13_mutation_caller.nf'
-include { grc_plasmepsin_cnv_caller } from '../grc_tools/plasmepsin/grc_plasmepsin_cnv_caller.nf'
-include { grc_speciate } from '../grc_tools/speciation/grc_speciate.nf'
-include { grc_barcoding } from '../grc_tools/barcode/grc_barcoding.nf'
-include { grc_estimate_coi } from '../grc_tools/COI/grc_estimate_coi.nf'
-include { grc_amino_acid_caller } from '../grc_tools/amino_acid_calling/grc_amino_acid_caller.nf'
-include { grc_assemble } from '../grc_tools/assemble_grc1/grc_assemble.nf'
-include { add_metadata_and_format } from '../grc_tools/metadata/add_metadata_and_format.nf'
+include { assemble_genotype_file } from '../modules/grc_assemble_genotype_file.nf'
+include { grc_kelch13_mutation_caller } from '../modules/grc_kelch13_mutation_caller.nf'
+include { grc_plasmepsin_cnv_caller } from '../modules/grc_plasmepsin_cnv_caller.nf'
+include { grc_speciate } from '../modules/grc_speciate.nf'
+include { grc_barcoding } from '../modules/grc_barcoding.nf'
+include { grc_estimate_coi } from '../modules/grc_estimate_coi.nf'
+include { grc_amino_acid_caller } from '../modules/grc_amino_acid_caller.nf'
+include { grc_assemble } from '../modules/grc_assemble.nf'
+include { add_metadata_and_format } from '../modules/grc_add_metadata_and_format.nf'
 include { upload_pipeline_output_to_s3 } from '../modules/upload_pipeline_output_to_s3.nf'
 
 workflow VARIANTS_TO_GRCS {

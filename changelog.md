@@ -8,6 +8,9 @@ All notable changes to this project will be documented in this file.
 - **[Feature]**: Added fastq entry point.
 - **[Feature]**: NF-test based unit test of the workflow `reads_to_variants.nf`.
 
+### Changed
+- **[Change]**: Updated README.
+
 ## [1.1.1] - 2023-10-02
 
 ### Added
@@ -23,6 +26,7 @@ All notable changes to this project will be documented in this file.
 - **[improvement]**: Output dir now is structured on subdirs.
 - **[improvement]**: Added missing parameter check calls.
 - **[improvement]**: Allow kelch-reference file to not be specified if `no_kelch` flag set.
+
 ### Fixed
 - **[Bug]**: bug for runids with "_T" affecting read counts file fixed.
 - **[Bug]**: upload data to s3 function is fixed
