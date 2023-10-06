@@ -1,0 +1,19 @@
+FROM ubuntu:23.04 AS spython-base
+RUN export DEBIAN_FRONTEND=noninteractive
+RUN apt update
+RUN apt upgrade -y
+RUN apt install gcc git grep libcurl4-openssl-dev r-base build-essential python3 -y
+RUN mkdir /app/
+RUN cd /app/
+RUN git clone https://github.com/AMarinhoSN/THEREALMcCOIL.git
+RUN cd THEREALMcCOIL/
+RUN Rscript -e 'install.packages("optparse", repos="https://cran.us.r-project.org")' #'install.packages("here", repos="http://cran.us.r-project.org")'
+RUN Rscript -e 'install.packages("here", repos="http://cran.us.r-project.org")'
+RUN Rscript -e 'install.packages("this.path",repos = "https://cran.us.r-project.org")'
+RUN cd categorical_method/
+RUN R CMD SHLIB McCOIL_categorical_code.c llfunction_het.c
+RUN sed -i '1s/.*/path="\/app\/THEREALMcCOIL\/categorical_method"/' test_R_code.R
+RUN cd ../proportional_method/
+RUN R CMD SHLIB McCOIL_prop_code.c llfunction.c
+RUN sed -i '1s/.*/path="\/app\/THEREALMcCOIL\/proportional_method"/' test_R_code.R
+CMD exec /bin/bash "$@"
