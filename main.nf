@@ -121,8 +121,7 @@ def printHelp() {
     Ampseq is a bioinformatics analysis pipeline for amplicon sequencing data.
     Currently supporting alignment and SNP variant calling on paired-end Illumina sequencing data.
 
-    *for a complete description of input files and parameters check:
-    https://gitlab.internal.sanger.ac.uk/malariagen1/ampseq-pipeline/
+    *for a complete description of input files and parameters check the README file in the code erpository
 
   Options:
     Inputs:
