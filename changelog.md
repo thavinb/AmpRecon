@@ -9,8 +9,10 @@ All notable changes to this project will be documented in this file.
 - **[Feature]**: config settings specific for Pf and Pv.
 - **[Feature]**: NF-test based unit test of the workflow `miseq_to_reads.nf`.
 - **[Feature]**: NF-test based unit test of the workflow `sanger_irods_to_reads.nf`.
-- **[Feature]**: NF-test based unit test of the workflow `reads_to_grcs.nf`.
+- **[Feature]**: NF-test based unit test of the workflow `variants_to_grcs.nf`.
 - **[Feature]**: Switches allow kelch-13 and plasmepsin GRC creation steps to be switched off.
+- **[Feature]**: Added fastq entry point.
+- **[Feature]**: NF-test based unit test of the workflow `reads_to_variants.nf`.
 
 ### Changed
 - **[improvement]**: ENA cram files are now published on the output dir.
@@ -21,12 +23,14 @@ All notable changes to this project will be documented in this file.
 - **[Change]**: Updated README.md, added GRC_TOOLS.md to `repo/bin`
 
 ### Fixed
-- **[Bug]**: upload data to s3 function is fixed
+- **[Bug]**: bug for runids with "_T" affecting read counts file fixed.
+- **[Bug]**: upload data to s3 function is fixed.
 - **[Bug]**: Column names for Pf were hard-coded into metadata addition script, this blocked the usage of the pipeline with Pv.
   - **Fix**: Column ordering was abstracted to GRC settings file and metadata addition script was modified to include config file and read ordering from there.
 
 ### Removed
 - **[Change]**: Removed s3 input processes.
+- **[Change]**: Removed requirement for RunID to be an integer
 
 ## [1.0.1] - 2023-07-13
 

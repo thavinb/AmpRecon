@@ -7,11 +7,19 @@ from sys import argv, exit
 # load manifest
 mnf_flpath = argv[1]
 panel_set_flpath = argv[2]
+execution_mode = argv[3]
 df = pd.read_csv(mnf_flpath, sep='\t')
 
-# Set Global requirements
-REQUIRED_HEADERS = ["sample_id", "primer_panel","irods_path"]
-REQUIRED_FORMAT = ".cram"
+# Set global requirements depending which execution mode is selected
+if execution_mode=='irods':
+    REQUIRED_HEADERS = ["sample_id", "primer_panel","irods_path"]
+    REQUIRED_FORMAT = ".cram"
+    name_path_column = "irods_path"
+elif execution_mode=='fastq':
+    REQUIRED_HEADERS = ["sample_id", "primer_panel","fastq_path"]
+    REQUIRED_FORMAT = tuple(['.fastq','fq'])
+    name_path_column = "fastq_path"
+
 
 pnl_df = pd.read_csv(panel_set_flpath, sep=',')
 REQUIRED_PANELS = pnl_df["panel_name"].to_list()
@@ -20,7 +28,6 @@ ERRORS_FOUND = 0
 # check if required headers are present
 print("@ checking column headers...")
 columns_lst = df.columns.tolist()
-found_headers = []
 miss_headers = []
 for rq_h in REQUIRED_HEADERS:
     found = False
@@ -45,23 +52,28 @@ print(f"@ checking if only expected format ['{REQUIRED_FORMAT}'] was requested..
 def isItRequiredFormat(row):
     return row.endswith(REQUIRED_FORMAT)
 
-invalid_format_idx = df['irods_path'].apply(isItRequiredFormat)
-non_cram_rows = df.loc[~invalid_format_idx]
+#name_path_column is either irods_path or fastq_path depending on the execution mode
+valid_format_idx = df[name_path_column].apply(isItRequiredFormat)
+incorrect_format_rows = df.loc[~valid_format_idx]
+
 try:
-    assert(len(non_cram_rows) == 0)
+    assert(len(incorrect_format_rows) == 0)
     print("    > PASS")
 except:
-    print("ERROR: Non cram files were requested at rows")
-    print(f"{non_cram_rows[REQUIRED_HEADERS]}")
+    print("ERROR: The manifest contains paths to files with unsupported formats. Only CRAM (execution modes: irods) and FASTQ files (execution mode: fastq) are supported.")
+    print(f"{incorrect_format_rows[REQUIRED_HEADERS]}")
     ERRORS_FOUND +=1
 
 # check if WG_LANE_SAMPLE_ID is unique
 print("@ check for pipeline internal ids uniqueness...")
-def genPipelineInternalId(row):
-    simple_name = row['irods_path'].split("/")[-1].split(".")[0]
-    return simple_name + "_"+ str(row["sample_id"]) +"_"+ row["primer_panel"]
+def genPipelineInternalId(row, execution_mode):
+    if(execution_mode=='irods'):
+        simple_name = row[name_path_column].split("/")[-1].split(".")[0]
+        return simple_name + "_"+ str(row["sample_id"]) +"_"+ row["primer_panel"]
+    elif(execution_mode=='fastq'):
+        return str(row["sample_id"]) +"_"+ row["primer_panel"] 
 
-df["internal_pipeline_id"] = df.apply(genPipelineInternalId, axis=1)
+df["internal_pipeline_id"] = df.apply(lambda row: genPipelineInternalId(row,execution_mode), axis=1)
 duplicated_bool = df["internal_pipeline_id"].duplicated(keep=False)
 REQUIRED_HEADERS.append('internal_pipeline_id')
 duplicated_pipe_ids = df[REQUIRED_HEADERS].loc[duplicated_bool]

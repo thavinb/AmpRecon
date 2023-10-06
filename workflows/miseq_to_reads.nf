@@ -139,10 +139,6 @@ def miseq_to_reads_parameter_check(){
     /*
     This functions counts the number of errors on input parameters exclusively used on Incountry workflow
     
-    checks:
-     - if irods manifest was provided
-     - if irods manifest provided exists
-    
     False for any of those conditions counts as an error.
     
     Returns
