@@ -1,6 +1,6 @@
 # AmpSeq  
 
-Align data to specific amplicon panels, perform variant-calling, and produce genetic report cards.  
+Align data to specific amplicon panels, perform variant-calling, and produce genetic report cards. It was designed to work with amplicon-sequencing data from _Plasmodium falciparum_ and _P. vivax_.   
 
 # Contents  
 1. [Quick-Start Guide](#quick-start-guide)  
@@ -202,15 +202,15 @@ The iRODS manifest file must be a `.tsv`. The pipeline can contain the following
 
 - `irods_path`: full path to iRODS location for the required `.cram` files (e.g.: `/seq/illumina/runs/38/12345/lane2/plex1/12345_2#1.cram`).  
 
-- `partner_sample_id`: (alternative) name allocated to the sample. This will be part of the metadata to be added to the final GRC files.  
+- `partner_sample_id`: (alternative) name allocated to the sample. This will be part of the metadata to be added to the final GRC files if provided.  
 
-- `collection_date`: sample collection date. This will be part of the metadata to be added to the final GRC files.  
+- `collection_date`: sample collection date. This will be part of the metadata to be added to the final GRC files if provided.  
 
-- `collection_location`: name of the specific collection location within the country to which the sample belongs. This will be part of the metadata to be added to the final GRC files.  
+- `collection_location`: name of the specific collection location within the country to which the sample belongs. This will be part of the metadata to be added to the final GRC files if provided.  
 
-- `collection_country`: name of country the sample was collected in. This will be part of the metadata to be added to the final GRC files.  
+- `collection_country`: name of country the sample was collected in. This will be part of the metadata to be added to the final GRC files if provided.  
 
-- `study`: full study ID of the sample. This will be part of the metadata to be added to the final GRC files.  
+- `study`: full study ID of the sample. This will be part of the metadata to be added to the final GRC files if provided.  
 
 The iRODS mainfest can have more columns in any order, but these are the only ones which will be considered. The pipeline builds and uses an "internal id" as follows: `<cram_filename>_<sample_id>_<primer_panel>`. The pipeline will check to make sure that any combination of these values in the manifest is unique. If not, the pipeline will throw an error and stop running.  
 
@@ -236,15 +236,15 @@ The in country manifest file must be a `.tsv`. The pipeline expects to find the 
 
 - `barcode_sequence`: two DNA barcode sequences separated by a hyphen.  
 
-- `partner_sample_id`: (alternative) name allocated to the sample. This will be part of the metadata to be added to the final GRC files.  
+- `partner_sample_id`: (alternative) name allocated to the sample. This will be part of the metadata to be added to the final GRC files if provided.  
 
-- `collection_date`: sample collection date. This will be part of the metadata to be added to the final GRC files.  
+- `collection_date`: sample collection date. This will be part of the metadata to be added to the final GRC files if provided.  
 
-- `collection_location`: name of the specific collection location within the country to which the sample belongs. This will be part of the metadata to be added to the final GRC files.  
+- `collection_location`: name of the specific collection location within the country to which the sample belongs. This will be part of the metadata to be added to the final GRC files if provided.  
 
-- `collection_country`: name of country the sample was collected in. This will be part of the metadata to be added to the final GRC files.  
+- `collection_country`: name of country the sample was collected in. This will be part of the metadata to be added to the final GRC files if provided.  
 
-- `study`: full study ID of the sample. This will be part of the metadata to be added to the final GRC files.  
+- `study`: full study ID of the sample. This will be part of the metadata to be added to the final GRC files if provided.  
 
 - `well`: a well identifier.  
 
@@ -253,7 +253,7 @@ The in country manifest file must be a `.tsv`. The pipeline expects to find the 
 A valid In-Country manifest should look like the representative example below. Please note that the manifest is expected to be a **tab-separated** file.
 
 | sample_id | primer_panel | barcode_number | barcode_sequence | partner_sample_id | collection_date | collection_location | collection_country | study | well | plate_name | is_control |
-|-----------|--------------|----------------|------------------|-------------------|-----------------|--------------------|--------------------|-------|------|------------|
+|-----------|--------------|----------------|------------------|-------------------|-----------------|--------------------|--------------------|-------|------|------------| ----------|
 | <sample_id> | PFA_GRC1_v1.0 | 1 | ATCACGTT-GTACTGAC | <alt_sample_id> | 2021-07-16 | Health Centre ABC | Cambodia | <study_name> | A01 | PLATE_RCN_00190 | False |
 | <sample_id> | PFA_GRC2_v1.0 | 2 | CGATGCAT-GTACTACC | <alt_sample_id> | 2021-09-12 | Hospital 123 | Cambodia | <study_name> | A02 | PLATE_RCN_00190 | False |
 | <sample_id> | PFA_Spec | 3 | TTAACACT-GTACTGAC | <alt_sample_id> | 2021-10-21 | Hospital 456 | Cambodia | <study_name> | A03 | PLATE_RCN_00190 | False |
