@@ -311,7 +311,7 @@ An representative example of a panel settings file is shown below. Note that thi
 
 ## Species Configuration File  
 
-AmpSeq requires on a configuration file that controls species-specific run settings. When running the pipeline it is imperative that a species configuration file is passed at the command line using the `-c` flag with `nextflow run`. If you do not have a species configuration file, you can use the files provided in `path/to/ampseq-pipeline/conf`, which point to files present in the [`ampliconresources` submodule](https://gitlab.internal.sanger.ac.uk/malariagen1/ampliconresources/-/tree/main/).  
+AmpSeq requires a configuration file that controls species-specific run settings. When running the pipeline it is imperative that a species configuration file is passed at the command line using the `-c` flag with `nextflow run`. If you do not have a species configuration file, you can use the files provided in `path/to/ampseq-pipeline/conf`, which point to files present in the [`ampliconresources` submodule](https://gitlab.internal.sanger.ac.uk/malariagen1/ampliconresources/-/tree/main/).  
 
 [**(&uarr;)**](#contents)  
 
@@ -453,9 +453,13 @@ nf-test test tests/workflows/miseq_to_reads.nf.test --profile sanger_default
 ## Pipeline  
 
 - `--run_id` (str) : Run/batch identifier, used to label output files  
+
 - `--execution_mode` (str) [Valid: "irods" or "in-country"]: Mode of execution  
+
 - `--results_dir` (path) [Default: "launch_dir/output/"]: output directory  
-- `--panels_settings` (path) : Path to panel_settings.csv
+
+- `--panels_settings` (path) : Path to panel_settings.csv  
+
 - `--containers_dir` (path) [Default: "/nfs/gsu/team335/ampseq-containers/"]: <mark>TODO:<mark> confirm default value, path to a dir where the containers are located  
 
 ### `--execution_mode irods`  
@@ -465,22 +469,31 @@ nf-test test tests/workflows/miseq_to_reads.nf.test --profile sanger_default
 ### `--execution_mode in-country`  
 
 - `--bcl_dir` (path) : Path to a directory containing BCL files  
+
 - `--ena_study_name` (str) : <mark>TODO:<mark> clarify  
+
 - `--manifest_path` (path) : Path to the manifest file  
 
 ### GRC Creation Settings  
 
 - `--grc_settings_file_path` (path) : Path to the GRC settings file.  
+
 - `--chrom_key_file_path` (path) : Path to the chrom key file  
+
 - `--kelch_reference_file_path` (path) : Path to the kelch13 reference sequence file  
+
 - `--codon_key_file_path` (path) : Path to the codon key file  
+
 - `--drl_information_file_path` (path) : Path to the drug resistance loci information file  
 
 ### Additional Options  
 
 - `--upload_to_s3` (bool) [Default: False]: Sets if output data needs to be uploaded to an s3 bucket  
+
 - `--s3_uuid` (str) : An s3_uuid, **required** if `--upload_to_s3` is used  
+
 - `--s3_bucket_output` (str) : S3 bucket name to upload data to, **required** if `--upload_to_s3` is used  
+
 
 - `--help` : [Default: False], prints this help message.  
 
