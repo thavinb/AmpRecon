@@ -31,7 +31,7 @@ Align data to specific amplicon panels, perform variant-calling, and produce gen
 
 # Quick-Start Guide  
 
-Assuming you have already [Nextflow](https://github.com/nextflow-io/nextflow), and [Singularity](https://github.com/sylabs/singularity), clone the repository and build Singularity containers:  
+AmpSeq was built and tested on Nextflow [version 22.04](https://github.com/nextflow-io/nextflow/releases/tag/v22.04.4), and Singularity [version 3.6.4](https://github.com/apptainer/singularity/releases/tag/v3.6.4). Assuming you already have [Nextflow](https://github.com/nextflow-io/nextflow), and [Singularity](https://github.com/sylabs/singularity), clone the repository and build Singularity containers:  
 
 ```
 # clone repo
@@ -42,7 +42,10 @@ cd ./ampseq-pipeine/containers/
 bash buildContainers.sh
 ```  
 
-You can now run the pipeline from BCL input as follows:  
+> **!!!WARNING!!!**  
+> If Singularity is not available, the pipeline assumes all dependencies with the correct versions are available in the execution environment.  
+
+You can run the pipeline from **BCL** input as follows:  
 <mark>TODO:<mark> check this  
 ```
 nextflow /path/to/ampseq-pipeline/main.nf -profile sanger_lsf \
@@ -55,7 +58,7 @@ nextflow /path/to/ampseq-pipeline/main.nf -profile sanger_lsf \
                 -c /path/to/species/config
 ```  
 
-If starting from FASTQ files, run the pipeline as follows:  
+If starting from **FASTQ** files, run the pipeline as follows:  
 ```
 nextflow /path/to/ampseq-pipeline/main.nf -profile sanger_lsf \
         --execution_mode fastq \
@@ -76,8 +79,6 @@ nextflow /path/to/ampseq-pipeline/main.nf -profile sanger_lsf \
         --containers_dir /path/to/containers_dir/
         -c /path/to/species/config
 ```  
-> **!!!WARNING!!!**  
-> If Singularity is not available, the pipeline assumes all dependencies with the correct versions are available in the execution environment.  
 
 [**(&uarr;)**](#contents)  
 
@@ -104,7 +105,7 @@ Figure 1 (below) shows an overview of the pipeline's operation.
 
 ### Running With Singularity
 
-AmpSeq was built and tested on Nextflow [version 22.04](https://github.com/nextflow-io/nextflow/releases/tag/v22.04.4), and Singularity [version 3.6.4](https://github.com/apptainer/singularity/releases/tag/v3.6.4). As such **this is the recommended way to use AmpSeq**, as you need not worry about dependencies and runtime environments. Simply build the containers as above, and AmpSeq is good to go.  
+Ampseq was built and tested to work with Singularity. As such **this is the recommended way to use AmpSeq**, as you need not worry about dependencies and runtime environments. Simply build the containers as above, and AmpSeq is good to go.  
 
 ### Running Locally
 
