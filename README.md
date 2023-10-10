@@ -456,7 +456,7 @@ nf-test test tests/workflows/miseq_to_reads.nf.test --profile sanger_default
 - `--execution_mode` (str) [Valid: "irods" or "in-country"]: Mode of execution  
 - `--results_dir` (path) [Default: "launch_dir/output/"]: output directory  
 - `--panels_settings` (path) : Path to panel_settings.csv
-- `--containers_dir` (path) [Default: "/nfs/gsu/team335/ampseq-containers/"]: <mark>TODO:<mark> confirm default value, path to a dir where the containers are located  
+- `--containers_dir` (path) [no Default]: path to a dir where the containers are located  
 
 ### `--execution_mode irods`  
 
