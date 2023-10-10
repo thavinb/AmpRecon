@@ -46,21 +46,20 @@ bash buildContainers.sh
 > If Singularity is not available, the pipeline assumes all dependencies with the correct versions are available in the execution environment.  
 
 You can run the pipeline from **BCL** input as follows:  
-<mark>TODO:<mark> check this  
 ```
-nextflow /path/to/ampseq-pipeline/main.nf -profile sanger_lsf \
+nextflow /path/to/repository/main.nf -profile sanger_lsf \
                 --execution_mode in-country \
                 --run_id 12345 \
                 --bcl_dir /path/to/my_bcl_dir/ \
                 --ena_study_name test \
-                --manifest_path manifest.tsv \
+                --manifest_path path/to/in_country_manifest.tsv \
                 --containers_dir /path/to/containers_dir/
                 -c /path/to/species/config
 ```  
 
 If starting from **FASTQ** files, run the pipeline as follows:  
 ```
-nextflow /path/to/ampseq-pipeline/main.nf -profile sanger_lsf \
+nextflow /path/to/repository/main.nf -profile sanger_lsf \
         --execution_mode fastq \
         --run_id 12345 \
         --fastq_manifest /path/to/fastq_manifest.tsv
@@ -70,9 +69,9 @@ nextflow /path/to/ampseq-pipeline/main.nf -profile sanger_lsf \
 
 
 Alternatively, lauch the pipeline run with input from **iRODS**:  
-<mark>TODO:<mark> check this  
+<mark>TODO:<mark> check this - will it be retained for release?  
 ```
-nextflow /path/to/ampseq-pipeline/main.nf -profile sanger_lsf \
+nextflow /path/to/repository/main.nf -profile sanger_lsf \
         --execution_mode irods \
         --run_id 12345 \
         --irods_manifest /path/to/irods_manifest.tsv
@@ -94,10 +93,10 @@ AmpSeq can accept as input [Binary Base Call (BCL) files](https://emea.illumina.
 - [Genetic Report Cards (GRCs)](https://www.malariagen.net/sites/default/files/GRC_UserGuide_10JAN19.pdf), tabular files that describe key features of interest
 - Read-counts per amplicon panel, one file for each panel  
 
-AmpSeq supports the analysis of data from _Plasmodium falciparum_ and _P. vivax_ - this behaviour can be controlled by modifying the `.config` files in `path/to/ampseq-pipeline/conf`.  
+AmpSeq supports the analysis of data from _Plasmodium falciparum_ and _P. vivax_ - for these two species, pipeline behaviour can be controlled by modifying the `.config` files in `path/to/repository/conf`.  
 
-Figure 1 (below) shows an overview of the pipeline's operation.  
-<mark>TODO:<mark> add workflow diagram  
+![workflow_outline](./workflow_outline.png)
+*Figure 1: An outline of the workflow.*  
 
 [**(&uarr;)**](#contents)  
 
@@ -125,12 +124,16 @@ If you choose to go with conda or similar, a list of dependencies is as follows 
 - bwa==0.7.17  
 - bambi==0.11.1  
 - io_lib==1.14.9(io_lib-1-14-9)  
-- TheRealMcCoil  
+- THEREALMcCOIL  
 - pyvcf  
 - tqdm  
 
+Please note that the pipeline uses a slightly modified version of THEREALMcCOIL (which can be found [here](https://github.com/AMarinhoSN/THEREALMcCOIL)). If you choose to run the pipeline locally:  
+- clone the linked THEREALMcCOIL repo  
+- compile the categorical method  
+- [**important**] point to the repository location with the parameter `--mccoil_repopath` on the command-line  
+
 This list is non-exhaustive and does not include OS/filesystem/runtime utilites.  
-<mark>TODO:<mark> add versions where needed/appropriate  
 
 [**(&uarr;)**](#contents)  
 
@@ -138,7 +141,7 @@ This list is non-exhaustive and does not include OS/filesystem/runtime utilites.
 
 Once you have Singularity (or a suitable working environment) up and running you can download the codebase with `git clone` as shown [above](#quick-start-guide). Note the `--recurse-submodules` flag in the clone command; this will additionally clone recources from linked repositories. If you depend on these resources but clone the codebase without the `--recurse-submodules` flag, the pipeline will fail.  
 
-The AmpSeq repository has a script, `path/to/ampseq-pipeline/containers/buildContainers.sh`, which can be invoked as seen above, and which will build all the required Singularity images - the necessary image definition files are in the same directory, i.e. `path/to/ampseq-pipeline/containers`. All the resulting `.sif` files are written to `path/to/ampseq-pipeline/containers` as well.  
+The AmpSeq repository has a script, `path/to/repository/containers/buildContainers.sh`, which can be invoked as seen above, and which will build all the required Singularity images - the necessary image definition files are in the same directory, i.e. `path/to/repository/containers`. All the resulting `.sif` files are written to `path/to/repository/containers` as well.  
 
 [**(&uarr;)**](#contents)  
 
@@ -165,24 +168,30 @@ Use `-profile standard` for a no-frills execution setup. <mark>TODO:<mark> expan
 
 # Run Parameters  
 
+#### A Note on Configuration Files  
+
+By default, Nextflow looks for configuration files in various location. We provide a `nextflow.config` file which sets `null` values for essential parameters, specifies a default `--results_dir`, and also sets some default values for certain GRC creation steps. Additionally, this file also "imports" `path/to/repository/conf/containers.config` (this sets a `path/to/repository/containers/` as the default `--containers_dir`); and `path/to/repository/conf/profiles.config` (this defines profiles that dictate runtime options).  
+
 ### Essential Parameters  
 
 - `--execution_mode` : Sets the entry point for the pipeline. This can be "irods" (the expected input type is CRAM files) or "in-country" (the expected input type is BCL files).  
 - `--run_id` : Numeric identifier to be used for the batch of data to be processed. `run_id` is used as a prefix for the output GRC files.  
-- `--species_config`/`-c` : stages the relevant reference amplicon panels to analyse data against specific species. Configuration files for P. falciparum and P. vivax are provided in the repository in `path/to/ampseq-pipeline/conf`  
+- `--species_config`/`-c` : stages the relevant reference amplicon panels to analyse data against specific species. Configuration files for P. falciparum and P. vivax are provided in the repository in `path/to/repository/conf`  
+
+**NB**: Using the `-c` flag is the easiest way to point to specific reference files and using this flag makes it unnecessary to specify the certain parameters at the command-line ([see below](#species-configuration-file))
 
 Based on which execution mode you specify, there are further parameters that need to be specified:  
 
-#### `--execution_mode irods`
+#### `--execution_mode irods`  
 
 - `--irods_manifest` : Full path to the run manifest. This is a tab-separated file containing details of samples and corresponding sequencing files to be fetched from iRODS.  
 
-#### `--execution_mode in-country`
+#### `--execution_mode in-country`  
 
 - `--bcl_dir` : Full path to the location of BCL files.  
 - `--manifest_path`: Full path to the run manifest. This is a tab-separated file containing details of samples and corresponding sequencing files.  
 
-#### `--execution_mode fastq`
+#### `--execution_mode fastq`  
 
 - `--fastq_manifest` : Full path to FASTQ manifest. This is a tsv containing tab-separated file containing details of samples and corresponding unpaired fastq data.  
 
@@ -311,7 +320,17 @@ An representative example of a panel settings file is shown below. Note that thi
 
 ## Species Configuration File  
 
-AmpSeq requires a configuration file that controls species-specific run settings. When running the pipeline it is imperative that a species configuration file is passed at the command line using the `-c` flag with `nextflow run`. If you do not have a species configuration file, you can use the files provided in `path/to/ampseq-pipeline/conf`, which point to files present in the [`ampliconresources` submodule](https://gitlab.internal.sanger.ac.uk/malariagen1/ampliconresources/-/tree/main/).  
+AmpSeq requires a configuration file that controls species-specific run settings. When running the pipeline it is imperative that a species configuration file is passed at the command line using the `-c` flag with `nextflow run`. If you do not have a species configuration file, you can use the files provided in `path/to/repository/conf`, which point to files present in the [`ampliconresources` submodule](https://gitlab.internal.sanger.ac.uk/malariagen1/ampliconresources/-/tree/main/). Currently, `path/to/repository/conf` has config files for _P. falciparum_ and _P. vivax_, which define values for the following parameters:  
+- `panels_settings`  
+- `grc_settings_file_path`  
+- `chrom_key_file_path`  
+- `codon_key_file_path`  
+- `drl_information_file_path`  
+- `kelch_reference_file_path` (specific to _P. falciparum_)  
+- `no_kelch` (specific to _P. falciparum_)  
+- `no_plasmepsin` (specific to _P. falciparum_)  
+
+For more on these parameters, see [below](#grc-creation-settings).
 
 [**(&uarr;)**](#contents)  
 
@@ -326,8 +345,6 @@ For each sample ID specified in the manifest, AmpSeq generates a BAM file and a 
 [**(&uarr;)**](#contents)  
 
 ## Read Counts per Panel  
-
-<mark>TODO:<mark> TBC  
 
 - `Rpt` : Sample/lanelet identifier.  
 
@@ -381,7 +398,7 @@ The primary `<run_id>_GRC.txt` contains the following headers:
 
 - `Country` : Country of sample collection.  
 
-- `Study` : <mark>TODO:<mark> clarify  
+- `Study` : The full study ID of the sample. This will be added to the GRC file if provided in the manifest.  <mark>TODO:<mark> check this is accurate  
 
 - `Species` : Parasite species to which the sample belongs.  
 
@@ -413,7 +430,7 @@ Once barcodes for each sample have been assembled, the GRC creation process move
 
 <mark>TODO:<mark> update this flowchart
 ![speciation_flowchart](./speciation_flow.png)
-*Figure 2: The Workflow used in the speciation stage of GRC creation*  
+*Figure 2: An outline of the species-detection workflow.*
 
 The final processing stage computes the complexity of infection for each sample, which is reported as the estimated number of unique parasite genotypes found in the sample. Information on clinically significant loci, the sample barcode, the species detection results, and the complexity of infection are all reported in the primary `<run_id>_GRC.txt`.
 
@@ -460,7 +477,7 @@ nf-test test tests/workflows/miseq_to_reads.nf.test --profile sanger_default
 
 - `--panels_settings` (path) : Path to panel_settings.csv  
 
-- `--containers_dir` (path) [Default: "/nfs/gsu/team335/ampseq-containers/"]: <mark>TODO:<mark> confirm default value, path to a dir where the containers are located  
+- `--containers_dir` (path) [Default: "path/to/repository/containers/"] : Path to a dir where the containers are located  
 
 ### `--execution_mode irods`  
 
@@ -470,7 +487,7 @@ nf-test test tests/workflows/miseq_to_reads.nf.test --profile sanger_default
 
 - `--bcl_dir` (path) : Path to a directory containing BCL files  
 
-- `--ena_study_name` (str) : <mark>TODO:<mark> clarify  
+- `--ena_study_name` (str) [Default: "no_study"]: This parameter is for a future use-case and has no effect currently.  
 
 - `--manifest_path` (path) : Path to the manifest file  
 
@@ -480,11 +497,15 @@ nf-test test tests/workflows/miseq_to_reads.nf.test --profile sanger_default
 
 - `--chrom_key_file_path` (path) : Path to the chrom key file  
 
-- `--kelch_reference_file_path` (path) : Path to the kelch13 reference sequence file  
+- `--kelch_reference_file_path` (path) : Path to the kelch13 reference sequence file (specific to _P. falciparum_)  
 
 - `--codon_key_file_path` (path) : Path to the codon key file  
 
 - `--drl_information_file_path` (path) : Path to the drug resistance loci information file  
+
+- `--no_kelch` (bool) : Whether to examine the _kelch13_ locus (specific to _P. falciparum_)  
+
+- `--no_plasmepsin` (bool) : Whether to examine the _plasmepsin_ locus (specific to _P. falciparum_)  
 
 ### Additional Options  
 
