@@ -1,6 +1,6 @@
 
-echo "| --- setupContainers.sh -----------------------------------------------|"
-echo "| USAGE: /bin/bash/ setupContainers.sh"
+echo "| --- buildContainers.sh -----------------------------------------------|"
+echo "| USAGE: /bin/bash/ buildContainers.sh"
 echo "| This scripts setups containers to be used on ampseq-pipeline "
 echo "| Be sure all required singularity recipies are present at working dir."
 echo "| ----------------------------------------------------------------------|"
