@@ -1,4 +1,4 @@
-params.grc1_intermediate_name = "GRC1.intermediate.tsv"
+params.grc_intermediate_name = "GRC.intermediate.tsv"
 
 process grc_assemble {
     label "grc_tools"
@@ -6,12 +6,12 @@ process grc_assemble {
         path(grc_components_list)
 
     output:
-        path("${output_grc_1}")
+        path("${output_grc}")
 
     script:
-        output_grc_1 = params.grc1_intermediate_name
+        output_grc = params.grc_intermediate_name
         grc_component_files = grc_components_list.join(" ")
         """
-        grc_assemble.py -grcs_in ${grc_component_files} -grc_out_name ${output_grc_1}
+        grc_assemble.py -grcs_in ${grc_component_files} -grc_out_name ${output_grc}
         """
 }

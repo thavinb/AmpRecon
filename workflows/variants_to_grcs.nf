@@ -55,7 +55,7 @@ include { grc_barcoding } from '../modules/grc_barcoding.nf'
 include { grc_estimate_coi } from '../modules/grc_estimate_coi.nf'
 include { grc_amino_acid_caller } from '../modules/grc_amino_acid_caller.nf'
 include { grc_assemble } from '../modules/grc_assemble.nf'
-include { add_metadata_and_format } from '../modules/grc_add_metadata_and_format.nf'
+include { grc_add_metadata } from '../modules/grc_add_metadata.nf'
 include { upload_pipeline_output_to_s3 } from '../modules/upload_pipeline_output_to_s3.nf'
 
 workflow VARIANTS_TO_GRCS {
@@ -102,43 +102,38 @@ workflow VARIANTS_TO_GRCS {
         if (params.DEBUG_no_coi == true){
             coi_grc_ch = Channel.empty()
         }
-        // Assemble drug resistance haplotypes and GRC2
+        // Assemble drug resistance haplotypes and amino acid calls
         grc_amino_acid_caller(genotype_files_ch, drl_information_file, codon_key_file)
 
-        // Assemble GRC1
+        // Assemble genetic report card file
         grc_speciate.out
             .concat(kelch_grc_ch)
             .concat(plasmepsin_grc_ch)
             .concat(grc_barcoding.out.barcoding_file)
             .concat(coi_grc_ch)
             .concat(grc_amino_acid_caller.out.drl_haplotypes)
+            .concat(grc_amino_acid_caller.out.grc2)
+            .concat(grc_barcoding.out.barcoding_split_out_file)
             .collect()
-            .set{grc1_components}
-        grc_assemble(grc1_components)
+            .set{grc_components}
+        grc_assemble(grc_components)
 
-        // Format and add metadata to GRCs and barcodes files
-        add_metadata_and_format(manifest_file, grc_assemble.out, grc_amino_acid_caller.out.grc2, grc_barcoding.out.barcoding_split_out_file)
+        // Add metadata from manifest to GRC file
+        grc_add_metadata(manifest_file, grc_assemble.out)
 
-        // Those output channels were added to be used by nf-test 
-        grc1_no_metadata = grc_assemble.out 
-        grc1_with_metadata = add_metadata_and_format.out.grc1
-        grc2_with_metadata = add_metadata_and_format.out.grc2
-        barcodes = add_metadata_and_format.out.barcodes
+        // Workflow output channel
+        grc = grc_add_metadata.out
     
-        // upload final GRCs, final Barcodes file and Genotype file to S3 bucket
+        // upload final GRC and Genotype file to S3 bucket
         if (params.upload_to_s3){
-            grc1_with_metadata
-                .concat(grc2_with_metadata)
-                .concat(barcodes)
+            grc
                 .concat(genotype_files_ch)
                 .set{output_to_s3}
             upload_pipeline_output_to_s3(output_to_s3, "grcs_barcodes")
         }
 
     emit:
-        grc1_with_metadata
-        grc2_with_metadata
-        barcodes
+        grc
 }
 
 workflow {
