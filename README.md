@@ -1,4 +1,4 @@
-# AmpSeq  
+# AmpRecon  
 
 Align data to specific amplicon panels, perform variant-calling, and produce genetic report cards. It was designed to work with amplicon-sequencing data from _Plasmodium falciparum_ and _P. vivax_.   
 
@@ -31,14 +31,14 @@ Align data to specific amplicon panels, perform variant-calling, and produce gen
 
 # Quick-Start Guide  
 
-AmpSeq was built and tested on Nextflow [version 22.04](https://github.com/nextflow-io/nextflow/releases/tag/v22.04.4), and Singularity [version 3.6.4](https://github.com/apptainer/singularity/releases/tag/v3.6.4). Assuming you already have [Nextflow](https://github.com/nextflow-io/nextflow), and [Singularity](https://github.com/sylabs/singularity), clone the repository and build Singularity containers:  
+AmpRecon was built and tested on Nextflow [version 22.04](https://github.com/nextflow-io/nextflow/releases/tag/v22.04.4), and Singularity [version 3.6.4](https://github.com/apptainer/singularity/releases/tag/v3.6.4). Assuming you already have [Nextflow](https://github.com/nextflow-io/nextflow), and [Singularity](https://github.com/sylabs/singularity), clone the repository and build Singularity containers:  
 
 ```
-# clone repo
+# clone repo ##<mark>TODO:<mark> update this
 git clone --recurse-submodules https://gitlab.internal.sanger.ac.uk/malariagen1/ampseq-pipeline.git
 
 # build containers
-cd ./ampseq-pipeine/containers/
+cd path/to/repository/containers/
 bash buildContainers.sh
 ```  
 
@@ -85,15 +85,15 @@ nextflow /path/to/repository/main.nf -profile sanger_lsf \
 
 # Summary  
 
-AmpSeq is a bioinformatics analysis pipeline for amplicon sequencing data. It currently supports alignment and SNP variant-calling functions and works with paired-end Illumina sequencing data.
+AmpRecon is a bioinformatics analysis pipeline for amplicon sequencing data. It currently supports alignment and SNP variant-calling functions and works with paired-end Illumina sequencing data.
 
-AmpSeq can accept as input [Binary Base Call (BCL) files](https://emea.illumina.com/informatics/sequencing-data-analysis/sequence-file-formats.html), FASTQ files, or aligned [CRAM files](https://www.sanger.ac.uk/tool/cram/). In the latter case, the pipeline expects to pull CRAM files from the Sanger Institute's internal file storage system, which is based on [iRODS](https://irods.org) (Integrated Rule-Oriented Data System). The main outputs include:  
+AmpRecon can accept as input [Binary Base Call (BCL) files](https://emea.illumina.com/informatics/sequencing-data-analysis/sequence-file-formats.html), FASTQ files, or aligned [CRAM files](https://www.sanger.ac.uk/tool/cram/). In the latter case, the pipeline expects to pull CRAM files from the Sanger Institute's internal file storage system, which is based on [iRODS](https://irods.org) (Integrated Rule-Oriented Data System). The main outputs include:  
 - aligned reads in the form of [BAM files](https://en.wikipedia.org/wiki/Binary_Alignment_Map), one for each lanelet
 - SNP variants in the form of [VCF files](https://samtools.github.io/hts-specs/VCFv4.2.pdf), one for each sample
 - [Genetic Report Cards (GRCs)](https://www.malariagen.net/sites/default/files/GRC_UserGuide_10JAN19.pdf), tabular files that describe key features of interest
 - Read-counts per amplicon panel, one file for each panel  
 
-AmpSeq supports the analysis of data from _Plasmodium falciparum_ and _P. vivax_ - for these two species, pipeline behaviour can be controlled by modifying the `.config` files in `path/to/repository/conf`.  
+AmpRecon supports the analysis of data from _Plasmodium falciparum_ and _P. vivax_ - for these two species, pipeline behaviour can be controlled by modifying the `.config` files in `path/to/repository/conf`.  
 
 ![workflow_outline](./workflow_outline.png)
 *Figure 1: An outline of the workflow.*  
@@ -104,13 +104,13 @@ AmpSeq supports the analysis of data from _Plasmodium falciparum_ and _P. vivax_
 
 ### Running With Singularity
 
-Ampseq was built and tested to work with Singularity. As such **this is the recommended way to use AmpSeq**, as you need not worry about dependencies and runtime environments. Simply build the containers as above, and AmpSeq is good to go.  
+AmpRecon was built and tested to work with Singularity. As such **this is the recommended way to use AmpRecon**, as you need not worry about dependencies and runtime environments. Simply build the containers as above, and AmpRecon is good to go.  
 
 ### Running Locally
 
 If for some reason, you prefer not to use Singulariy, then you can run the pipeline on your local runtime environment, or using an environment manager such as [conda](https://docs.conda.io/en/latest/). Again, **using the bundled Singularity recipes is the recommended mode of operation**. 
 
-If you choose to go with conda or similar, a list of dependencies is as follows (where available, version numbers indicate the specific versions of dependencies that AmpSeq was developed and tested with):  
+If you choose to go with conda or similar, a list of dependencies is as follows (where available, version numbers indicate the specific versions of dependencies that AmpRecon was developed and tested with):  
 
 - python3  
 - pip3  
@@ -141,7 +141,7 @@ This list is non-exhaustive and does not include OS/filesystem/runtime utilites.
 
 Once you have Singularity (or a suitable working environment) up and running you can download the codebase with `git clone` as shown [above](#quick-start-guide). Note the `--recurse-submodules` flag in the clone command; this will additionally clone recources from linked repositories. If you depend on these resources but clone the codebase without the `--recurse-submodules` flag, the pipeline will fail.  
 
-The AmpSeq repository has a script, `path/to/repository/containers/buildContainers.sh`, which can be invoked as seen above, and which will build all the required Singularity images - the necessary image definition files are in the same directory, i.e. `path/to/repository/containers`. All the resulting `.sif` files are written to `path/to/repository/containers` as well.  
+The AmpRecon repository has a script, `path/to/repository/containers/buildContainers.sh`, which can be invoked as seen above, and which will build all the required Singularity images - the necessary image definition files are in the same directory, i.e. `path/to/repository/containers`. All the resulting `.sif` files are written to `path/to/repository/containers` as well.  
 
 [**(&uarr;)**](#contents)  
 
@@ -298,7 +298,7 @@ A valid FASTQ manifest should look like the representative example below. Please
 
 ## Panel Settings  
 
-The AmpSeq pipeline relies on a `panels_settings.csv` file, which, in turn, defines which files the pipeline should use at key steps, according to the panel name provided for a given sample. The aim of this panel settings system is to detach the experimental design from the inner workings of the pipeline and make it easier to experiment with its key steps. `panels_settings.csv` **must** be privded to the pipeline via `--panels_settings`. The panel settings file is expected to contain the following headers:  
+The AmpRecon pipeline relies on a `panels_settings.csv` file, which, in turn, defines which files the pipeline should use at key steps, according to the panel name provided for a given sample. The aim of this panel settings system is to detach the experimental design from the inner workings of the pipeline and make it easier to experiment with its key steps. `panels_settings.csv` **must** be privded to the pipeline via `--panels_settings`. The panel settings file is expected to contain the following headers:  
 
 - `panel_name` : Defines the string it should use for a given panel. Must exactly match the value of `primer_panel` in the manifest you are using.  
 
@@ -320,7 +320,7 @@ An representative example of a panel settings file is shown below. Note that thi
 
 ## Species Configuration File  
 
-AmpSeq requires a configuration file that controls species-specific run settings. When running the pipeline it is imperative that a species configuration file is passed at the command line using the `-c` flag with `nextflow run`. If you do not have a species configuration file, you can use the files provided in `path/to/repository/conf`, which point to files present in the [`ampliconresources` submodule](https://gitlab.internal.sanger.ac.uk/malariagen1/ampliconresources/-/tree/main/). Currently, `path/to/repository/conf` has config files for _P. falciparum_ and _P. vivax_, which define values for the following parameters:  
+AmpRecon requires a configuration file that controls species-specific run settings. When running the pipeline it is imperative that a species configuration file is passed at the command line using the `-c` flag with `nextflow run`. If you do not have a species configuration file, you can use the files provided in `path/to/repository/conf`, which point to files present in the [`ampliconresources` submodule](https://gitlab.internal.sanger.ac.uk/malariagen1/ampliconresources/-/tree/main/). Currently, `path/to/repository/conf` has config files for _P. falciparum_ and _P. vivax_, which define values for the following parameters:  
 - `panels_settings`  
 - `grc_settings_file_path`  
 - `chrom_key_file_path`  
@@ -340,7 +340,7 @@ For more on these parameters, see [below](#grc-creation-settings).
 
 ## BAMs and VCFs  
 
-For each sample ID specified in the manifest, AmpSeq generates a BAM file and a corresponding index. This BAM file is then used as input to the genotyping process that generates a (gzipped) VCF genotype file, one per sample.  
+For each sample ID specified in the manifest, AmpRecon generates a BAM file and a corresponding index. This BAM file is then used as input to the genotyping process that generates a (gzipped) VCF genotype file, one per sample.  
 
 [**(&uarr;)**](#contents)  
 
@@ -384,7 +384,7 @@ For each sample ID specified in the manifest, AmpSeq generates a BAM file and a 
 
 ## Genetic Report Card  
 
-At the end of each run, AmpSeq produces a set of genetic report cards (GRCs). These are the essential summaries of the run results, and contain details about variants of interest. A full explanation of the loci covered in the GRC is available [here](https://www.malariagen.net/sites/default/files/GRC_UserGuide_10JAN19.pdf).  
+At the end of each run, AmpRecon produces a set of genetic report cards (GRCs). These are the essential summaries of the run results, and contain details about variants of interest. A full explanation of the loci covered in the GRC is available [here](https://www.malariagen.net/sites/default/files/GRC_UserGuide_10JAN19.pdf).  
 
 The primary `<run_id>_GRC.txt` contains the following headers:  
 
@@ -422,7 +422,7 @@ Along with the primary GRC, which is named `<run_id>_GRC.txt`, three other files
 
 # GRC Creation  
 
-The primary informative output of AmpSeq is the Genetic Report Card. The variants found by the pipeline in loci of interest are collected, processed and reported in the four files as detailed [above](#genetic-report-card).  
+The primary informative output of AmpRecon is the Genetic Report Card. The variants found by the pipeline in loci of interest are collected, processed and reported in the four files as detailed [above](#genetic-report-card).  
 
 First, the variants are organised into genotypes on a per-locus basis, and `genotype_file.tsv` is produced. Then, mutations and copy-number variations respectively are called at the clinically significant Kelch13 and Plasmepsin loci. Next, a barcode is generated for each sample. This barcode consists of nucleotide calls at loci of interest, concatenated as one string. Each of the 101 loci recorded in this barcode is biallelic, and the allele that is observed in a given sample is reported - an "X" represents "no data", i.e. the genotype was missing, and an "N" represents a heterozygous genotype call, i.e. both alleles were found.  
 
@@ -524,28 +524,21 @@ nf-test test tests/workflows/miseq_to_reads.nf.test --profile sanger_default
 
 # Appendix  
 
-## Scripts Used in GRC Creation  
-
 **NB**: All scripts described in this section require Python>=3.8; other requirements are noted as applicable.
 
-- [Genotype File Creation](#genotype-file-creation)  
-- [Kelch13](#kelch13-mutation-detection)  
-- [Plasmepsin CNV Detection](#plasmepsin-copy-number-variation-detection)  
-- [Barcode Generation](#barcode-generation)  
-- [Species Detection](#species-detection)  
-- [Complexity-of-Infection Estimation](#complexity-of-infection-estimation)  
+## **Scripts Used in GRC Creation**  
 
-# Genotype File Creation  
+### **Genotype File Creation**  
 
 **Script** : `write_genotypes_file.py`  
 **Description**: Generate genotype file as part of GRC generation  
 **Called From**: `grc_assemble_genotype_file.nf`  
 
-#### Requirements
+#### **Requirements**
 
 * PyVCF>0.6.8  
 
-## Usage  
+#### **Usage**  
 
 ```
 write_genotypes_file.py [-h] [--vcf_files VCF_FILES]
@@ -553,8 +546,7 @@ write_genotypes_file.py [-h] [--vcf_files VCF_FILES]
                         [--chromKey_file CHROMKEY_FILE_PATH]
 ```  
 
-## Parameters  
-### Required  
+#### **Required Parameters**  
 
 - `-h, --help` : Print help and exit.  
 - `--vcf_files` (paths): List of VCF files to use as input for genotype file generation.  
@@ -562,7 +554,8 @@ write_genotypes_file.py [-h] [--vcf_files VCF_FILES]
 - `--sample_id` (str) : Sample identifier.  
 - `--chromKey_file` (path) : Path to chromKey file.  
 
-### Optional
+#### **Optional Parameters**  
+
 - `--chromosome_column_name` : Name of the column in the chromKey file to try to match chromosome to.  
 - `--locus_column_name` : Name of the column in the chromKey file to try to match position to.  
 - `--min_total_depth` : Minimum depth of coverage required to consider a record.  
@@ -571,13 +564,13 @@ write_genotypes_file.py [-h] [--vcf_files VCF_FILES]
 
 ---
 
-# Kelch13 Mutation Detection  
+### **Kelch13 Mutation Detection**  
 
 **Script** : `grc_kelch13_mutation_caller.py`  
 **Description**: Call kelch13 mutations from input genotype file.  
 **Called From**: `grc_kelch13_mutation_caller.nf`  
 
-## Usage  
+#### **Usage**  
 
 ```
 grc_kelch13_mutation_caller.py [-h] [--genotype_files GENOTYPE_FILES]
@@ -586,8 +579,7 @@ grc_kelch13_mutation_caller.py [-h] [--genotype_files GENOTYPE_FILES]
                         [--codon_key_file CODON_KEY_FILE]
 ```  
 
-## Parameters  
-### Required  
+#### **Required Parameters**  
 
 - `-h, --help` : Print help and exit.  
 - `--genotype_files` (path) : Path to input genotype file(s).  
@@ -598,21 +590,20 @@ grc_kelch13_mutation_caller.py [-h] [--genotype_files GENOTYPE_FILES]
 
 ---
 
-# Plasmepsin Copy-number Variation Detection  
+### **Plasmepsin Copy-number Variation Detection**  
 
 **Script** : `grc_plasmepsin_cnv_caller.py`  
 **Description**: Call copy-number variants for the plasmepsin locus.  
 **Called From**: `grc_plasmepsin_cnv_caller.nf`  
 
-## Usage  
+#### **Usage**  
 
 ```
 grc_plasmepsin_cnv_caller.py [-h] [--genotype_files GENOTYPE_FILES]
                         [--config CONFIG] [--output_file OUTPUT_FILE]
 ```  
 
-## Parameters  
-### Required  
+#### **Required Parameters**  
 
 - `-h, --help` : Print help and exit.  
 - `--genotype_files` (path): Path to input genotype file(s)  
@@ -621,17 +612,17 @@ grc_plasmepsin_cnv_caller.py [-h] [--genotype_files GENOTYPE_FILES]
 
 ---
 
-# Barcode Generation  
+### **Barcode Generation**  
 
 **Script** : `grc_barcoding.py`  
 **Description**: Generate barcodes for GRC.  
 **Called From**: `grc_barcodeing.nf`
 
-#### Requirements  
+#### **Requirements**  
 
 * tqdm  
 
-## Usage  
+#### **Usage**  
 
 ```
 grc_barcoding.py [-h] [--genotype_files GENOTYPE_FILES]
@@ -639,32 +630,31 @@ grc_barcoding.py [-h] [--genotype_files GENOTYPE_FILES]
                         [--ncpus NCPUS]
 ```
 
-## Parameters  
-### Required  
+#### **Required Parameters**  
 
 - `-h, --help` : Print help and exit.  
 - `--genotype_files` (path): Path to input genotype file(s)  
 - `--config CONFIG` (path): Path to config json file  
 - `--output_file` (path) [Default: barcode_results.txt] : Path to directory to output results  
 
-### Optional  
+#### **Optional Parameters**  
 
 - `--pbar` : Show a progress bar while running  
 - `--ncpus` (int): Number of SPUs to use in  
 
 ---
 
-# Species Detection  
+### **Species Detection**  
 
 **Script** : `grc_speciate.py`  
 **Description**: Run species detection on sample data  
 **Called From**: `grc_speciate.nf`  
 
-#### Requirements  
+#### **Requirements**  
 
 * tqdm  
 
-## Usage  
+#### **Usage**  
 
 ```
 grc_speciate.py [-h] [--genotype_files GENOTYPE_FILES]
@@ -673,8 +663,7 @@ grc_speciate.py [-h] [--genotype_files GENOTYPE_FILES]
                     [--output_debug_path OUTPUT_DEBUG_PATH]
 ```  
 
-## Parameters  
-### Required  
+#### **Required Parameters**  
 
 - `-h, --help` : Print help and exit.  
 - `--genotype_files` (paths): List of all genotype files (TSV format) to be run through the speciation program  
@@ -682,7 +671,7 @@ grc_speciate.py [-h] [--genotype_files GENOTYPE_FILES]
 - `--config` (path): Path to config json  
 - `--output_file` (path): Path to output file  
 
-### Optional  
+#### **Optional Parameters**  
 
 - `--pbar` : Show a progress bar while running  
 - `--ncpus` (int): Number of SPUs to use in  
@@ -690,18 +679,18 @@ grc_speciate.py [-h] [--genotype_files GENOTYPE_FILES]
 
 ---
 
-# Complexity-of-Infection Estimation  
+### **Complexity-of-Infection Estimation**  
 
 **Script** : `grc_process_mccoil_io.py`  
 **Description**: Generate input files for, and subsequently run, THEREALMcCOIL
 **Called From**: `grc_estimate_coi.nf`
 
-#### Requirements  
+#### **Requirements**  
 
 * [THEREALMcCOIL - (slightly modified version)](https://github.com/AMarinhoSN/THEREALMcCOIL)
 * Singularty
 
-## Usage  
+#### **Usage**  
 
 ```
 grc_process_mccoil_io.py [-h] [-write_mccoil_in] [-write_coi_grc] [--barcodes_files BARCODES_FILE(s)]
@@ -729,8 +718,7 @@ python3 grc_process_mccoil_io.py -write_coi_grc \
             --output_file RUN_ID_out.grc
 ```  
 
-## Parameters  
-### Required  
+#### **Required Parameters**  
 
 - `-h, --help` : Print help and exit.  
 - `-write_mccoil_in` : Prepare McCOIL input files from barcodes  
@@ -740,14 +728,130 @@ python3 grc_process_mccoil_io.py -write_coi_grc \
 - `--mccoil_sum_file` (path): Path to McCOIL summary output file  
 - `--output_file` (path) [Default:  <./McCOIL_in.tsv | ./coi.grc >]: Path for the McCOIl input or GRC file to be written. If more than one input file is provided, the corresponding outputs will have the same basename as the respective input files prefixed to the standard file suffixes.  
 
-### Note
-
-Inputs and outputs of the original The REAL McCOIL should work just fine, however, here we use a [custom version](https://github.com/AMarinhoSN/THEREALMcCOIL). Small tweaks were necessary to containarize this software and improve usability by adding a command-line interface.  
+>**NB**  
+>Inputs and outputs of the original The REAL McCOIL should work just fine, however, here we use a [custom version](https://github.com/AMarinhoSN/THEREALMcCOIL). Small tweaks were necessary to containarize this software and improve usability by adding a command-line interface.  
 
 [**(top of section &uarr;)**](#scripts-used-in-grc-creation)  
 
-<mark>TODO:<mark> add docs for other scripts in `/bin`
+[**(top &uarr;)**](#appendix)  
 
-[**(top &uarr;)**](#contents)  
+---
+
+## **Other Scripts**  
+
+### **Read Counting per Amplicon Region**  
+
+**Script** : `count_reads_per_region.py`  
+**Description**: Gather QC statistics on read counts for a set of CRAM files.  
+**Called From**: `read_counts_per_region.nf`  
+
+#### **Usage**  
+
+```
+count_reads_per_region.py  [-h] [--design_file ANNOTATION_FILE]
+            [--plex_file PLEX_FILE]
+            [--input_dir INPUT_DIR]
+            [--output OUTPUT_FILE]
+```  
+
+#### **Required Parameters**  
+
+- `-d`, `--design_file` (path) : Input QC configuration file  
+- `-p`, `--plex_file` (path) : Input QC plex file  
+- `-i`, `--input_dir` (path) : Input directory containing sorted and indexed CRAM files  
+
+#### **Optional Parameters**  
+
+- `-o`, `--output` (path) [Default: stdout] : Output file name  
+- `-q`, `--mapq` (int) [Default: 10] : Non-default quality threshold  
+- `-l`, `--log_file` (path) [Default: qc.log] : Name of log file  
+
+---
+
+### **Tag-list Creation**  
+
+**Script** : `create_taglist_file.py`  
+**Description**: Create tag-list from sample manifest.  
+**Called From**: `create_taglist_file.nf`  
+
+#### **Requirements**  
+
+* pandas  
+
+#### **Usage**  
+
+```
+create_taglist_file.py [-h] [--manifest MANIFEST] [--study STUDY_NAME]
+```  
+
+#### **Required Parameters**  
+
+- `-m`, `--manifest` (path) : Input manifest file.  \
+- `-st`, `--study` (str) : Study ID
+
+---
+
+### **Merge Headers**  
+
+**Script** : `merge_headers.py`  
+**Description**: Merge headers of adapter-clipped BAMs and corresponding realigned BAMs  
+**Called From**: `cram_to_fastq_and_ena_cram.nf`  
+
+#### **Usage**  
+
+```
+merge_headers.py [-h] [INPUT_CRAM_FILE] [NEW_MAPPED_BAM_FILE] [REFERENCE_FILE_PATH]
+```  
+
+#### **Required Parameters**  
+
+- INPUT_CRAM_FILE (path) : Path to adapter-clipped cram file  
+- NEW_MAPPED_BAM_FILE (path) : Path to realigned BAM file  
+- REFERENCE_FILE_PATH (path) : Path to reference FASTA file  
+
+---
+
+### **iRODS/FASTQ Manifest Validation**  
+
+**Script** : `validate_irods_fastq_mnf.py`  
+**Description**: Validate input manifests (for iRODS and FASTQ entry-points)
+**Called From**: `valifate_fastq_mnf.nf`, `validate_irods_mnf.nf`  
+
+#### **Requirements**  
+
+* pandas
+
+#### **Usage**  
+
+```
+validate_irods_fastq_mnf.py [-h] [MANIFEST_FILE] [PANEL_SETTINGS_FILE] [RUN_MODE]
+```  
+
+#### **Required Parameters**  
+
+- MANIFEST_FILE (path) : Path to input manifest file  
+- PANEL_SETTINGS_FILE (path) : Path to input panel-setings CSV file  
+- RUN_MODE (str) [Valid: fastq/irods]: Whether to work with iRODS input or FASTQ input  
+
+---
+
+### **In-country Manifest Validation**  
+
+**Script** : `validate_manifest.py`  
+**Description**: Validate input manifests (for in-cpountry entry-points)
+**Called From**: `valifate_manifest.nf`  
+
+#### **Usage**  
+
+```
+validate_manifest.py [-h] [--manifest MANIFEST_FILE] [--panel_names PANEL_SETTINGS_FILE]
+```  
+
+#### **Required Parameters**  
+
+- `-m`, `--manifest` (path) : Path to input manifest file  
+- `-p`, `--panel_names` (path) : List of panel names to check for  
+
+[**(top &uarr;)**](#appendix)  
 
 ---
