@@ -47,7 +47,7 @@ bash buildContainers.sh
 
 You can run the pipeline from **BCL** input as follows:  
 ```
-nextflow /path/to/repository/main.nf -profile sanger_lsf \
+nextflow /path/to/repository/main.nf -profile standard \
                 --execution_mode in-country \
                 --run_id 12345 \
                 --bcl_dir /path/to/my_bcl_dir/ \
@@ -59,7 +59,7 @@ nextflow /path/to/repository/main.nf -profile sanger_lsf \
 
 If starting from **FASTQ** files, run the pipeline as follows:  
 ```
-nextflow /path/to/repository/main.nf -profile sanger_lsf \
+nextflow /path/to/repository/main.nf -profile standard \
         --execution_mode fastq \
         --run_id 12345 \
         --fastq_manifest /path/to/fastq_manifest.tsv
@@ -71,7 +71,7 @@ nextflow /path/to/repository/main.nf -profile sanger_lsf \
 Alternatively, lauch the pipeline run with input from **iRODS**:  
 <mark>TODO:<mark> check this - will it be retained for release?  
 ```
-nextflow /path/to/repository/main.nf -profile sanger_lsf \
+nextflow /path/to/repository/main.nf -profile standard \
         --execution_mode irods \
         --run_id 12345 \
         --irods_manifest /path/to/irods_manifest.tsv
@@ -104,7 +104,7 @@ AmpRecon supports the analysis of data from _Plasmodium falciparum_ and _P. viva
 
 ### Running With Singularity
 
-AmpRecon was built and tested to work with Singularity. As such **this is the recommended way to use AmpRecon**, as you need not worry about dependencies and runtime environments. Simply build the containers as above, and AmpRecon is good to go.  
+AmpRecon was built and tested to work with Singularity. As such **this is the recommended way to use AmpRecon**, as you need not worry about dependencies and runtime environments. Simply build the containers as above, and AmpRecon is good to go. To use with Singularity, run with `-profile standard` (or alternatively without the `-profile` flag).  
 
 ### Running Locally
 
@@ -132,6 +132,10 @@ Please note that the pipeline uses a slightly modified version of THEREALMcCOIL 
 - clone the linked THEREALMcCOIL repo  
 - compile the categorical method  
 - [**important**] point to the repository location with the parameter `--mccoil_repopath` on the command-line  
+
+If running locally:  
+- Please reconsider - using Singularity is the easiest and most robust way to run the pipeline
+- use `-profile run_locally`
 
 This list is non-exhaustive and does not include OS/filesystem/runtime utilites.  
 
