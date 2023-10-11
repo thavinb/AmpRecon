@@ -128,16 +128,20 @@ If you choose to go with conda or similar, a list of dependencies is as follows 
 - pyvcf  
 - tqdm  
 
+This list is non-exhaustive and does not include OS/filesystem/runtime utilites.  
+
 Please note that the pipeline uses a slightly modified version of THEREALMcCOIL (which can be found [here](https://github.com/AMarinhoSN/THEREALMcCOIL)). If you choose to run the pipeline locally:  
 - clone the linked THEREALMcCOIL repo  
 - compile the categorical method  
 - [**important**] point to the repository location with the parameter `--mccoil_repopath` on the command-line  
 
 If running locally:  
-- Please reconsider - using Singularity is the easiest and most robust way to run the pipeline
-- use `-profile run_locally`
+- Please reconsider - using Singularity is the easiest and most robust way to run the pipeline  
+- use `-profile run_locally`  
 
-This list is non-exhaustive and does not include OS/filesystem/runtime utilites.  
+
+> **NB**  
+> If you do not specify a `-profile` flag, Nextflow will use the `standard`, i.e. it will try to run with Singularity. So if you choose to run locally, please ensure you specify `run_locally` to the `-profile` flag at the command-line.  
 
 [**(&uarr;)**](#contents)  
 
