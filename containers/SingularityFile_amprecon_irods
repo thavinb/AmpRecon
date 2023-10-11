@@ -4,7 +4,7 @@ Stage: spython-base
 
 %post
 DEBIAN_FRONTEND=noninteractive
-IRODS_VERSION=4.2.8
+IRODS_VERSION=4.3.0-1~bionic
 apt-get update \
 && apt-get install -yq \
 software-properties-common \
