@@ -1,6 +1,6 @@
 # AmpRecon  
 
-Align data to specific amplicon panels, perform variant-calling, and produce genetic report cards. It was designed to work with amplicon-sequencing data from _Plasmodium falciparum_ and _P. vivax_.   
+Align data to specific amplicon panels, perform variant-calling, and produce genetic report cards. It was designed to work with amplicon-sequencing data from _Plasmodium falciparum_ and _Plasmodium vivax_.   
 
 # Contents  
 1. [Quick-Start Guide](#quick-start-guide)  
@@ -8,9 +8,9 @@ Align data to specific amplicon panels, perform variant-calling, and produce gen
 3. [Requirements and Setup](#requirements-and-setup)  
 4. [Download Codebase and Build Containers](#download-codebase-and-build-containers)  
 5. [Running on farm5](#running-on-farm5)  
-6. [Running on Other Systems](#running-on-other-systems)  
+6. [Running on Your Machine](#running-on-your-machine)  
 7. [Run Parameters](#run-parameters)  
-8. [Essential Parameter](#essential-parameters)  
+8. [Essential Parameters](#essential-parameters)  
         &rarr; [`--execution_mode irods`](#execution_mode-irods)  
         &rarr; [`--execution_mode in-country`](#execution_mode-in-country)  
         &rarr; [`--execution_mode fastq`](#execution_mode-fastq)  
@@ -33,8 +33,9 @@ Align data to specific amplicon panels, perform variant-calling, and produce gen
 
 AmpRecon was built and tested on Nextflow [version 22.04](https://github.com/nextflow-io/nextflow/releases/tag/v22.04.4), and Singularity [version 3.6.4](https://github.com/apptainer/singularity/releases/tag/v3.6.4). Assuming you already have [Nextflow](https://github.com/nextflow-io/nextflow), and [Singularity](https://github.com/sylabs/singularity), clone the repository and build Singularity containers:  
 
+<mark>TODO:<mark> update repository URL  
 ```
-# clone repo ##<mark>TODO:<mark> update this
+# clone repo ##
 git clone --recurse-submodules https://gitlab.internal.sanger.ac.uk/malariagen1/ampseq-pipeline.git
 
 # build containers
@@ -51,7 +52,6 @@ nextflow /path/to/repository/main.nf -profile standard \
                 --execution_mode in-country \
                 --run_id 12345 \
                 --bcl_dir /path/to/my_bcl_dir/ \
-                --ena_study_name test \
                 --manifest_path path/to/in_country_manifest.tsv \
                 --containers_dir /path/to/containers_dir/
                 -c /path/to/species/config
@@ -93,9 +93,9 @@ AmpRecon can accept as input [Binary Base Call (BCL) files](https://emea.illumin
 - [Genetic Report Cards (GRCs)](https://www.malariagen.net/sites/default/files/GRC_UserGuide_10JAN19.pdf), tabular files that describe key features of interest
 - Read-counts per amplicon panel, one file for each panel  
 
-AmpRecon supports the analysis of data from _Plasmodium falciparum_ and _P. vivax_ - for these two species, pipeline behaviour can be controlled by modifying the `.config` files in `path/to/repository/conf`.  
+AmpRecon supports the analysis of data from _Plasmodium falciparum_ and _P. vivax_ - for these two species, pipeline behaviour can be controlled by modifying the supplied `.config` files in `path/to/repository/conf`.  
 
-![workflow_outline](./workflow_outline.png)
+![workflow_outline](./assets/workflow_outline.png)
 *Figure 1: An outline of the workflow.*  
 
 [**(&uarr;)**](#contents)  
@@ -141,7 +141,7 @@ If running locally:
 
 
 > **NB**  
-> If you do not specify a `-profile` flag, Nextflow will use the `standard`, i.e. it will try to run with Singularity. So if you choose to run locally, please ensure you specify `run_locally` to the `-profile` flag at the command-line.  
+> If you do not specify a `-profile` flag, Nextflow will use the `standard` profile, i.e. it will try to run with Singularity. So if you choose to run locally, please ensure you specify `run_locally` to the `-profile` flag at the command-line.  
 
 [**(&uarr;)**](#contents)  
 
@@ -149,7 +149,7 @@ If running locally:
 
 Once you have Singularity (or a suitable working environment) up and running you can download the codebase with `git clone` as shown [above](#quick-start-guide). Note the `--recurse-submodules` flag in the clone command; this will additionally clone recources from linked repositories. If you depend on these resources but clone the codebase without the `--recurse-submodules` flag, the pipeline will fail.  
 
-The AmpRecon repository has a script, `path/to/repository/containers/buildContainers.sh`, which can be invoked as seen above, and which will build all the required Singularity images - the necessary image definition files are in the same directory, i.e. `path/to/repository/containers`. All the resulting `.sif` files are written to `path/to/repository/containers` as well.  
+The AmpRecon repository has a script, `path/to/repository/containers/buildContainers.sh`, which can be invoked as seen above, and which will build all the required Singularity images - the necessary image definition files are in the same directory, i.e. `path/to/repository/containers`. All the resulting `.sif` files are written to `path/to/repository/containers` as well -- this is, by default, the location where the pipeline will expect the containers to be, unless otherwise specified at the command-line.  
 
 [**(&uarr;)**](#contents)  
 
@@ -166,9 +166,11 @@ Use `-profile sanger_lsf` to submit the jobs generated by the pipeline run to th
 
 [**(&uarr;)**](#contents)  
 
-## Running on Other Systems
+## Running on Your Machine
 
-Use `-profile standard` for a no-frills execution setup. <mark>TODO:<mark> expand on this.
+Use `-profile standard` for a no-frills execution setup using Singularity. This is suitable for your local machine, assuming that it has Singularity **and** Nextflow installed. As noted above, you **must** specify `-profile run_locally` if you choose to run the pipeline **without** Singularity.  
+
+If running on an HPC/compute cluster, it is advisable to extend the `standard` profile (in `path/to/repository/conf/profiles.config`), to add filesystem bindings appropriate to your cluster computer. See Nextflow documentation [here](https://www.nextflow.io/docs/latest/config.html#config-profiles) for more information on profiles.  
 
 [**(&uarr;)**](#contents)  
 
@@ -176,17 +178,17 @@ Use `-profile standard` for a no-frills execution setup. <mark>TODO:<mark> expan
 
 # Run Parameters  
 
-#### A Note on Configuration Files  
+### A Note on Configuration Files  
 
-By default, Nextflow looks for configuration files in various location. We provide a `nextflow.config` file which sets `null` values for essential parameters, specifies a default `--results_dir`, and also sets some default values for certain GRC creation steps. Additionally, this file also "imports" `path/to/repository/conf/containers.config` (this sets a `path/to/repository/containers/` as the default `--containers_dir`); and `path/to/repository/conf/profiles.config` (this defines profiles that dictate runtime options).  
+By default, Nextflow looks for configuration files in various location. We provide a `nextflow.config` file which sets `null` values for essential parameters, specifies a default `--results_dir`, and also sets some default values for certain GRC creation steps. Additionally, this file also "imports" `path/to/repository/conf/containers.config` (this sets a `path/to/repository/containers/` as the default `--containers_dir`); and `path/to/repository/conf/profiles.config` (this defines profiles that dictate runtime options). For more on Nextflow configuration, see the documentation [here](https://www.nextflow.io/docs/latest/config.html).  
 
 ### Essential Parameters  
 
-- `--execution_mode` : Sets the entry point for the pipeline. This can be "irods" (the expected input type is CRAM files) or "in-country" (the expected input type is BCL files).  
-- `--run_id` : Numeric identifier to be used for the batch of data to be processed. `run_id` is used as a prefix for the output GRC files.  
-- `--species_config`/`-c` : stages the relevant reference amplicon panels to analyse data against specific species. Configuration files for P. falciparum and P. vivax are provided in the repository in `path/to/repository/conf`  
+- `--execution_mode` : Sets the entry point for the pipeline. This can be "fastq" (the expected input type in fastq files), "irods" (the expected input type is CRAM files), or "in-country" (the expected input type is BCL files).  
+- `--run_id` : Identifier to be used for the batch of data to be processed. `run_id` is used as a prefix for the output GRC files.  
+- `--species_config`/`-c` : stages the relevant reference amplicon panels and references to analyse data from specific species. Configuration files for _P. falciparum_ and _P. vivax_ are provided in the repository in `path/to/repository/conf`  
 
-**NB**: Using the `-c` flag is the easiest way to point to specific reference files and using this flag makes it unnecessary to specify the certain parameters at the command-line ([see below](#species-configuration-file))
+**NB**: Using the `-c` flag is the easiest way to point to specific reference files and using this flag makes it unnecessary to specify the certain parameters at the command-line ([see below](#species-configuration-file)).
 
 Based on which execution mode you specify, there are further parameters that need to be specified:  
 
@@ -229,7 +231,7 @@ The iRODS manifest file must be a `.tsv`. The pipeline can contain the following
 
 - `study`: full study ID of the sample. This will be part of the metadata to be added to the final GRC files if provided.  
 
-The iRODS mainfest can have more columns in any order, but these are the only ones which will be considered. The pipeline builds and uses an "internal id" as follows: `<cram_filename>_<sample_id>_<primer_panel>`. The pipeline will check to make sure that any combination of these values in the manifest is unique. If not, the pipeline will throw an error and stop running.  
+The iRODS manifest may have more columns in any order. The pipeline builds and uses an "internal id" as follows: `<cram_filename>_<sample_id>_<primer_panel>`. The pipeline will check to make sure that any combination of these values in the manifest is unique. If not, the pipeline will throw an error and stop running.  
 
 A valid iRODS manifest would look like the representative example below. Please note that the manifest is expected to be a **tab-separated** file. Note that the manifest can contain more columns as described above but these three are essential.  
 
@@ -243,7 +245,7 @@ A valid iRODS manifest would look like the representative example below. Please 
 
 ## In-Country Manifest  
 
-The in country manifest file must be a `.tsv`. The pipeline expects to find the following columns headers:  
+The in country manifest file must be a `.tsv`. It may contain the following column headers:  
 
 - `sample_id`: a sample identifier tag. This is used to prefix output files.  
 
@@ -267,7 +269,7 @@ The in country manifest file must be a `.tsv`. The pipeline expects to find the 
 
 - `plate_name`: a plate identifier.  
 
-A valid In-Country manifest should look like the representative example below. Please note that the manifest is expected to be a **tab-separated** file.
+A valid In-Country manifest would look like the representative example below. Please note that the manifest is expected to be a **tab-separated** file.
 
 | sample_id | primer_panel | barcode_number | barcode_sequence | partner_sample_id | collection_date | collection_location | collection_country | study | well | plate_name | is_control |
 |-----------|--------------|----------------|------------------|-------------------|-----------------|--------------------|--------------------|-------|------|------------| ----------|
@@ -306,7 +308,7 @@ A valid FASTQ manifest should look like the representative example below. Please
 
 ## Panel Settings  
 
-The AmpRecon pipeline relies on a `panels_settings.csv` file, which, in turn, defines which files the pipeline should use at key steps, according to the panel name provided for a given sample. The aim of this panel settings system is to detach the experimental design from the inner workings of the pipeline and make it easier to experiment with its key steps. `panels_settings.csv` **must** be privded to the pipeline via `--panels_settings`. The panel settings file is expected to contain the following headers:  
+The AmpRecon pipeline relies on a `panels_settings.csv` file, which, in turn, defines which files the pipeline should use at key steps, according to the panel name provided for a given sample. The aim of this panel settings system is to detach the experimental design from the inner workings of the pipeline and make it easier to experiment with its key steps. `panels_settings.csv` **must** be provided to the pipeline via `--panels_settings`. The panel settings file is expected to contain the following headers:  
 
 - `panel_name` : Defines the string it should use for a given panel. Must exactly match the value of `primer_panel` in the manifest you are using.  
 
@@ -328,7 +330,7 @@ An representative example of a panel settings file is shown below. Note that thi
 
 ## Species Configuration File  
 
-AmpRecon requires a configuration file that controls species-specific run settings. When running the pipeline it is imperative that a species configuration file is passed at the command line using the `-c` flag with `nextflow run`. If you do not have a species configuration file, you can use the files provided in `path/to/repository/conf`, which point to files present in the [`ampliconresources` submodule](https://gitlab.internal.sanger.ac.uk/malariagen1/ampliconresources/-/tree/main/). Currently, `path/to/repository/conf` has config files for _P. falciparum_ and _P. vivax_, which define values for the following parameters:  
+AmpRecon is able to use a configuration file that controls species-specific run settings. When running the pipeline, point to a species configuration file at the command line using the `-c` flag with `nextflow run`. If you do not have a species configuration file, you can use the files provided in `path/to/repository/conf`, which point to files present in the [`ampliconresources` submodule](https://gitlab.internal.sanger.ac.uk/malariagen1/ampliconresources/-/tree/main/). Currently, `path/to/repository/conf` has config files for _P. falciparum_ and _P. vivax_, which define values for the following parameters:  
 - `panels_settings`  
 - `grc_settings_file_path`  
 - `chrom_key_file_path`  
@@ -338,7 +340,7 @@ AmpRecon requires a configuration file that controls species-specific run settin
 - `no_kelch` (specific to _P. falciparum_)  
 - `no_plasmepsin` (specific to _P. falciparum_)  
 
-For more on these parameters, see [below](#grc-creation-settings).
+When using a species configuration file, it is no longer necessary to explicitly specify the above parameters at the command-line. For more on these parameters, see [below](#grc-creation-settings).
 
 [**(&uarr;)**](#contents)  
 
@@ -348,11 +350,13 @@ For more on these parameters, see [below](#grc-creation-settings).
 
 ## BAMs and VCFs  
 
-For each sample ID specified in the manifest, AmpRecon generates a BAM file and a corresponding index. This BAM file is then used as input to the genotyping process that generates a (gzipped) VCF genotype file, one per sample.  
+For each sample ID specified in the manifest, AmpRecon generates a BAM file and a corresponding index. This BAM file is then used as input to the genotyping process that generates a (gzipped, indexed) VCF genotype file, one per sample.  
 
 [**(&uarr;)**](#contents)  
 
 ## Read Counts per Panel  
+
+The pipeline also outputs a Read Count per panel file, containing information on read-counts found corresponding to each amplicon panel. It has the following columns:  
 
 - `Rpt` : Sample/lanelet identifier.  
 
@@ -437,7 +441,7 @@ First, the variants are organised into genotypes on a per-locus basis, and `geno
 Once barcodes for each sample have been assembled, the GRC creation process moves to species-detection. At this stage, the pipeline assigns each sample a species tag, either "Pf" for _P. falciparum_ or "Pv" for _P. vivax_. This stage of analysis is able to identify species co-infections on a per-sample basis. The workflow is described in [Figure 2](./speciation_flow.png) below.  
 
 <mark>TODO:<mark> update this flowchart
-![speciation_flowchart](./speciation_flow.png)
+![speciation_flowchart](./assets/speciation_flow.png)
 *Figure 2: An outline of the species-detection workflow.*
 
 The final processing stage computes the complexity of infection for each sample, which is reported as the estimated number of unique parasite genotypes found in the sample. Information on clinically significant loci, the sample barcode, the species detection results, and the complexity of infection are all reported in the primary `<run_id>_GRC.txt`.
@@ -446,7 +450,7 @@ The final processing stage computes the complexity of infection for each sample,
 
 ---
 
-# Testing
+# Testing <mark>FIXME:<mark> to be removed in pre-release branch
 
 The unit tests for the workflow are implemented using [NF-test](https://code.askimed.com/nf-test/). If not available already on the CLI:  
 
@@ -498,6 +502,10 @@ nf-test test tests/workflows/miseq_to_reads.nf.test --profile sanger_default
 - `--ena_study_name` (str) [Default: "no_study"]: This parameter is for a future use-case and has no effect currently.  
 
 - `--manifest_path` (path) : Path to the manifest file  
+
+### `--execution_mode fastq`  
+
+- `--fastq_manifest` (path) : A tsv containing paths to fastq input data  
 
 ### GRC Creation Settings  
 
