@@ -10,7 +10,7 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 - **[Change]**: Updated README.
-
+- **[Improvement]**: check validity of a custom path provided via `mccoil_repopath`.
 ## [1.1.1] - 2023-10-02
 
 ### Added

@@ -319,7 +319,7 @@ def validate_general_params(){
     log.warn("[DEBUG] no_coi was set to ${params.DEBUG_no_coi}")
   }
   // -------------------------------------------
-  
+
   // check if output dir exists, if not create the default
   if (params.results_dir){
     results_path = file(params.results_dir)
@@ -328,7 +328,13 @@ def validate_general_params(){
       results_path.mkdir()
     }
   }
-  
+
+  if ((params.DEBUG_no_coi == false) && (params.mccoil_repopath != "/app/THEREALMcCOIL/")){
+    if (mccoil_path.exists() == false){
+      log.error("The mccoil_repopath provided (${mccoil_path}) does not exists.")
+      error+=1
+    }
+  }
   // if S3 is requested, check if all s3 required parameters were provided
 
   // check S3 output bucket
