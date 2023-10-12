@@ -168,7 +168,7 @@ Use `-profile standard` for a no-frills execution setup. <mark>TODO:<mark> expan
 ### Essential Parameters  
 
 - `--execution_mode` : Sets the entry point for the pipeline. This can be "irods" (the expected input type is CRAM files) or "in-country" (the expected input type is BCL files).  
-- `--run_id` : Numeric identifier to be used for the batch of data to be processed. `run_id` is used as a prefix for the output GRC files.  
+- `--run_id` : Numeric identifier to be used for the batch of data to be processed. `run_id` is used as a prefix for the output GRC file.  
 - `--species_config`/`-c` : stages the relevant reference amplicon panels to analyse data against specific species. Configuration files for P. falciparum and P. vivax are provided in the repository in `path/to/ampseq-pipeline/conf`  
 
 Based on which execution mode you specify, there are further parameters that need to be specified:  
@@ -202,15 +202,15 @@ The iRODS manifest file must be a `.tsv`. The pipeline can contain the following
 
 - `irods_path`: full path to iRODS location for the required `.cram` files (e.g.: `/seq/illumina/runs/38/12345/lane2/plex1/12345_2#1.cram`).  
 
-- `partner_sample_id`: (alternative) name allocated to the sample. This will be part of the metadata to be added to the final GRC files.  
+- `partner_sample_id`: (alternative) name allocated to the sample. This will be part of the metadata to be added to the final GRC file.  
 
-- `collection_date`: sample collection date. This will be part of the metadata to be added to the final GRC files.  
+- `collection_date`: sample collection date. This will be part of the metadata to be added to the final GRC file.  
 
-- `collection_location`: name of the specific collection location within the country to which the sample belongs. This will be part of the metadata to be added to the final GRC files.  
+- `collection_location`: name of the specific collection location within the country to which the sample belongs. This will be part of the metadata to be added to the final GRC file.  
 
-- `collection_country`: name of country the sample was collected in. This will be part of the metadata to be added to the final GRC files.  
+- `collection_country`: name of country the sample was collected in. This will be part of the metadata to be added to the final GRC file.  
 
-- `study`: full study ID of the sample. This will be part of the metadata to be added to the final GRC files.  
+- `study`: full study ID of the sample. This will be part of the metadata to be added to the final GRC file.  
 
 The iRODS mainfest can have more columns in any order, but these are the only ones which will be considered. The pipeline builds and uses an "internal id" as follows: `<cram_filename>_<sample_id>_<primer_panel>`. The pipeline will check to make sure that any combination of these values in the manifest is unique. If not, the pipeline will throw an error and stop running.  
 
@@ -236,15 +236,15 @@ The in country manifest file must be a `.tsv`. The pipeline expects to find the 
 
 - `barcode_sequence`: two DNA barcode sequences separated by a hyphen.  
 
-- `partner_sample_id`: (alternative) name allocated to the sample. This will be part of the metadata to be added to the final GRC files.  
+- `partner_sample_id`: (alternative) name allocated to the sample. This will be part of the metadata to be added to the final GRC file.  
 
-- `collection_date`: sample collection date. This will be part of the metadata to be added to the final GRC files.  
+- `collection_date`: sample collection date. This will be part of the metadata to be added to the final GRC file.  
 
-- `collection_location`: name of the specific collection location within the country to which the sample belongs. This will be part of the metadata to be added to the final GRC files.  
+- `collection_location`: name of the specific collection location within the country to which the sample belongs. This will be part of the metadata to be added to the final GRC file.  
 
-- `collection_country`: name of country the sample was collected in. This will be part of the metadata to be added to the final GRC files.  
+- `collection_country`: name of country the sample was collected in. This will be part of the metadata to be added to the final GRC file.  
 
-- `study`: full study ID of the sample. This will be part of the metadata to be added to the final GRC files.  
+- `study`: full study ID of the sample. This will be part of the metadata to be added to the final GRC file.  
 
 - `well`: a well identifier.  
 
@@ -369,7 +369,7 @@ For each sample ID specified in the manifest, AmpSeq generates a BAM file and a 
 
 At the end of each run, AmpSeq produces a set of genetic report cards (GRCs). These are the essential summaries of the run results, and contain details about variants of interest. A full explanation of the loci covered in the GRC is available [here](https://www.malariagen.net/sites/default/files/GRC_UserGuide_10JAN19.pdf).  
 
-The primary `<run_id>_GRC.txt` contains the following headers:  
+The `<run_id>_GRC.txt` contains the following headers:  
 
 - `ID` : Sample ID.  
 
@@ -389,13 +389,8 @@ The primary `<run_id>_GRC.txt` contains the following headers:
 
 - `Barcode` : A string descriptor made by concatenating nucleotide alleles at specific loci. These loci were chosen for their utility in helping classify parasite samples and are not associated with drug-resistance.  
 
-The file further contains one column containing data for each of the following genes of interest: Kelch, P23:BP, PfCRT, PfDHFR, PfDHPS, PfEXO, PfMDR1, and PGB
-
-Along with the primary GRC, which is named `<run_id>_GRC.txt`, three other files are produced (note that all 4 GRC-related files describe the same set of genes of interest):  
-
-- `<run_id>_GRC2.txt` : this file lists amino acid calls at each locus of interest within each of the genes of interest. Each row describes one sample; each column is a locus of interest.  
-
-- `<run_id>_Barcodes.txt` : this file lists nucleotide calls at important loci within each gene of interest. These are used to populate the `Barcode` column in the primary `<run_id>_GRC.txt`.  
+The file further contains one column containing data for each of the following genes of interest: Kelch, P23:BP, PfCRT, PfDHFR, PfDHPS, PfEXO, PfMDR1, and PGB.
+It also lists the individual nucleotide calls from the barcodes as separate columns.
 
 - `genotype_file.tsv`: this is a VCF-like tabular file containing variant information for loci of interest as a "long" table, i.e. one sample is represented by multiple rows, one for each amplicon in the reference panel.  
 
@@ -405,7 +400,7 @@ Along with the primary GRC, which is named `<run_id>_GRC.txt`, three other files
 
 # GRC Creation  
 
-The primary informative output of AmpSeq is the Genetic Report Card. The variants found by the pipeline in loci of interest are collected, processed and reported in the four files as detailed [above](#genetic-report-card).  
+The primary informative output of AmpSeq is the Genetic Report Card. The variants found by the pipeline in loci of interest are collected, processed and reported in the genetic report card file as detailed [above](#genetic-report-card).  
 
 First, the variants are organised into genotypes on a per-locus basis, and `genotype_file.tsv` is produced. Then, mutations and copy-number variations respectively are called at the clinically significant Kelch13 and Plasmepsin loci. Next, a barcode is generated for each sample. This barcode consists of nucleotide calls at loci of interest, concatenated as one string. Each of the 101 loci recorded in this barcode is biallelic, and the allele that is observed in a given sample is reported - an "X" represents "no data", i.e. the genotype was missing, and an "N" represents a heterozygous genotype call, i.e. both alleles were found.  
 
@@ -415,7 +410,7 @@ Once barcodes for each sample have been assembled, the GRC creation process move
 ![speciation_flowchart](./speciation_flow.png)
 *Figure 2: The Workflow used in the speciation stage of GRC creation*  
 
-The final processing stage computes the complexity of infection for each sample, which is reported as the estimated number of unique parasite genotypes found in the sample. Information on clinically significant loci, the sample barcode, the species detection results, and the complexity of infection are all reported in the primary `<run_id>_GRC.txt`.
+The final processing stage computes the complexity of infection for each sample, which is reported as the estimated number of unique parasite genotypes found in the sample. Information on clinically significant loci, the sample barcode, the species detection results, and the complexity of infection are all reported in the `<run_id>_GRC.txt`.
 
 [**(&uarr;)**](#contents)  
 
