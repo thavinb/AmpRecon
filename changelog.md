@@ -9,7 +9,8 @@ All notable changes to this project will be documented in this file.
 - **[Feature]**: NF-test based unit test of the workflow `reads_to_variants.nf`.
 
 ### Changed
-- **[Change]**: Updated README.
+- **[Improvement]**: Updated README.
+- **[Removed]**: Removal of post processing read counts step.
 
 ## [1.1.1] - 2023-10-02
 
@@ -22,10 +23,10 @@ All notable changes to this project will be documented in this file.
 - **[Feature]**: Switches allow kelch-13 and plasmepsin GRC creation steps to be switched off.
 
 ### Changed
-- **[improvement]**: ENA cram files are now published on the output dir.
-- **[improvement]**: Output dir now is structured on subdirs.
-- **[improvement]**: Added missing parameter check calls.
-- **[improvement]**: Allow kelch-reference file to not be specified if `no_kelch` flag set.
+- **[Improvement]**: ENA cram files are now published on the output dir.
+- **[Improvement]**: Output dir now is structured on subdirs.
+- **[Improvement]**: Added missing parameter check calls.
+- **[Improvement]**: Allow kelch-reference file to not be specified if `no_kelch` flag set.
 
 ### Fixed
 - **[Bug]**: bug for runids with "_T" affecting read counts file fixed.
