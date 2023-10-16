@@ -180,6 +180,8 @@ workflow {
       printHelp()
       exit 0
   }
+
+  // validate parameters
   validate_general_params()
 
   // -- MAIN-EXECUTION ------------------------------------------------------
@@ -188,7 +190,7 @@ workflow {
   reference_ch = ref_and_annt_ch[0] // tuple(reference_file, panel_name, snp_list)
   annotations_ch = ref_and_annt_ch[1] // tuple(panel_name, design_file)
 
-  // Files required for GRC creation
+  // files required for GRC creation
   Channel.fromPath(params.grc_settings_file_path, checkIfExists: true)
   chrom_key_file = Channel.fromPath(params.chrom_key_file_path, checkIfExists: true)
   codon_key_file = Channel.fromPath(params.codon_key_file_path, checkIfExists: true)
@@ -233,12 +235,13 @@ workflow {
   }
 
   // Reads to variants
-  READS_TO_VARIANTS(fastq_files_ch, file_id_reference_files_ch, annotations_ch, file_id_to_sample_id_ch)
+  READS_TO_VARIANTS(fastq_files_ch, file_id_reference_files_ch, annotations_ch,
+                    file_id_to_sample_id_ch)
   lanelet_manifest_file = READS_TO_VARIANTS.out.lanelet_manifest
 
   // Variants to GRCs
-  VARIANTS_TO_GRCS(manifest, lanelet_manifest_file, chrom_key_file, kelch_reference_file, codon_key_file, drl_information_file)
-
+  VARIANTS_TO_GRCS(manifest, lanelet_manifest_file, chrom_key_file, kelch_reference_file,
+                  codon_key_file, drl_information_file)
 }
 
 
@@ -323,7 +326,7 @@ def validate_general_params(){
   }
   // -------------------------------------------
 
-  // check if output dir exists, if not create the default
+  // check if output dir exists, if not create the default path
   if (params.results_dir){
     results_path = file(params.results_dir)
     if (!results_path.exists()){
@@ -338,7 +341,7 @@ def validate_general_params(){
       error+=1
     }
   }
-  // if S3 is requested, check if all s3 required parameters were provided
+  // if S3 is requested, check if all S3 required parameters were provided
 
   // check S3 output bucket
   if (params.upload_to_s3){

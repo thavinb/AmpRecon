@@ -8,7 +8,7 @@
     VCFs are used to determine several key metrics, from which 
     metadata enriched GRCs and barcodes files are assembled. Several
     files are needed for these processes: 
-    [1] Chrom key file that the specifies amplicon regions, their genomic 
+    [1] Chrom key file that specifies amplicon regions, their genomic 
     coordinates and reference alleles is for genotype file creation. 
     [2] Codon key file for describing the genetic code by linking 
     codons with associated amino acid.
@@ -20,7 +20,7 @@
     for key drug resistance loci.
     
     A GRC settings file must also be supplied to the pipeline. This 
-    file details many important values for GRC creation. These include
+    file details different key settings for GRC creation. These include
     minimum coverage values for Kelch13 mutation calling and species
     calling, Kelch13 regions, Plasmepsin loci genotypes and variants, 
     and amino acid calling / haplotype calling double heterozygous case
@@ -38,8 +38,7 @@
     2 GRC files, which then have metadata from the manifest added 
     to them.
 
-    2 resulting GRC files and a barcodes file that have had 
-    metadata added to them are output.
+    One GRC files and a barcodes file are the outputs.
     ------------------------------------------------------------------
 */
 
@@ -124,7 +123,7 @@ workflow VARIANTS_TO_GRCS {
         grc1_with_metadata = add_metadata_and_format.out.grc1
         grc2_with_metadata = add_metadata_and_format.out.grc2
         barcodes = add_metadata_and_format.out.barcodes
-    
+
         // upload final GRCs, final Barcodes file and Genotype file to S3 bucket
         if (params.upload_to_s3){
             grc1_with_metadata

@@ -10,7 +10,6 @@ process bam_merge_and_index {
         tuple val(sample_key), path("${sample_key}.merged.bam"), path("${sample_key}.merged.bam.bai")
 
     script:
-        
         """
         input_files=(${bam_files})
         if [ 1 == \${#input_files[@]} ]; then

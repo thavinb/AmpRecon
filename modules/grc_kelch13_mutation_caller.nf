@@ -2,12 +2,15 @@ params.kelch13_mutations_output_filename = "kelch13_mutation_calls.tsv"
 
 process grc_kelch13_mutation_caller {
     /*
-    * Calls non-synonymous mutations in asupplied region of the kelch13 gene in each of the supplied genotype files.
-    * Uses a file detailing the kelch13 reference sequence, codon structure and amino acid translation.
-    * It uses a codon key file for translating nucleotide codons into associated amino acids
-    * It also uses the kelch13 region supplied in the configuration file.
-    * Writes these kelch13 mutation calls to a single output tab-separated file.
+    Calls non-synonymous mutations in asupplied region of the kelch13
+    gene in each of the supplied genotype files. Uses a file detailing
+    the kelch13 reference sequence, codon structure and amino acid
+    translation. It uses a codon key file for translating nucleotide
+    codons into associated amino acids. It also uses the kelch13 region
+    supplied in the configuration file.
+    Writes these kelch13 mutation calls to a single output tab-separated file.
     */
+
     label "grc_tools"
     input:
         path(genotype_file)

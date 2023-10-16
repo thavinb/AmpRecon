@@ -105,7 +105,6 @@ Staden 1.14.9
     sed -i 's|AM_LDFLAGS =.*|AM_LDFLAGS = -rdynamic $(HTSLIB_LDFLAGS) -lgd -lz -lhts|g' Makefile.am
 
     make
-    #make check
     make install
     
     # --- | BCFTOOLS | ---------------------------------------------------------------------------|

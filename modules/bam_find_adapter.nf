@@ -1,6 +1,6 @@
 process bam_find_adapter {
     /*
-    * Searches for sequencing adapter contamination with a BAM  file.
+    Searches for sequencing adapter contamination with a BAM  file.
     */
 
     input:

@@ -1,6 +1,6 @@
 process bam_to_fastq {
     /*
-    * Converts BAM files to FASTQ.
+    Converts BAM files to FASTQ.
     */
 
     input:

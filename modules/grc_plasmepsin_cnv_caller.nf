@@ -2,10 +2,12 @@ params.plasmepsin_cnv_output_filename = "plasmepsin_cnv_calls.tsv"
 
 process grc_plasmepsin_cnv_caller {
     /*
-    * Calls the breakpoint of the Plasmepsin 2/3 amplification in each of the supplied genotype files.
-    * Uses plasmepsin genotypes, variants and loci supplied in the configuration file.
-    * Writes these plasmepsin copy number variation calls to a single output tab-separated file.
+    Calls the breakpoint of the Plasmepsin 2/3 amplification in each of
+    the supplied genotype files. Uses plasmepsin genotypes, variants and
+    loci supplied in the configuration file. Writes these plasmepsin copy
+    number variation calls to a single output tab-separated file.
     */
+
     label "grc_tools"
 
     input:

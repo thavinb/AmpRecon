@@ -12,7 +12,7 @@ process read_count_per_region {
 
     output:
         path("${output_file}"), emit: qc_csv_file
-        //path("temp_${output_file}")
+
     script:
         output_file = "${panel_name}_reads_per_region.csv"
         plex_file = "${panel_name}.plex"

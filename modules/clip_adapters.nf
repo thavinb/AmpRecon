@@ -3,7 +3,7 @@ params.bamadapterclip_level = 0
 
 process clip_adapters {
     /*
-    * Removes identified adapters from bam
+    Removes identified adapters from bam
     */
 
     input:
