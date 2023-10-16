@@ -18,10 +18,10 @@ include { VARIANTS_TO_GRCS } from './workflows/variants_to_grcs.nf'
 
 
 // logging info ----------------------------------------------------------------
-// This part of the code is based on the FASTQC PIPELINE (https://github.com/angelovangel/nxf-fastqc/blob/master/main.nf)
+// This part of the code is based on the one present at FASTQC PIPELINE (https://github.com/angelovangel/nxf-fastqc/blob/master/main.nf)
 
 /*
-* ANSI escape codes to color output messages, get date to use in results folder name
+* ANSI escape codes to color output messages
 */
 ANSI_GREEN = "\033[1;32m"
 ANSI_RED = "\033[1;31m"
@@ -29,7 +29,7 @@ ANSI_RESET = "\033[0m"
 
 log.info """
         ===========================================
-         AMPSEQ_1.0
+         AMPSEQ_dev
          Used parameters:
         -------------------------------------------
          --execution_mode     : ${params.execution_mode}
@@ -164,8 +164,11 @@ def printHelp() {
       --help (Prints this help message. Default: false)
     
     Profiles:
-      sanger_lsf : run the pipeline on farm5 lsf (recommended)
-      sanger_default : run the pipeline on farm5 local settings (only for development)
+      standard (default): run locally using singularity
+      run_locally : run locally using what is available on the system environment (no containers)
+      sanger_local : run the pipeline on Sanger HPC
+      sanger_lsf : run the pipeline by submiting tasks as individual jobs to lsf queue on Sanger HPC
+      sanger_tower : run the pipeline under nextflow tower
    """.stripIndent()
 }
 
