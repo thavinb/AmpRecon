@@ -69,12 +69,12 @@ nextflow /path/to/repository/main.nf -profile standard \
 You can also run the pipeline from **BCL** input as follows:  
 ```
 nextflow /path/to/repository/main.nf -profile standard \
-                --execution_mode in-country \
-                --run_id 12345 \
-                --bcl_dir /path/to/my_bcl_dir/ \
-                --manifest_path path/to/in_country_manifest.tsv \
-                --containers_dir /path/to/containers_dir/
-                -c /path/to/species/config
+        --execution_mode in-country \
+        --run_id 12345 \
+        --bcl_dir /path/to/my_bcl_dir/ \
+        --manifest_path path/to/in_country_manifest.tsv \
+        --containers_dir /path/to/containers_dir/
+        -c /path/to/species/config
 ```  
 
 [**(&uarr;)**](#contents)  
@@ -85,13 +85,13 @@ nextflow /path/to/repository/main.nf -profile standard \
 
 AmpRecon is a bioinformatics analysis pipeline for amplicon sequencing data. It currently supports alignment and SNP variant-calling functions and works with paired-end Illumina sequencing data.
 
-AmpRecon can accept as input [Binary Base Call (BCL) files](https://emea.illumina.com/informatics/sequencing-data-analysis/sequence-file-formats.html), FASTQ files, or aligned [CRAM files](https://www.sanger.ac.uk/tool/cram/). In the latter case, the pipeline expects to pull CRAM files from the Sanger Institute's internal file storage system, which is based on [iRODS](https://irods.org) (Integrated Rule-Oriented Data System). The main outputs include:  
+AmpRecon can accept as input FASTQ files, [Binary Base Call (BCL) files](https://emea.illumina.com/informatics/sequencing-data-analysis/sequence-file-formats.html), or aligned [CRAM files](https://www.sanger.ac.uk/tool/cram/). In the latter case, the pipeline expects to pull CRAM files from the Sanger Institute's internal file storage system, which is based on [iRODS](https://irods.org) (Integrated Rule-Oriented Data System). The main outputs include:  
 - aligned reads in the form of [BAM files](https://en.wikipedia.org/wiki/Binary_Alignment_Map), one for each lanelet
 - SNP variants in the form of [VCF files](https://samtools.github.io/hts-specs/VCFv4.2.pdf), one for each sample
 - [Genetic Report Cards (GRCs)](https://www.malariagen.net/sites/default/files/GRC_UserGuide_10JAN19.pdf), tabular files that describe key features of interest
 - Read-counts per amplicon panel, one file for each panel  
 
-AmpRecon supports the analysis of data from _Plasmodium falciparum_ and _P. vivax_ - for these two species, pipeline behaviour can be controlled by modifying the supplied `.config` files in `path/to/repository/conf`.  
+AmpRecon supports the analysis of data from _Plasmodium falciparum_ and _P. vivax_ - for these two species, pipeline behaviour can be controlled by modifying the supplied `.config` files in `path/to/repository/conf` (more information [below](#a-note-on-configuration-files)).  
 
 ![workflow_outline](./assets/workflow_outline.png)
 *Figure 1: An outline of the workflow.*  
