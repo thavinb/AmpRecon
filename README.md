@@ -7,26 +7,26 @@ Align data to specific amplicon panels, perform variant-calling, and produce gen
 2. [Summary](#summary)  
 3. [Requirements and Setup](#requirements-and-setup)  
 4. [Download Codebase and Build Containers](#download-codebase-and-build-containers)  
-5. [Running on farm5](#running-on-farm5)  
-6. [Running on Your Machine](#running-on-your-machine)  
-7. [Run Parameters](#run-parameters)  
-8. [Essential Parameters](#essential-parameters)  
+5. [Run the Pipeline](#run-the-pipeline)  
+6. [Run Parameters](#run-parameters)  
+7. [Essential Parameters](#essential-parameters)  
+        &rarr; [`--execution_mode fastq`](#execution_mode-fastq)  
         &rarr; [`--execution_mode irods`](#execution_mode-irods)  
         &rarr; [`--execution_mode in-country`](#execution_mode-in-country)  
-        &rarr; [`--execution_mode fastq`](#execution_mode-fastq)  
-9. [Input Files](#input-files)  
+8. [Input Files](#input-files)  
+        &rarr; [FASTQ Manifest](#fastq-manifest)  
         &rarr; [iRODS Manifest](#irods-manifest)  
         &rarr; [In-Country Manifest](#in-country-manifest)  
         &rarr; [Panel Settings](#panel-settings)  
         &rarr; [Species Configuration File](#species-configuration-file)  
-10. [Output Files](#output-files)  
+9. [Output Files](#output-files)  
         &rarr; [BAMs and VCFs](#bams-and-vcfs)  
         &rarr; [Read Counts per Panel](#read-counts-per-panel)  
         &rarr; [Genetic Report Card](#genetic-report-card)  
-11. [GRC Creation](#grc-creation)  
-12. [Testing](#testing)  
-13. [Full List of Options](#full-list-of-options)  
-14. [Appendix](#appendix)  
+10. [GRC Creation](#grc-creation)  
+11. [Testing](#testing)  <mark>TODO: this goes away in the final release (hence #11 twice)</mark>
+11. [Full List of Options](#full-list-of-options)  
+12. [Appendix](#appendix)  
 
 
 # Quick-Start Guide  
@@ -46,18 +46,7 @@ bash buildContainers.sh
 > **!!!WARNING!!!**  
 > If Singularity is not available, the pipeline assumes all dependencies with the correct versions are available in the execution environment.  
 
-You can run the pipeline from **BCL** input as follows:  
-```
-nextflow /path/to/repository/main.nf -profile standard \
-                --execution_mode in-country \
-                --run_id 12345 \
-                --bcl_dir /path/to/my_bcl_dir/ \
-                --manifest_path path/to/in_country_manifest.tsv \
-                --containers_dir /path/to/containers_dir/
-                -c /path/to/species/config
-```  
-
-If starting from **FASTQ** files, run the pipeline as follows:  
+You can run the pipeline from **FASTQ** input as follows:  
 ```
 nextflow /path/to/repository/main.nf -profile standard \
         --execution_mode fastq \
@@ -67,7 +56,6 @@ nextflow /path/to/repository/main.nf -profile standard \
         -c /path/to/species/config 
 ```
 
-
 Alternatively, lauch the pipeline run with input from **iRODS**:   
 ```
 nextflow /path/to/repository/main.nf -profile standard \
@@ -76,6 +64,17 @@ nextflow /path/to/repository/main.nf -profile standard \
         --irods_manifest /path/to/irods_manifest.tsv
         --containers_dir /path/to/containers_dir/
         -c /path/to/species/config
+```  
+
+You can also run the pipeline from **BCL** input as follows:  
+```
+nextflow /path/to/repository/main.nf -profile standard \
+                --execution_mode in-country \
+                --run_id 12345 \
+                --bcl_dir /path/to/my_bcl_dir/ \
+                --manifest_path path/to/in_country_manifest.tsv \
+                --containers_dir /path/to/containers_dir/
+                -c /path/to/species/config
 ```  
 
 [**(&uarr;)**](#contents)  
@@ -152,10 +151,7 @@ The AmpRecon repository has a script, `path/to/repository/containers/buildContai
 
 [**(&uarr;)**](#contents)  
 
-
-[**(&uarr;)**](#contents)  
-
-## Running on Your Machine
+## Run the Pipeline
 
 Use `-profile standard` for a no-frills execution setup using Singularity. This is suitable for your local machine, assuming that it has Singularity **and** Nextflow installed. As noted above, you **must** specify `-profile run_locally` if you choose to run the pipeline **without** Singularity.  
 
@@ -174,12 +170,16 @@ By default, Nextflow looks for configuration files in various location. We provi
 ### Essential Parameters  
 
 - `--execution_mode` : Sets the entry point for the pipeline. This can be "fastq" (the expected input type in fastq files), "irods" (the expected input type is CRAM files), or "in-country" (the expected input type is BCL files).  
-- `--run_id` : Identifier to be used for the batch of data to be processed. `run_id` is used as a prefix for the output GRC files.  
+- `--run_id` : Identifier to be used for the batch of data to be processed. `run_id` is used as a prefix for the output GRC file.  
 - `--species_config`/`-c` : stages the relevant reference amplicon panels and references to analyse data from specific species. Configuration files for _P. falciparum_ and _P. vivax_ are provided in the repository in `path/to/repository/conf`  
 
-**NB**: Using the `-c` flag is the easiest way to point to specific reference files and using this flag makes it unnecessary to specify the certain parameters at the command-line ([see below](#species-configuration-file)).
+> **NB**: Using the `-c` flag is the easiest way to point to specific reference files and using this flag makes it unnecessary to specify the certain parameters at the command-line ([see below](#species-configuration-file)).
 
 Based on which execution mode you specify, there are further parameters that need to be specified:  
+
+#### `--execution_mode fastq`  
+
+- `--fastq_manifest` : Full path to FASTQ manifest. This is a tsv containing tab-separated file containing details of samples and corresponding unpaired fastq data.  
 
 #### `--execution_mode irods`  
 
@@ -190,87 +190,15 @@ Based on which execution mode you specify, there are further parameters that nee
 - `--bcl_dir` : Full path to the location of BCL files.  
 - `--manifest_path`: Full path to the run manifest. This is a tab-separated file containing details of samples and corresponding sequencing files.  
 
-#### `--execution_mode fastq`  
-
-- `--fastq_manifest` : Full path to FASTQ manifest. This is a tsv containing tab-separated file containing details of samples and corresponding unpaired fastq data.  
-
 [**(&uarr;)**](#contents)  
 
 ---
 
 # Input Files  
 
-## iRODS Manifest  
-
-The iRODS manifest file must be a `.tsv`. The pipeline can contain the following column headers. Note that `irods_path`, `sample_id`, and `primer_panel` columns are essential:  
-
-- `sample_id`: a sample identifier tag. This is used to prefix output files.  
-
-- `primer_panel`: primer panel name to be used (must exactly match the value of `panel_name` in `panels_settings.csv`; more on `panels_settings.csv` [here](#panel-settings)).  
-
-- `irods_path`: full path to iRODS location for the required `.cram` files (e.g.: `/seq/illumina/runs/38/12345/lane2/plex1/12345_2#1.cram`).  
-
-- `partner_sample_id`: (alternative) name allocated to the sample. This will be part of the metadata to be added to the final GRC files if provided.  
-
-- `collection_date`: sample collection date. This will be part of the metadata to be added to the final GRC files if provided.  
-
-- `collection_location`: name of the specific collection location within the country to which the sample belongs. This will be part of the metadata to be added to the final GRC files if provided.  
-
-- `collection_country`: name of country the sample was collected in. This will be part of the metadata to be added to the final GRC files if provided.  
-
-- `study`: full study ID of the sample. This will be part of the metadata to be added to the final GRC files if provided.  
-
-The iRODS manifest may have more columns in any order. The pipeline builds and uses an "internal id" as follows: `<cram_filename>_<sample_id>_<primer_panel>`. The pipeline will check to make sure that any combination of these values in the manifest is unique. If not, the pipeline will throw an error and stop running.  
-
-A valid iRODS manifest would look like the representative example below. Please note that the manifest is expected to be a **tab-separated** file. Note that the manifest can contain more columns as described above but these three are essential.  
-
-| irods_path | sample_id | primer_panel |
-|------------|-----------|--------------|
-| /seq/12345/12345_1#55.cram | <sample_id> | PFA_GRC1_v1.0 |
-| /seq/12345/12345_1#149.cram | <sample_id> | PFA_GRC2_v1.0 |
-| /seq/12345/12345_1#808.cram | <sample_id> | PFA_Spec |
-
-[**(&uarr;)**](#contents)  
-
-## In-Country Manifest  
-
-The in country manifest file must be a `.tsv`. It may contain the following column headers:  
-
-- `sample_id`: a sample identifier tag. This is used to prefix output files.  
-
-- `primer_panel`: primer panel name to be used (must exactly match the value of `panel_name` in `panels_settings.csv`; more on `panels_settings.csv` [here](#panel-settings)).  
-
-- `barcode_number`: a unique number for each lanelet.  
-
-- `barcode_sequence`: two DNA barcode sequences separated by a hyphen.  
-
-- `partner_sample_id`: (alternative) name allocated to the sample. This will be part of the metadata to be added to the final GRC files if provided.  
-
-- `collection_date`: sample collection date. This will be part of the metadata to be added to the final GRC files if provided.  
-
-- `collection_location`: name of the specific collection location within the country to which the sample belongs. This will be part of the metadata to be added to the final GRC files if provided.  
-
-- `collection_country`: name of country the sample was collected in. This will be part of the metadata to be added to the final GRC files if provided.  
-
-- `study`: full study ID of the sample. This will be part of the metadata to be added to the final GRC files if provided.  
-
-- `well`: a well identifier.  
-
-- `plate_name`: a plate identifier.  
-
-A valid In-Country manifest would look like the representative example below. Please note that the manifest is expected to be a **tab-separated** file.
-
-| sample_id | primer_panel | barcode_number | barcode_sequence | partner_sample_id | collection_date | collection_location | collection_country | study | well | plate_name | is_control |
-|-----------|--------------|----------------|------------------|-------------------|-----------------|--------------------|--------------------|-------|------|------------| ----------|
-| <sample_id> | PFA_GRC1_v1.0 | 1 | ATCACGTT-GTACTGAC | <alt_sample_id> | 2021-07-16 | Health Centre ABC | Cambodia | <study_name> | A01 | PLATE_RCN_00190 | False |
-| <sample_id> | PFA_GRC2_v1.0 | 2 | CGATGCAT-GTACTACC | <alt_sample_id> | 2021-09-12 | Hospital 123 | Cambodia | <study_name> | A02 | PLATE_RCN_00190 | False |
-| <sample_id> | PFA_Spec | 3 | TTAACACT-GTACTGAC | <alt_sample_id> | 2021-10-21 | Hospital 456 | Cambodia | <study_name> | A03 | PLATE_RCN_00190 | False |
-
-[**(&uarr;)**](#contents)  
-
 ## FASTQ Manifest
 
-The FASTQ manifest file must be a `.tsv` and the pipeline expects to find the following columns headers:
+The FASTQ manifest file must be a `.tsv`. It is used with `--execution_mode fastq` and the pipeline expects to find the following columns headers:
 
 - `sample_id`: a sample identification tag. This is used to prefix output files.  
 
@@ -295,9 +223,77 @@ A valid FASTQ manifest should look like the representative example below. Please
 
 [**(&uarr;)**](#contents)  
 
+## iRODS Manifest  
+
+The iRODS manifest file must be a `.tsv`. It is used with `--execution_mode irods` and may contain the following column headers. Note that `irods_path`, `sample_id`, and `primer_panel` columns are essential:  
+
+- `sample_id`: a sample identifier tag. This is used to prefix output files.  
+
+- `primer_panel`: primer panel name to be used (must exactly match the value of `panel_name` in `panels_settings.csv`; more on `panels_settings.csv` [here](#panel-settings)).  
+
+- `irods_path`: full path to iRODS location for the required `.cram` files (e.g.: `/seq/illumina/runs/38/12345/lane2/plex1/12345_2#1.cram`).  
+
+- `partner_sample_id`: (alternative) name allocated to the sample. This will be part of the metadata to be added to the final GRC file if provided.  
+
+- `collection_date`: sample collection date. This will be part of the metadata to be added to the final GRC file if provided.  
+
+- `collection_location`: name of the specific collection location within the country to which the sample belongs. This will be part of the metadata to be added to the final GRC file if provided.  
+
+- `collection_country`: name of country the sample was collected in. This will be part of the metadata to be added to the final GRC file if provided.  
+
+- `study`: full study ID of the sample. This will be part of the metadata to be added to the final GRC file if provided.  
+
+The iRODS manifest may have more columns in any order. The pipeline builds and uses an "internal id" as follows: `<cram_filename>_<sample_id>_<primer_panel>`. The pipeline will check to make sure that any combination of these values in the manifest is unique. If not, the pipeline will throw an error and stop running.  
+
+A valid iRODS manifest would look like the representative example below. Please note that the manifest is expected to be a **tab-separated** file. Note that the manifest can contain more columns as described above but these three are essential.  
+
+| irods_path | sample_id | primer_panel |
+|------------|-----------|--------------|
+| /seq/12345/12345_1#55.cram | <sample_id> | PFA_GRC1_v1.0 |
+| /seq/12345/12345_1#149.cram | <sample_id> | PFA_GRC2_v1.0 |
+| /seq/12345/12345_1#808.cram | <sample_id> | PFA_Spec |
+
+[**(&uarr;)**](#contents)  
+
+## In-Country Manifest  
+
+The in country manifest file must be a `.tsv`. It is used with `--execution_mode in-country` and may contain the following column headers:  
+
+- `sample_id`: a sample identifier tag. This is used to prefix output files.  
+
+- `primer_panel`: primer panel name to be used (must exactly match the value of `panel_name` in `panels_settings.csv`; more on `panels_settings.csv` [here](#panel-settings)).  
+
+- `barcode_number`: a unique number for each lanelet.  
+
+- `barcode_sequence`: two DNA barcode sequences separated by a hyphen.  
+
+- `partner_sample_id`: (alternative) name allocated to the sample. This will be part of the metadata to be added to the final GRC file if provided.  
+
+- `collection_date`: sample collection date. This will be part of the metadata to be added to the final GRC file if provided.  
+
+- `collection_location`: name of the specific collection location within the country to which the sample belongs. This will be part of the metadata to be added to the final GRC file if provided.  
+
+- `collection_country`: name of country the sample was collected in. This will be part of the metadata to be added to the final GRC file if provided.  
+
+- `study`: full study ID of the sample. This will be part of the metadata to be added to the final GRC file if provided.  
+
+- `well`: a well identifier.  
+
+- `plate_name`: a plate identifier.  
+
+A valid In-Country manifest would look like the representative example below. Please note that the manifest is expected to be a **tab-separated** file.
+
+| sample_id | primer_panel | barcode_number | barcode_sequence | partner_sample_id | collection_date | collection_location | collection_country | study | well | plate_name | is_control |
+|-----------|--------------|----------------|------------------|-------------------|-----------------|--------------------|--------------------|-------|------|------------| ----------|
+| <sample_id> | PFA_GRC1_v1.0 | 1 | ATCACGTT-GTACTGAC | <alt_sample_id> | 2021-07-16 | Health Centre ABC | Cambodia | <study_name> | A01 | PLATE_RCN_00190 | False |
+| <sample_id> | PFA_GRC2_v1.0 | 2 | CGATGCAT-GTACTACC | <alt_sample_id> | 2021-09-12 | Hospital 123 | Cambodia | <study_name> | A02 | PLATE_RCN_00190 | False |
+| <sample_id> | PFA_Spec | 3 | TTAACACT-GTACTGAC | <alt_sample_id> | 2021-10-21 | Hospital 456 | Cambodia | <study_name> | A03 | PLATE_RCN_00190 | False |
+
+[**(&uarr;)**](#contents)  
+
 ## Panel Settings  
 
-The AmpRecon pipeline relies on a `panels_settings.csv` file, which, in turn, defines which files the pipeline should use at key steps, according to the panel name provided for a given sample. The aim of this panel settings system is to detach the experimental design from the inner workings of the pipeline and make it easier to experiment with its key steps. `panels_settings.csv` **must** be provided to the pipeline via `--panels_settings`. The panel settings file is expected to contain the following headers:  
+The AmpRecon pipeline relies on a `panels_settings.csv` file, which points to the amplicon panel references that should be used during pipeline execution. The aim of this panel settings system is to detach the experimental design from the inner workings of the pipeline and make it easier to experiment with its key steps. `panels_settings.csv` is a required input and **must** be provided to the pipeline via `--panels_settings`. The panel settings file is expected to contain the following headers:  
 
 - `panel_name` : Defines the string it should use for a given panel. Must exactly match the value of `primer_panel` in the manifest you are using.  
 
@@ -319,7 +315,7 @@ An representative example of a panel settings file is shown below. Note that thi
 
 ## Species Configuration File  
 
-AmpRecon is able to use a configuration file that controls species-specific run settings. When running the pipeline, point to a species configuration file at the command line using the `-c` flag with `nextflow run`. If you do not have a species configuration file, you can use the files provided in `path/to/repository/conf`, which point to files present in the [`ampliconresources` submodule](https://gitlab.internal.sanger.ac.uk/malariagen1/ampliconresources/-/tree/main/). Currently, `path/to/repository/conf` has config files for _P. falciparum_ and _P. vivax_, which define values for the following parameters:  
+AmpRecon is able to use a configuration file that controls species-specific run settings. When running the pipeline, point to a species configuration file at the command line using the `-c` flag with `nextflow run`. If you do not have a species configuration file, and are working with _P. falciparum_ or _P. vivax_ data, you can use the files provided in `path/to/repository/conf`, which point to files present in the [`ampliconresources` submodule](https://gitlab.internal.sanger.ac.uk/malariagen1/ampliconresources/-/tree/main/ <mark>TODO: change this link </mark>). The species configuration file defines values for the following parameters:  
 - `panels_settings`  
 - `grc_settings_file_path`  
 - `chrom_key_file_path`  
@@ -329,7 +325,7 @@ AmpRecon is able to use a configuration file that controls species-specific run 
 - `no_kelch` (specific to _P. falciparum_)  
 - `no_plasmepsin` (specific to _P. falciparum_)  
 
-When using a species configuration file, it is no longer necessary to explicitly specify the above parameters at the command-line. For more on these parameters, see [below](#grc-creation-settings).
+>When using a species configuration file, it is no longer necessary to explicitly specify the above parameters at the command-line. For more on these parameters, see [below](#grc-creation-settings).
 
 [**(&uarr;)**](#contents)  
 
@@ -385,9 +381,9 @@ The pipeline also outputs a Read Count per panel file, containing information on
 
 ## Genetic Report Card  
 
-At the end of each run, AmpRecon produces a set of genetic report cards (GRCs). These are the essential summaries of the run results, and contain details about variants of interest. A full explanation of the loci covered in the GRC is available [here](https://www.malariagen.net/sites/default/files/GRC_UserGuide_10JAN19.pdf).  
+At the end of each run, AmpRecon produces a genetic report card (GRC). This is the essential summary of the run results, and contains details about variants of interest. A full explanation of the loci covered in the GRC is available [here](https://www.malariagen.net/sites/default/files/GRC_UserGuide_10JAN19.pdf).  
 
-The primary `<run_id>_GRC.txt` contains the following headers:  
+The `<run_id>_GRC.txt` contains the following headers:  
 
 - `ID` : Sample ID.  
 
@@ -407,15 +403,9 @@ The primary `<run_id>_GRC.txt` contains the following headers:
 
 - `Barcode` : A string descriptor made by concatenating nucleotide alleles at specific loci. These loci were chosen for their utility in helping classify parasite samples and are not associated with drug-resistance.  
 
-The file further contains one column containing data for each of the following genes of interest: Kelch, P23:BP, PfCRT, PfDHFR, PfDHPS, PfEXO, PfMDR1, and PGB
+The file further contains one column containing data for each of the following genes of interest: Kelch, P23:BP, PfCRT, PfDHFR, PfDHPS, PfEXO, PfMDR1, and PGB. The GRC file also lists amino acid calls at each locus of interest within each of the genes of interest and nucleotide calls at important loci within each gene of interest. These are used to populate the `Barcode` column.  
 
-Along with the primary GRC, which is named `<run_id>_GRC.txt`, three other files are produced (note that all 4 GRC-related files describe the same set of genes of interest):  
-
-- `<run_id>_GRC2.txt` : this file lists amino acid calls at each locus of interest within each of the genes of interest. Each row describes one sample; each column is a locus of interest.  
-
-- `<run_id>_Barcodes.txt` : this file lists nucleotide calls at important loci within each gene of interest. These are used to populate the `Barcode` column in the primary `<run_id>_GRC.txt`.  
-
-- `genotype_file.tsv`: this is a VCF-like tabular file containing variant information for loci of interest as a "long" table, i.e. one sample is represented by multiple rows, one for each amplicon in the reference panel.  
+Another file, `genotype_file.tsv` is also produced as part of the GRC creation process. This is a VCF-like tabular file containing variant information for loci of interest as a "long" table, i.e. one sample is represented by multiple rows, one for each amplicon in the reference panel.  
 
 [**(&uarr;)**](#contents)  
 
@@ -423,23 +413,24 @@ Along with the primary GRC, which is named `<run_id>_GRC.txt`, three other files
 
 # GRC Creation  
 
-The primary informative output of AmpRecon is the Genetic Report Card. The variants found by the pipeline in loci of interest are collected, processed and reported in the four files as detailed [above](#genetic-report-card).  
+The primary informative output of AmpRecon is the Genetic Report Card. The variants found by the pipeline in loci of interest are collected, processed and reported in the GRC as detailed [above](#genetic-report-card).  
 
 First, the variants are organised into genotypes on a per-locus basis, and `genotype_file.tsv` is produced. Then, mutations and copy-number variations respectively are called at the clinically significant Kelch13 and Plasmepsin loci. Next, a barcode is generated for each sample. This barcode consists of nucleotide calls at loci of interest, concatenated as one string. Each of the 101 loci recorded in this barcode is biallelic, and the allele that is observed in a given sample is reported - an "X" represents "no data", i.e. the genotype was missing, and an "N" represents a heterozygous genotype call, i.e. both alleles were found.  
 
-Once barcodes for each sample have been assembled, the GRC creation process moves to species-detection. At this stage, the pipeline assigns each sample a species tag, either "Pf" for _P. falciparum_ or "Pv" for _P. vivax_. This stage of analysis is able to identify species co-infections on a per-sample basis. The workflow is described in [Figure 2](./speciation_flow.png) below.  
+Once barcodes for each sample have been assembled, the GRC creation process moves to species-detection. At this stage, the pipeline assigns each sample a species tag, currently either "Pf" for _P. falciparum_ or "Pv" for _P. vivax_. When working with _Plasmodium_ samples, this stage of analysis is able to identify species co-infections on a per-sample basis. The workflow is described in [Figure 2](./speciation_flow.png) below.  
 
 <mark>TODO:<mark> update this flowchart
 ![speciation_flowchart](./assets/speciation_flow.png)
 *Figure 2: An outline of the species-detection workflow.*
 
-The final processing stage computes the complexity of infection for each sample, which is reported as the estimated number of unique parasite genotypes found in the sample. Information on clinically significant loci, the sample barcode, the species detection results, and the complexity of infection are all reported in the primary `<run_id>_GRC.txt`.
+The final processing stage computes the complexity of infection for each sample, which is reported as the estimated number of unique parasite genotypes found in the sample. Information on clinically significant loci, the sample barcode, the species detection results, and the complexity of infection are all reported in the `<run_id>_GRC.txt`.
 
 [**(&uarr;)**](#contents)  
 
 ---
 
-# Testing <mark>FIXME:<mark> to be removed in pre-release branch
+# Testing  
+<mark>FIXME:<mark> to be removed in pre-release branch
 
 The unit tests for the workflow are implemented using [NF-test](https://code.askimed.com/nf-test/). If not available already on the CLI:  
 
@@ -553,7 +544,6 @@ write_genotypes_file.py [-h] [--vcf_files VCF_FILES]
 
 #### **Required Parameters**  
 
-- `-h, --help` : Print help and exit.  
 - `--vcf_files` (paths): List of VCF files to use as input for genotype file generation.  
 - `--output_file` (path) : Path to output genotype file.  
 - `--sample_id` (str) : Sample identifier.  
@@ -586,7 +576,6 @@ grc_kelch13_mutation_caller.py [-h] [--genotype_files GENOTYPE_FILES]
 
 #### **Required Parameters**  
 
-- `-h, --help` : Print help and exit.  
 - `--genotype_files` (path) : Path to input genotype file(s).  
 - `--config` (path) : Path to config json file.  
 - `--output_file` (path) [Default: kelch13_mutation_calls.txt] : Path to directory to output results  
@@ -610,7 +599,6 @@ grc_plasmepsin_cnv_caller.py [-h] [--genotype_files GENOTYPE_FILES]
 
 #### **Required Parameters**  
 
-- `-h, --help` : Print help and exit.  
 - `--genotype_files` (path): Path to input genotype file(s)  
 - `--config CONFIG` (path): Path to config json file  
 - `--output_file` (path) [Default: plasmepsin_variant_calls.txt] : Path to directory to output results  
@@ -637,7 +625,6 @@ grc_barcoding.py [-h] [--genotype_files GENOTYPE_FILES]
 
 #### **Required Parameters**  
 
-- `-h, --help` : Print help and exit.  
 - `--genotype_files` (path): Path to input genotype file(s)  
 - `--config CONFIG` (path): Path to config json file  
 - `--output_file` (path) [Default: barcode_results.txt] : Path to directory to output results  
@@ -670,7 +657,6 @@ grc_speciate.py [-h] [--genotype_files GENOTYPE_FILES]
 
 #### **Required Parameters**  
 
-- `-h, --help` : Print help and exit.  
 - `--genotype_files` (paths): List of all genotype files (TSV format) to be run through the speciation program  
 - `--barcodes_file` (path): Path to barcodes output file for querying  
 - `--config` (path): Path to config json  
@@ -725,7 +711,6 @@ python3 grc_process_mccoil_io.py -write_coi_grc \
 
 #### **Required Parameters**  
 
-- `-h, --help` : Print help and exit.  
 - `-write_mccoil_in` : Prepare McCOIL input files from barcodes  
 - `-write_coi_grc` : Prepare McCOIL input files from barcodes  
 - `--barcodes_files` (paths): Path(s) to barcode `.tsv` file for a batch of samples  
