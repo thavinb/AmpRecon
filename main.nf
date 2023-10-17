@@ -335,12 +335,13 @@ def validate_general_params(){
   }
 
   if ((params.DEBUG_no_coi == false) && (params.mccoil_repopath != "/app/THEREALMcCOIL/")){
+    mccoil_path = file(params.mccoil_repopath)
     if (mccoil_path.exists() == false){
-      log.error('''
+      log.error("""
       The mccoil_repopath provided (${mccoil_path}) does not exists.
       This can happen if you do not use the containers provided or setup an invalid custom path.
       Please provide a valid custom installation path of the McCOIL library.
-      ''')
+      """)
       error+=1
     }
   }
