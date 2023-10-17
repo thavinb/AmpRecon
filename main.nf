@@ -121,8 +121,7 @@ def printHelp() {
     Ampseq is a bioinformatics analysis pipeline for amplicon sequencing data.
     Currently supporting alignment and SNP variant calling on paired-end Illumina sequencing data.
 
-    *for a complete description of input files and parameters check:
-    https://gitlab.internal.sanger.ac.uk/malariagen1/ampseq-pipeline/
+    *for a complete description of input files and parameters check the README file in the code repository
 
   Options:
     Inputs:
@@ -136,7 +135,7 @@ def printHelp() {
       --manifest_path: <str> path to the manifest file
 
       (irods required)
-      --irods_manifest : an tsv containing information of irods data to fetch
+      --irods_manifest : a tsv containing information of irods data to fetch
       
       (fastq entry point required)
       --fastq_manifest: <str> path to the manifest file

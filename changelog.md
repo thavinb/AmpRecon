@@ -9,7 +9,8 @@ All notable changes to this project will be documented in this file.
 - **[Feature]**: NF-test based unit test of the workflow `reads_to_variants.nf`.
 
 ### Changed
-- **[Change]**: Updated README.
+- **[Improvement]**: Updated README.
+- **[Removed]**: Removal of post processing read counts step.
 
 ## [1.1.1] - 2023-10-02
 
