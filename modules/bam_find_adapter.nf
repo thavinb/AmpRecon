@@ -1,3 +1,5 @@
+// Copyright (C) 2023 Genome Surveillance Unit/Genome Research Ltd.
+
 process bam_find_adapter {
     /*
     * Searches for sequencing adapter contamination with a BAM  file.

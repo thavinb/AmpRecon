@@ -1,3 +1,5 @@
+// Copyright (C) 2023 Genome Surveillance Unit/Genome Research Ltd.
+
 params.plasmepsin_cnv_output_filename = "plasmepsin_cnv_calls.tsv"
 
 process grc_plasmepsin_cnv_caller {

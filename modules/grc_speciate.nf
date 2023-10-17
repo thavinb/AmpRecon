@@ -1,3 +1,5 @@
+// Copyright (C) 2023 Genome Surveillance Unit/Genome Research Ltd.
+
 params.speciation_output_filename = "speciation_output.tsv"
 
 process grc_speciate {

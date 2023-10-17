@@ -1,3 +1,5 @@
+// Copyright (C) 2023 Genome Surveillance Unit/Genome Research Ltd.
+
 process split_bam_by_readgroup {
     /*
     * split BAM by read group into CRAM.

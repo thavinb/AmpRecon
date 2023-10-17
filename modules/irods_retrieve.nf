@@ -1,3 +1,5 @@
+// Copyright (C) 2023 Genome Surveillance Unit/Genome Research Ltd.
+
 process irods_retrieve {
     /**
     * Retrieves a file from iRODS.

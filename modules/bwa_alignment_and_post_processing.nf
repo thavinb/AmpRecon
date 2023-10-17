@@ -1,3 +1,5 @@
+// Copyright (C) 2023 Genome Surveillance Unit/Genome Research Ltd.
+
 process bwa_alignment_and_post_processing {
     /*
     * Map reads to reference

@@ -1,3 +1,5 @@
+// Copyright (C) 2023 Genome Surveillance Unit/Genome Research Ltd.
+
 params.barcode_output_name = "barcode.intermediate.tsv"
 params.barcode_intermediate_splitout_name = "barcoding_output.split_out.intermediate.tsv"
 

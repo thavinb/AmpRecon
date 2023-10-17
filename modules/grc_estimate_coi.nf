@@ -1,3 +1,5 @@
+// Copyright (C) 2023 Genome Surveillance Unit/Genome Research Ltd.
+
 params.coi_output_filename = "coi.tsv"
 
 process grc_estimate_coi {

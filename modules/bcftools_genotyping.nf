@@ -1,3 +1,5 @@
+// Copyright (C) 2023 Genome Surveillance Unit/Genome Research Ltd.
+
 params.bgzip = 'bgzip'
 params.tabix = 'tabix'
 

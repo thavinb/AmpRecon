@@ -1,3 +1,5 @@
+// Copyright (C) 2023 Genome Surveillance Unit/Genome Research Ltd.
+
 params.kelch13_mutations_output_filename = "kelch13_mutation_calls.tsv"
 
 process grc_kelch13_mutation_caller {

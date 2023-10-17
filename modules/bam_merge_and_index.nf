@@ -1,3 +1,5 @@
+// Copyright (C) 2023 Genome Surveillance Unit/Genome Research Ltd.
+
 process bam_merge_and_index {
     /*
      * Merges multiple bam files.
