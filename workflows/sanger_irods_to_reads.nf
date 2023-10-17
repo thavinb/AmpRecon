@@ -34,7 +34,6 @@ workflow SANGER_IRODS_TO_READS {
         // load manifest content
         irods_ch =  irods_manifest
                     | splitCsv(header: true, sep: '\t')
-                    //| map { row -> tuple(row.id_run, row.primer_panel, row.WG_lane) }
                     | map { row ->
                         WG_lane = "${row.irods_path}".split('/')[-1].split('\\.')[0]
                         tuple(row.sample_id, row.primer_panel, WG_lane, row.irods_path) 
@@ -48,10 +47,9 @@ workflow SANGER_IRODS_TO_READS {
         irods_ch.map{it -> tuple(it[0], it[1])}.set{new_file_id_panel_ch} // tuple (file_id, panel_name)
 
         new_file_id_panel_ch
-          |  combine(reference_ch,  by: 1) // tuple (panel_name, file_id, fasta,snp_list)
-          |  map{it -> tuple(it[1], it[0], it[2], it[3])}
-          |  set{file_id_reference_files_ch}
-        // tuple (file_id, panel_name, path/to/reference/genome, snp_list)
+          | combine(reference_ch,  by: 1) // tuple (panel_name, file_id, fasta,snp_list)
+          | map{it -> tuple(it[1], it[0], it[2], it[3])}
+          | set{file_id_reference_files_ch} // tuple (file_id, panel_name, path/to/reference/genome, snp_list)
 
         // Retrieve CRAM files from iRODS
         irods_paths = irods_ch.map{it -> tuple(it[0], it[2])} // tuple (file_id, irods_path)
@@ -67,15 +65,14 @@ workflow SANGER_IRODS_TO_READS {
         bam_to_fastq(clip_adapters.out)
 
         bam_to_fastq.out
-                .join(file_id_reference_files_ch)
-                .map { it -> [ it[0], it[1], it[3] ] }
-                .set { fastq_ch }
+                | join(file_id_reference_files_ch)
+                | map { it -> [ it[0], it[1], it[3] ] }
+                | set { fastq_ch }
 
     emit:
         fastq_ch // tuple (file_id, fastq_ch, path/to/reference/genome)
         file_id_reference_files_ch // tuple (file_id, panel_name, path/to/reference/genome, snp_list)
         file_id_to_sample_id_ch // tuple (file_id, sample_id)
- 
 }
 
 def irods_to_reads_parameter_check(){

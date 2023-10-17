@@ -22,12 +22,8 @@ def write_csv(id_list, vcf_path_list, output_file):
         for id, vcf_path in zip(id_list, vcf_path_list):
             writer.writerow([id, vcf_path])
 
-    #write_csv(id_list, vcf_path_list, output_file)
-    # get lists
-    # id_list = ["id_1", "id_2"]
 id_list = list("${IDs_list}".strip("[]").replace(" ", "").split(","))
 
-#vcf_path_list = ["vcf_path_1", "vcf_path_2"]
 vcf_path_list =  list("${vcf_paths_list}".strip("[]").replace(" ", "").split(","))
 
 write_csv(id_list, vcf_path_list, "${mnf_out_nm}")

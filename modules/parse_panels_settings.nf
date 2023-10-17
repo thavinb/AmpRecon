@@ -17,9 +17,6 @@
     ------------------------------------------------------------------
 */
 
-// TODO: test if variation on "simple names" before the ."ext" breaks something on the pipeline
-//       my guess is that there is some naming assumptions on some of the processes 
-
 def addProjectDirAbsPathTo(inputString) {
     return inputString.replaceFirst("<ProjectDir>", "${projectDir}")
 }
@@ -46,7 +43,7 @@ def validatePanelSettings(row){
     } else {
         reference_file = row.reference_file
     }
-    
+
     aligns_to_file = file(reference_file)
     if (!aligns_to_file.exists()){
         log.error("${reference_file} provided for ${row.panel_name} does not exist.")
@@ -89,12 +86,13 @@ def validatePanelSettings(row){
     } else {
         dsgn_path = row.design_file
     }
+
     maps_to_file = file(dsgn_path)
     if (!maps_to_file.exists()){
         log.error("${dsgn_path} provided for ${row.panel_name} does not exist.")
         errors += 1
     }
-    
+
     // count errors and kill nextflow if any had been found
     if (errors > 0) {
         log.error(String.format("%d errors detected at panel settings csv", errors))

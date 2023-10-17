@@ -18,10 +18,10 @@ include { VARIANTS_TO_GRCS } from './workflows/variants_to_grcs.nf'
 
 
 // logging info ----------------------------------------------------------------
-// This part of the code is based on the FASTQC PIPELINE (https://github.com/angelovangel/nxf-fastqc/blob/master/main.nf)
+// This part of the code is based on the one present at FASTQC PIPELINE (https://github.com/angelovangel/nxf-fastqc/blob/master/main.nf)
 
 /*
-* ANSI escape codes to color output messages, get date to use in results folder name
+* ANSI escape codes to color output messages
 */
 ANSI_GREEN = "\033[1;32m"
 ANSI_RED = "\033[1;31m"
@@ -29,7 +29,7 @@ ANSI_RESET = "\033[0m"
 
 log.info """
         ===========================================
-         AMPSEQ_1.0
+         AMPRECON dev
          Used parameters:
         -------------------------------------------
          --execution_mode     : ${params.execution_mode}
@@ -163,8 +163,11 @@ def printHelp() {
       --help (Prints this help message. Default: false)
     
     Profiles:
-      sanger_lsf : run the pipeline on farm5 lsf (recommended)
-      sanger_default : run the pipeline on farm5 local settings (only for development)
+      standard (default): run locally using singularity
+      run_locally : run locally using what is available on the system environment (no containers)
+      sanger_local : run the pipeline on Sanger HPC
+      sanger_lsf : run the pipeline by submiting tasks as individual jobs to lsf queue on Sanger HPC
+      sanger_tower : run the pipeline under nextflow tower
    """.stripIndent()
 }
 
@@ -176,6 +179,8 @@ workflow {
       printHelp()
       exit 0
   }
+
+  // validate parameters
   validate_general_params()
 
   // -- MAIN-EXECUTION ------------------------------------------------------
@@ -184,7 +189,7 @@ workflow {
   reference_ch = ref_and_annt_ch[0] // tuple(reference_file, panel_name, snp_list)
   annotations_ch = ref_and_annt_ch[1] // tuple(panel_name, design_file)
 
-  // Files required for GRC creation
+  // files required for GRC creation
   Channel.fromPath(params.grc_settings_file_path, checkIfExists: true)
   chrom_key_file = Channel.fromPath(params.chrom_key_file_path, checkIfExists: true)
   codon_key_file = Channel.fromPath(params.codon_key_file_path, checkIfExists: true)
@@ -229,12 +234,13 @@ workflow {
   }
 
   // Reads to variants
-  READS_TO_VARIANTS(fastq_files_ch, file_id_reference_files_ch, annotations_ch, file_id_to_sample_id_ch)
+  READS_TO_VARIANTS(fastq_files_ch, file_id_reference_files_ch, annotations_ch,
+                    file_id_to_sample_id_ch)
   lanelet_manifest_file = READS_TO_VARIANTS.out.lanelet_manifest
 
   // Variants to GRCs
-  VARIANTS_TO_GRCS(manifest, lanelet_manifest_file, chrom_key_file, kelch_reference_file, codon_key_file, drl_information_file)
-
+  VARIANTS_TO_GRCS(manifest, lanelet_manifest_file, chrom_key_file, kelch_reference_file,
+                  codon_key_file, drl_information_file)
 }
 
 
@@ -318,8 +324,8 @@ def validate_general_params(){
     log.warn("[DEBUG] no_coi was set to ${params.DEBUG_no_coi}")
   }
   // -------------------------------------------
-  
-  // check if output dir exists, if not create the default
+
+  // check if output dir exists, if not create the default path
   if (params.results_dir){
     results_path = file(params.results_dir)
     if (!results_path.exists()){
@@ -327,8 +333,19 @@ def validate_general_params(){
       results_path.mkdir()
     }
   }
-  
-  // if S3 is requested, check if all s3 required parameters were provided
+
+  if ((params.DEBUG_no_coi == false) && (params.mccoil_repopath != "/app/THEREALMcCOIL/")){
+    mccoil_path = file(params.mccoil_repopath)
+    if (mccoil_path.exists() == false){
+      log.error("""
+      The mccoil_repopath provided (${mccoil_path}) does not exists.
+      This can happen if you do not use the containers provided or setup an invalid custom path.
+      Please provide a valid custom installation path of the McCOIL library.
+      """)
+      error+=1
+    }
+  }
+  // if S3 is requested, check if all S3 required parameters were provided
 
   // check S3 output bucket
   if (params.upload_to_s3){

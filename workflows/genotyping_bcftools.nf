@@ -22,7 +22,7 @@ workflow GENOTYPING_BCFTOOLS {
       | set{mpileup_input} // tuple(file_id, bam_file, bam_index, reference_fasta, snp_list)
 
     bcftools_mpileup(mpileup_input)
-    
+
     // call SNP sites 
     bcftools_call(bcftools_mpileup.out)
 

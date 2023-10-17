@@ -7,10 +7,13 @@ All notable changes to this project will be documented in this file.
 ### Added
 - **[Feature]**: Added fastq entry point.
 - **[Feature]**: NF-test based unit test of the workflow `reads_to_variants.nf`.
+- **[Feature]**: Added new "run_locally" profile for pipeline execution without containers.
 
 ### Changed
-- **[Improvement]**: Updated README.
+- **[Change]**: Updated README.
 - **[Removed]**: Removal of post processing read counts step.
+- **[Improvement]**: Checked validity of a custom path provided via `mccoil_repopath`.
+
 
 ## [1.1.1] - 2023-10-02
 
@@ -39,6 +42,7 @@ All notable changes to this project will be documented in this file.
 - **[Change]**: Removed s3 input processes.
 - **[Change]**: Removed requirement for RunID to be an integer
 - **[Change]**: Removed GRC formatting and column sorting
+
 
 ## [1.0.1] - 2023-07-13
 

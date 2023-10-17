@@ -1,6 +1,6 @@
 process irods_retrieve {
-    /**
-    * Retrieves a file from iRODS.
+    /*
+    Retrieves a file from iRODS.
     */
     label 'irods'
     input:
