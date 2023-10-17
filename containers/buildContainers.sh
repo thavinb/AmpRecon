@@ -1,3 +1,4 @@
+# Copyright (C) 2023 Genome Surveillance Unit/Genome Research Ltd.
 
 echo "| --- buildContainers.sh -----------------------------------------------|"
 echo "| USAGE: /bin/bash/ buildContainers.sh"
