@@ -1,4 +1,6 @@
 #!/usr/bin/env nextflow
+// Copyright (C) 2023 Genome Surveillance Unit/Genome Research Ltd.
+
 
 /*
     | VARIANTS_TO_GRCS |-----------------------------------------

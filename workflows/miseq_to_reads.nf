@@ -1,4 +1,5 @@
 #!/usr/bin/env nextflow
+// Copyright (C) 2023 Genome Surveillance Unit/Genome Research Ltd.
 
 /*
     | MISEQ_TO_READS |-----------------------------------------
