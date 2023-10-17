@@ -26,10 +26,7 @@ process read_count_per_region {
             --design_file "${annotation_file}" \
             --plex_file "${plex_file}" \
             --input_dir "." \
-            --output "pre_${output_file}"
-        
-        # post process output for compliance to GSU specific requirements
-        post_proc_read_counts.py -csv_in pre_${output_file} -csv_out ${output_file} 
+            --output "${output_file}"
         """
 }
 

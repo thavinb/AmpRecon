@@ -3,25 +3,13 @@
         "content": [
             {
                 "0": [
-                    "test:md5,27ebb5bc0f2830b69cb545c7d153ba15"
+                    "null_GRC.txt:md5,6cf86a4c499615697bc9f46bb9cce0a3"
                 ],
-                "1": [
-                    "test:md5,27ebb5bc0f2830b69cb545c7d153ba15"
-                ],
-                "2": [
-                    "null_Barcodes.txt:md5,b14f64719c281c1b83de9e2f5b0bf749"
-                ],
-                "barcodes": [
-                    "null_Barcodes.txt:md5,b14f64719c281c1b83de9e2f5b0bf749"
-                ],
-                "grc1_with_metadata": [
-                    "test:md5,27ebb5bc0f2830b69cb545c7d153ba15"
-                ],
-                "grc2_with_metadata": [
-                    "test:md5,27ebb5bc0f2830b69cb545c7d153ba15"
+                "grc": [
+                    "null_GRC.txt:md5,6cf86a4c499615697bc9f46bb9cce0a3"
                 ]
             }
         ],
-        "timestamp": "2023-08-21T15:38:37+0000"
+        "timestamp": "2023-10-12T15:31:51+0000"
     }
 }

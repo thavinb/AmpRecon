@@ -30,6 +30,7 @@ All notable changes to this project will be documented in this file.
 - **[improvement]**: Output dir now is structured on subdirs.
 - **[improvement]**: Added missing parameter check calls.
 - **[improvement]**: Allow kelch-reference file to not be specified if `no_kelch` flag set.
+- **[improvement]**: Changed the pipeline to only output a single GRC: this GRC contains all the output data produced by variants_to_grcs.
 
 ### Fixed
 - **[Bug]**: bug for runids with "_T" affecting read counts file fixed.
@@ -40,6 +41,7 @@ All notable changes to this project will be documented in this file.
 ### Removed
 - **[Change]**: Removed s3 input processes.
 - **[Change]**: Removed requirement for RunID to be an integer
+- **[Change]**: Removed GRC formatting and column sorting
 
 
 ## [1.0.1] - 2023-07-13
