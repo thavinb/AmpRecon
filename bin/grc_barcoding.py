@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# Copyright (C) 2023 Genome Surveillance Unit/Genome Research Ltd.
 
 import argparse
 import json
