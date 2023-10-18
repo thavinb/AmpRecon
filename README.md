@@ -519,7 +519,7 @@ nf-test test tests/workflows/miseq_to_reads.nf.test --profile sanger_default
 
 This pipeline has been implemented by the [Data Analysis and Engineering Team](https://www.sanger.ac.uk/group/data-analysis-and-engineering/) at the Wellcome Sanger Institute's [Genomic Surveillance Unit](https://www.sanger.ac.uk/collaboration/genomic-surveillance-unit/).  
 
-The methodology implemented by early versions of the pipeline is described in [Jacob et. al, (2021)](https://doi.org/10.7554/eLife.62997). The methods and approach continue to be actively developed by GSU.  
+The methodology implemented by early versions of the pipeline is described in [Jacob et. al (2021)](https://doi.org/10.7554/eLife.62997). The methods and approach continue to be actively developed by GSU.  
 
 # Appendix  
 
