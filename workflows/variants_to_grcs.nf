@@ -130,7 +130,7 @@ workflow VARIANTS_TO_GRCS {
             grc
                 .concat(genotype_files_ch)
                 .set{output_to_s3}
-            upload_pipeline_output_to_s3(output_to_s3, "grcs_barcodes")
+            upload_pipeline_output_to_s3(output_to_s3, "grc")
         }
 
     emit:
