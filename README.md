@@ -316,7 +316,7 @@ An representative example of a panel settings file is shown below. Note that thi
 
 ## Species Configuration File  
 
-AmpRecon is able to use a configuration file that controls species-specific run settings. When running the pipeline, point to a species configuration file at the command line using the `-c` flag with `nextflow run`. If you do not have a species configuration file, and are working with _P. falciparum_ or _P. vivax_ data, you can use the files provided in `path/to/repository/conf`, which points to files present in the [`ampliconresources` submodule](https://gitlab.com/malariagen/dae/ampreconresources.git) These files are pulled into the AmpRecon resources via the `--recurse-submodule` flag to `git clone` as noted [above](#download-codebase-and-build-containers). The species configuration file defines values for the following parameters:  
+AmpRecon is able to use a configuration file that controls species-specific run settings. When running the pipeline, point to a species configuration file at the command line using the `-c` flag with `nextflow run`. If you do not have a species configuration file, and are working with _P. falciparum_ or _P. vivax_ data, you can use the files provided in `path/to/repository/conf`, which points to files present in the [`ampreconresources` submodule](https://gitlab.com/malariagen/dae/ampreconresources.git) These files are pulled into the AmpRecon resources via the `--recurse-submodule` flag to `git clone` as noted [above](#download-codebase-and-build-containers). The species configuration file defines values for the following parameters:  
 - `panels_settings`  
 - `grc_settings_file_path`  
 - `chrom_key_file_path`  
