@@ -1,6 +1,6 @@
 # AmpRecon  
 
-AmpRecon is a bioinformatics pipeline that aligns data to specific amplicon panels, performs variant-calling, and produces genetic report cards. It was designed to work with amplicon-sequencing data from _Plasmodium falciparum_ and _Plasmodium vivax_.   
+AmpRecon is a bioinformatics pipeline that aligns short-read sequencing data to specific amplicon panels, performs variant-calling, and produces genetic report cards. It was designed to work with amplicon-sequencing data from _Plasmodium falciparum_ and _Plasmodium vivax_.   
 
 # Contents  
 1. [Quick-Start Guide](#quick-start-guide)  
