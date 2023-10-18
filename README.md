@@ -405,8 +405,6 @@ The `<run_id>_GRC.txt` contains the following headers:
 
 The file further contains one column containing data for each of the following genes of interest: Kelch, P23:BP, PfCRT, PfDHFR, PfDHPS, PfEXO, PfMDR1, and PGB. The GRC file also lists amino acid calls at each locus of interest within each of the genes of interest and nucleotide calls at important loci within each gene of interest. These are used to populate the `Barcode` column.  
 
-Another file, `genotype_file.tsv` is also produced as part of the GRC creation process. This is a VCF-like tabular file containing variant information for loci of interest as a "long" table, i.e. one sample is represented by multiple rows, one for each amplicon in the reference panel.  
-
 [**(&uarr;)**](#contents)  
 
 ---
