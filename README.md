@@ -1,6 +1,6 @@
 # AmpRecon  
 
-Align data to specific amplicon panels, perform variant-calling, and produce genetic report cards. It was designed to work with amplicon-sequencing data from _Plasmodium falciparum_ and _Plasmodium vivax_.   
+AmpRecon is a bioinformatics pipeline that aligns short-read sequencing data to specific amplicon panels, performs variant-calling, and produces genetic report cards. It was designed to work with amplicon-sequencing data from _Plasmodium falciparum_ and _Plasmodium vivax_.   
 
 # Contents  
 1. [Quick-Start Guide](#quick-start-guide)  
@@ -26,17 +26,18 @@ Align data to specific amplicon panels, perform variant-calling, and produce gen
 10. [GRC Creation](#grc-creation)  
 11. [Testing](#testing)  <mark>TODO: this goes away in the final release (hence #11 twice)</mark>
 11. [Full List of Options](#full-list-of-options)  
-12. [Appendix](#appendix)  
+12. [Authors and Acknowledgements](#authors-and-acknowledgements)
+13. [Appendix](#appendix)  
+
 
 
 # Quick-Start Guide  
 
 AmpRecon was built and tested on Nextflow [version 22.04](https://github.com/nextflow-io/nextflow/releases/tag/v22.04.4), and Singularity [version 3.6.4](https://github.com/apptainer/singularity/releases/tag/v3.6.4). Assuming you already have [Nextflow](https://github.com/nextflow-io/nextflow), and [Singularity](https://github.com/sylabs/singularity), clone the repository and build Singularity containers:  
 
-<mark>TODO:<mark> update repository URL  
 ```
 # clone repo ##
-git clone --recurse-submodules https://gitlab.internal.sanger.ac.uk/malariagen1/ampseq-pipeline.git
+git clone --recurse-submodules https://gitlab.com/malariagen/dae/amprecon.git
 
 # build containers
 cd path/to/repository/containers/
@@ -94,7 +95,7 @@ AmpRecon can accept as input FASTQ files, [Binary Base Call (BCL) files](https:/
 AmpRecon supports the analysis of data from _Plasmodium falciparum_ and _P. vivax_ - for these two species, pipeline behaviour can be controlled by modifying the supplied `.config` files in `path/to/repository/conf` (more information [below](#a-note-on-configuration-files)).  
 
 ![workflow_outline](./assets/workflow_outline.png)
-*Figure 1: An outline of the workflow.*  
+<i><p style="text-align: center;">*An outline of the workflow.*</p><i>
 
 [**(&uarr;)**](#contents)  
 
@@ -315,7 +316,7 @@ An representative example of a panel settings file is shown below. Note that thi
 
 ## Species Configuration File  
 
-AmpRecon is able to use a configuration file that controls species-specific run settings. When running the pipeline, point to a species configuration file at the command line using the `-c` flag with `nextflow run`. If you do not have a species configuration file, and are working with _P. falciparum_ or _P. vivax_ data, you can use the files provided in `path/to/repository/conf`, which point to files present in the [`ampliconresources` submodule](https://gitlab.internal.sanger.ac.uk/malariagen1/ampliconresources/-/tree/main/ <mark>TODO: change this link </mark>). The species configuration file defines values for the following parameters:  
+AmpRecon is able to use a configuration file that controls species-specific run settings. When running the pipeline, point to a species configuration file at the command line using the `-c` flag with `nextflow run`. If you do not have a species configuration file, and are working with _P. falciparum_ or _P. vivax_ data, you can use the files provided in `path/to/repository/conf`, which points to files present in the [`ampreconresources` submodule](https://gitlab.com/malariagen/dae/ampreconresources.git). These files are pulled into the AmpRecon resources via the `--recurse-submodule` flag to `git clone` as noted [above](#download-codebase-and-build-containers). The species configuration file defines values for the following parameters:  
 - `panels_settings`  
 - `grc_settings_file_path`  
 - `chrom_key_file_path`  
@@ -419,10 +420,6 @@ First, the variants are organised into genotypes on a per-locus basis, and `geno
 
 Once barcodes for each sample have been assembled, the GRC creation process moves to species-detection. At this stage, the pipeline assigns each sample a species tag, currently either "Pf" for _P. falciparum_ or "Pv" for _P. vivax_. When working with _Plasmodium_ samples, this stage of analysis is able to identify species co-infections on a per-sample basis. The workflow is described in [Figure 2](./speciation_flow.png) below.  
 
-<mark>TODO:<mark> update this flowchart
-![speciation_flowchart](./assets/speciation_flow.png)
-*Figure 2: An outline of the species-detection workflow.*
-
 The final processing stage computes the complexity of infection for each sample, which is reported as the estimated number of unique parasite genotypes found in the sample. Information on clinically significant loci, the sample barcode, the species detection results, and the complexity of infection are all reported in the `<run_id>_GRC.txt`.
 
 [**(&uarr;)**](#contents)  
@@ -430,7 +427,7 @@ The final processing stage computes the complexity of infection for each sample,
 ---
 
 # Testing  
-<mark>FIXME:<mark> to be removed in pre-release branch
+<mark>TODO:<mark> to be removed in pre-release branch
 
 The unit tests for the workflow are implemented using [NF-test](https://code.askimed.com/nf-test/). If not available already on the CLI:  
 
@@ -517,6 +514,12 @@ nf-test test tests/workflows/miseq_to_reads.nf.test --profile sanger_default
 [**(top &uarr;)**](#contents)  
 
 ---
+
+# Authors and Acknowledgements  
+
+This pipeline has been implemented by the [Data Analysis and Engineering Team](https://www.sanger.ac.uk/group/data-analysis-and-engineering/) at the Wellcome Sanger Institute's [Genomic Surveillance Unit](https://www.sanger.ac.uk/collaboration/genomic-surveillance-unit/).  
+
+The methodology implemented by early versions of the pipeline is described in [Jacob et. al (2021)](https://doi.org/10.7554/eLife.62997). The methods and approach continue to be actively developed by GSU.  
 
 # Appendix  
 
