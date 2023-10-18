@@ -1,0 +1,3 @@
+[submodule "ampreconresources"]
+	path = ampreconresources
+	url = https://gitlab.com/malariagen/dae/ampreconresources
