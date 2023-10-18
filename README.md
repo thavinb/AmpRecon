@@ -26,7 +26,9 @@ Align data to specific amplicon panels, perform variant-calling, and produce gen
 10. [GRC Creation](#grc-creation)  
 11. [Testing](#testing)  <mark>TODO: this goes away in the final release (hence #11 twice)</mark>
 11. [Full List of Options](#full-list-of-options)  
-12. [Appendix](#appendix)  
+12. [Authors and Acknowledgements](#authors-and-acknowledgements)
+13. [Appendix](#appendix)  
+
 
 
 # Quick-Start Guide  
@@ -517,6 +519,12 @@ nf-test test tests/workflows/miseq_to_reads.nf.test --profile sanger_default
 [**(top &uarr;)**](#contents)  
 
 ---
+
+# Authors and Acknowledgements  
+
+This pipeline has been implemented by the [Data Analysis and Engineering Team](https://www.sanger.ac.uk/group/data-analysis-and-engineering/) at the [Wellcome Sanger Institute's](https://www.sanger.ac.uk/) [Genomic Surveillance Unit](https://www.sanger.ac.uk/collaboration/genomic-surveillance-unit/).  
+
+The methodology implemented by early versions of the pipeline is described in [Jacob et. al, (2021)](https://doi.org/10.7554/eLife.62997). The methods and approach continue to be actively developed by GSU.  
 
 # Appendix  
 
