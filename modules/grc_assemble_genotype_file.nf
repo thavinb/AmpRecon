@@ -14,7 +14,6 @@ process assemble_genotype_file {
     alleles with low coverage.
     */
 
-    publishDir "${params.results_dir}/grcs_barcodes/", overwrite: true, mode: "copy"
     label "grc_tools"
 
     input:
