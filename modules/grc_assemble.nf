@@ -1,3 +1,5 @@
+// Copyright (C) 2023 Genome Surveillance Unit/Genome Research Ltd.
+
 params.grc_intermediate_name = "GRC.intermediate.tsv"
 
 process grc_assemble {

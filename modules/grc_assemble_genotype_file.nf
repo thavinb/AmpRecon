@@ -1,3 +1,5 @@
+// Copyright (C) 2023 Genome Surveillance Unit/Genome Research Ltd.
+
 params.min_total_depth = 10
 params.het_min_allele_depth = 5
 params.het_min_allele_proportion = 0.10

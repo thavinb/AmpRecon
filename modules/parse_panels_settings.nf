@@ -1,3 +1,4 @@
+// Copyright (C) 2023 Genome Surveillance Unit/Genome Research Ltd.
 
 /*
     | PARSE_PANEL_SETTINGS |-----------------------------------------

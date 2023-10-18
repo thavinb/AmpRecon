@@ -1,3 +1,5 @@
+// Copyright (C) 2023 Genome Surveillance Unit/Genome Research Ltd.
+
 params.grc_name = params.run_id + "_GRC.txt"
 
 process grc_add_metadata {

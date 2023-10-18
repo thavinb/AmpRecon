@@ -1,3 +1,5 @@
+// Copyright (C) 2023 Genome Surveillance Unit/Genome Research Ltd.
+
 params.bambi_threads = 8
 params.bambi_compression_level = 9
 

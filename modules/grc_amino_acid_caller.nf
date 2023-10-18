@@ -1,3 +1,5 @@
+// Copyright (C) 2023 Genome Surveillance Unit/Genome Research Ltd.
+
 params.drl_haplotypes_output_filename = "drl_haplotype_calls.tsv"
 params.grc2_intermediate_name = "GRC2.intermediate.tsv"
 

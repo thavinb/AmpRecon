@@ -1,5 +1,4 @@
-// enable dsl2
-nextflow.enable.dsl = 2
+// Copyright (C) 2023 Genome Surveillance Unit/Genome Research Ltd.
 
 process read_count_per_region {
     stageInMode 'copy'
