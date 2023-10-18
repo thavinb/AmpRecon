@@ -3,7 +3,7 @@
 params.grc_name = params.run_id + "_GRC.txt"
 
 process grc_add_metadata {
-    publishDir "${params.results_dir}/grcs_barcodes/", overwrite: true, mode: "copy"
+    publishDir "${params.results_dir}/grc/", overwrite: true, mode: "copy"
 
     label "grc_tools"
     input:
