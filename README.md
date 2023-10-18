@@ -24,7 +24,6 @@ AmpRecon is a bioinformatics pipeline that aligns short-read sequencing data to 
         &rarr; [Read Counts per Panel](#read-counts-per-panel)  
         &rarr; [Genetic Report Card](#genetic-report-card)  
 10. [GRC Creation](#grc-creation)  
-11. [Testing](#testing)  <mark>TODO: this goes away in the final release (hence #11 twice)</mark>
 11. [Full List of Options](#full-list-of-options)  
 12. [Authors and Acknowledgements](#authors-and-acknowledgements)
 13. [Appendix](#appendix)  
@@ -425,34 +424,6 @@ The final processing stage computes the complexity of infection for each sample,
 [**(&uarr;)**](#contents)  
 
 ---
-
-# Testing  
-<mark>TODO:<mark> to be removed in pre-release branch
-
-The unit tests for the workflow are implemented using [NF-test](https://code.askimed.com/nf-test/). If not available already on the CLI:  
-
-### Install NF-test
-
-1. Download NF-test:
-
-```{bash}
-wget -qO- https://code.askimed.com/install/nf-test | bash
-```
-
-2. Create an alias for the file you just downloaded, be sure you can execute the file.
-
-```{bash}
-alias nf-test="/path/to/my/nf-test"
-```
-
-### Run tests
-
-On the repository directory, run:
-
-```{bash}
-nf-test test tests/workflows/sanger_irods_to_reads.nf.test --profile sanger_default
-nf-test test tests/workflows/miseq_to_reads.nf.test --profile sanger_default
-```
 
 # Full List of Options  
 
