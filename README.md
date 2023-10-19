@@ -406,8 +406,6 @@ The `<run_id>_GRC.txt` contains the following headers:
 
 The file further contains one column containing data for each of the following genes of interest: Kelch, P23:BP, PfCRT, PfDHFR, PfDHPS, PfEXO, PfMDR1, and PGB. The GRC file also lists amino acid calls at each locus of interest within each of the genes of interest and nucleotide calls at important loci within each gene of interest. These are used to populate the `Barcode` column.  
 
-Another file, `genotype_file.tsv` is also produced as part of the GRC creation process. This is a VCF-like tabular file containing variant information for loci of interest as a "long" table, i.e. one sample is represented by multiple rows, one for each amplicon in the reference panel.  
-
 [**(&uarr;)**](#contents)  
 
 ---
@@ -418,7 +416,7 @@ The primary informative output of AmpRecon is the Genetic Report Card. The varia
 
 First, the variants are organised into genotypes on a per-locus basis, and `genotype_file.tsv` is produced. Then, mutations and copy-number variations respectively are called at the clinically significant Kelch13 and Plasmepsin loci. Next, a barcode is generated for each sample. This barcode consists of nucleotide calls at loci of interest, concatenated as one string. Each of the 101 loci recorded in this barcode is biallelic, and the allele that is observed in a given sample is reported - an "X" represents "no data", i.e. the genotype was missing, and an "N" represents a heterozygous genotype call, i.e. both alleles were found.  
 
-Once barcodes for each sample have been assembled, the GRC creation process moves to species-detection. At this stage, the pipeline assigns each sample a species tag, currently either "Pf" for _P. falciparum_ or "Pv" for _P. vivax_. When working with _Plasmodium_ samples, this stage of analysis is able to identify species co-infections on a per-sample basis. The workflow is described in [Figure 2](./speciation_flow.png) below.  
+Once barcodes for each sample have been assembled, the GRC creation process moves to species-detection. At this stage, the pipeline assigns each sample a species tag, currently either "Pf" for _P. falciparum_ or "Pv" for _P. vivax_. When working with _Plasmodium_ samples, this stage of analysis is able to identify species co-infections on a per-sample basis.    
 
 The final processing stage computes the complexity of infection for each sample, which is reported as the estimated number of unique parasite genotypes found in the sample. Information on clinically significant loci, the sample barcode, the species detection results, and the complexity of infection are all reported in the `<run_id>_GRC.txt`.
 
