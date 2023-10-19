@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.2.1] - 2023-10-19
+
+### Added
+- **[Feature]**: Added fastq entry point.
+- **[Feature]**: NF-test based unit test of the workflow `reads_to_variants.nf`.
+- **[Feature]**: Added new "run_locally" profile for pipeline execution without containers.
+
+### Changed
+- **[Change]**: Updated README.
+- **[Removed]**: Removal of post processing read counts step.
+- **[Improvement]**: Checked validity of a custom path provided via `mccoil_repopath`.
+
+
 ## [1.1.1] - 2023-10-02
 
 ### Added
@@ -9,13 +22,16 @@ All notable changes to this project will be documented in this file.
 - **[Feature]**: config settings specific for Pf and Pv.
 - **[Feature]**: NF-test based unit test of the workflow `miseq_to_reads.nf`.
 - **[Feature]**: NF-test based unit test of the workflow `sanger_irods_to_reads.nf`.
-- **[Feature]**: NF-test based unit test of the workflow `reads_to_grcs.nf`.
+- **[Feature]**: NF-test based unit test of the workflow `variants_to_grcs.nf`.
 - **[Feature]**: Switches allow kelch-13 and plasmepsin GRC creation steps to be switched off.
+
 ### Changed
 - **[improvement]**: ENA cram files are now published on the output dir.
 - **[improvement]**: Output dir now is structured on subdirs.
 - **[improvement]**: Added missing parameter check calls.
 - **[improvement]**: Allow kelch-reference file to not be specified if `no_kelch` flag set.
+- **[improvement]**: Changed the pipeline to only output a single GRC: this GRC contains all the output data produced by variants_to_grcs.
+
 ### Fixed
 - **[Bug]**: bug for runids with "_T" affecting read counts file fixed.
 - **[Bug]**: upload data to s3 function is fixed
@@ -25,6 +41,8 @@ All notable changes to this project will be documented in this file.
 ### Removed
 - **[Change]**: Removed s3 input processes.
 - **[Change]**: Removed requirement for RunID to be an integer
+- **[Change]**: Removed GRC formatting and column sorting
+
 
 ## [1.0.1] - 2023-07-13
 

@@ -1,5 +1,4 @@
-// enable dsl2
-nextflow.enable.dsl = 2
+// Copyright (C) 2023 Genome Surveillance Unit/Genome Research Ltd.
 
 process read_count_per_region {
     stageInMode 'copy'
@@ -12,7 +11,7 @@ process read_count_per_region {
 
     output:
         path("${output_file}"), emit: qc_csv_file
-        //path("temp_${output_file}")
+
     script:
         output_file = "${panel_name}_reads_per_region.csv"
         plex_file = "${panel_name}.plex"
@@ -26,10 +25,7 @@ process read_count_per_region {
             --design_file "${annotation_file}" \
             --plex_file "${plex_file}" \
             --input_dir "." \
-            --output "pre_${output_file}"
-        
-        # post process output for compliance to GSU specific requirements
-        post_proc_read_counts.py -csv_in pre_${output_file} -csv_out ${output_file} 
+            --output "${output_file}"
         """
 }
 

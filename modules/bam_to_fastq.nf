@@ -1,6 +1,8 @@
+// Copyright (C) 2023 Genome Surveillance Unit/Genome Research Ltd.
+
 process bam_to_fastq {
     /*
-    * Converts BAM files to FASTQ.
+    Converts BAM files to FASTQ.
     */
 
     input:

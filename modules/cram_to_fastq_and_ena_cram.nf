@@ -1,6 +1,8 @@
+// Copyright (C) 2023 Genome Surveillance Unit/Genome Research Ltd.
+
 process cram_to_fastq_and_ena_cram {
     /*
-    * Converts a CRAM file into a FASTQ file and an ENA submission ready CRAM file
+    Converts a CRAM file into a FASTQ file and an ENA submission ready CRAM file
     */
     publishDir "${params.results_dir}/crams/",pattern:"*.for_ena.cram", overwrite: true, mode: "copy"
     input:

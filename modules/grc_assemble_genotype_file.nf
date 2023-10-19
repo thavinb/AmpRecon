@@ -1,3 +1,5 @@
+// Copyright (C) 2023 Genome Surveillance Unit/Genome Research Ltd.
+
 params.min_total_depth = 10
 params.het_min_allele_depth = 5
 params.het_min_allele_proportion = 0.10
@@ -6,12 +8,14 @@ params.locus_column_name = "VarPos"
 
 process assemble_genotype_file {
     /*
-    * Merges supplied VCF files into 1 genotype .tsv file. 
-    * Removes SNPs to be masked, updates co-ordinates to match those within supplied chromKey file and filtesr out alleles with low coverage.
+    Merges supplied VCF files into 1 genotype .tsv file. 
+    Removes SNPs to be masked, updates co-ordinates to match
+    those within supplied chromKey file and filtesr out
+    alleles with low coverage.
     */
-    publishDir "${params.results_dir}/grcs_barcodes/", overwrite: true, mode: "copy"
 
     label "grc_tools"
+
     input:
         path(vcf_manifest_file)
         val(chrom_key_file)

@@ -1,4 +1,5 @@
 #!/usr/bin/env nextflow
+// Copyright (C) 2023 Genome Surveillance Unit/Genome Research Ltd.
 
 /*
     | MISEQ_TO_READS |-----------------------------------------
@@ -42,14 +43,12 @@ workflow MISEQ_TO_READS {
 
   main:
 
-    bcl_dir = params.bcl_dir
-
     // Validate the supplied manifest file
     panel_names_list = reference_ch.map{it -> it[1].toString()}.collect()
     validate_manifest(manifest_file, panel_names_list)
 
     // convert basecalls
-    basecalls_conversion(params.run_id, bcl_dir, params.ena_study_name)
+    basecalls_conversion(params.run_id, params.bcl_dir, params.ena_study_name)
 
     // Create tag list file
     create_taglist_file(params.ena_study_name, manifest_file)
@@ -59,16 +58,16 @@ workflow MISEQ_TO_READS {
 
     // find adapter contamination in bam
     bam_find_adapter(decode_multiplexed_bam.out.decoded_bam_file)
-  
+
     // split bam by read group into cram
     split_bam_by_readgroup(bam_find_adapter.out)
 
     // extract index from CRAM file name and add to channel
     split_bam_by_readgroup.out
-      | flatten() // /path/to/runID_lane#index.cram
+      | flatten() // /path/to/<runID>_<lane>#<index>.cram
       | map { it -> tuple(it.simpleName.split('#')[1], it) }
       | set {cram_ch} // tuple (index, cram_file)
-    
+
     // get the relevant sample data from the manifest and link with cram files
     file_id_ch = manifest_file
       | splitCsv(header: true, sep: '\t')
@@ -120,7 +119,7 @@ workflow MISEQ_TO_READS {
     file_id_to_sample_id_ch // tuple (file_id, lims_id)
 }
 
-	
+
 workflow {
     // File required for Miseq to Reads input channel
     channel_data = Channel.fromPath(params.channel_data_file, checkIfExists: true)
@@ -131,17 +130,13 @@ workflow {
     // Miseq to Reads input channels
     manifest  = Channel.fromPath(params.manifest_path, checkIfExists: true)
     reference_ch = channel_data.map { row -> tuple(row.reference_file, row.panel_name, row.snp_list) }
-  
+
     MISEQ_TO_READS(manifest, reference_ch)
 }
 
 def miseq_to_reads_parameter_check(){
     /*
     This functions counts the number of errors on input parameters exclusively used on Incountry workflow
-    
-    checks:
-     - if irods manifest was provided
-     - if irods manifest provided exists
     
     False for any of those conditions counts as an error.
     
@@ -179,4 +174,3 @@ def miseq_to_reads_parameter_check(){
       exit 1
     }
 }
-

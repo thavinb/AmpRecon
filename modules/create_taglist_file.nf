@@ -1,6 +1,4 @@
-#!/usr/bin/env nextflow
-
-nextflow.enable.dsl=2
+// Copyright (C) 2023 Genome Surveillance Unit/Genome Research Ltd.
 
 process create_taglist_file {
 

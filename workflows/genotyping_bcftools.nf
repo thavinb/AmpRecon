@@ -1,4 +1,5 @@
 #!/usr/bin/env nextflow
+// Copyright (C) 2023 Genome Surveillance Unit/Genome Research Ltd.
 
 // enable dsl2
 nextflow.enable.dsl = 2
@@ -22,7 +23,7 @@ workflow GENOTYPING_BCFTOOLS {
       | set{mpileup_input} // tuple(file_id, bam_file, bam_index, reference_fasta, snp_list)
 
     bcftools_mpileup(mpileup_input)
-    
+
     // call SNP sites 
     bcftools_call(bcftools_mpileup.out)
 

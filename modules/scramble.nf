@@ -1,6 +1,8 @@
+// Copyright (C) 2023 Genome Surveillance Unit/Genome Research Ltd.
+
 process scramble_cram_to_bam {
-    /**
-    * Converts a cram to bam.
+    /*
+    Converts a cram to bam.
     */
 
     input:

@@ -1,8 +1,10 @@
+// Copyright (C) 2023 Genome Surveillance Unit/Genome Research Ltd.
+
 params.bambi_compression_level=0
 
 process decode_multiplexed_bam {
     /*
-    * Decodes a multiplexed BAM file.
+    Decodes a multiplexed BAM file.
     */
 
     input:

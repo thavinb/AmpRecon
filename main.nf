@@ -1,4 +1,5 @@
 #!/usr/bin/env nextflow
+// Copyright (C) 2023 Genome Surveillance Unit/Genome Research Ltd.
 
 // enable dsl2
 nextflow.enable.dsl = 2
@@ -9,15 +10,19 @@ nextflow.enable.dsl = 2
 include { parse_panel_settings } from './modules/parse_panels_settings.nf'
 include { miseq_to_reads_parameter_check } from './workflows/miseq_to_reads.nf'
 include { irods_to_reads_parameter_check } from './workflows/sanger_irods_to_reads.nf'
+include { fastq_parameter_check } from './workflows/fastq_entry_point.nf'
 include { SANGER_IRODS_TO_READS } from './workflows/sanger_irods_to_reads.nf'
 include { MISEQ_TO_READS } from './workflows/miseq_to_reads.nf'
+include { FASTQ_ENTRY_POINT } from './workflows/fastq_entry_point.nf'
 include { READS_TO_VARIANTS } from './workflows/reads_to_variants.nf'
 include { VARIANTS_TO_GRCS } from './workflows/variants_to_grcs.nf'
+
+
 // logging info ----------------------------------------------------------------
-// This part of the code is based on the FASTQC PIPELINE (https://github.com/angelovangel/nxf-fastqc/blob/master/main.nf)
+// This part of the code is based on the one present at FASTQC PIPELINE (https://github.com/angelovangel/nxf-fastqc/blob/master/main.nf)
 
 /*
-* ANSI escape codes to color output messages, get date to use in results folder name
+* ANSI escape codes to color output messages
 */
 ANSI_GREEN = "\033[1;32m"
 ANSI_RED = "\033[1;31m"
@@ -25,7 +30,7 @@ ANSI_RESET = "\033[0m"
 
 log.info """
         ===========================================
-         AMPSEQ v1.1.1
+         AMPRECON dev
          Used parameters:
         -------------------------------------------
          --execution_mode     : ${params.execution_mode}
@@ -47,6 +52,9 @@ log.info """
 
          (irods)
          --irods_manifest     : ${params.irods_manifest}
+
+         (fastq_entry_point)
+         --fastq_manifest     : ${params.fastq_manifest}
 
          (s3)
          --upload_to_s3       : ${params.upload_to_s3}
@@ -97,14 +105,24 @@ def printHelp() {
       --drl_information_file_path DRLinfo.txt
       --codon_key_file_path codonKey.txt
       --kelch_reference_file_path kelchReference.txt
-      --containers_dir ./containers_dir/ 
+      --containers_dir ./containers_dir/
+
+    (fastq_entry_point)
+    nextflow /path/to/ampseq-pipeline/main.nf -profile sanger_lsf
+      --execution_mode fastq --run_id 21045
+      --fastq_manifest ./input/fastq_smallset.tsv
+      --chrom_key_file_path chromKey.txt
+      --grc_settings_file_path grc_settings.json
+      --drl_information_file_path DRLinfo.txt
+      --codon_key_file_path codonKey.txt
+      --kelch_reference_file_path kelchReference.txt
+      --containers_dir ./containers_dir/
 
   Description:
     Ampseq is a bioinformatics analysis pipeline for amplicon sequencing data.
     Currently supporting alignment and SNP variant calling on paired-end Illumina sequencing data.
 
-    *for a complete description of input files and parameters check:
-    https://gitlab.internal.sanger.ac.uk/malariagen1/ampseq-pipeline/
+    *for a complete description of input files and parameters check the README file in the code repository
 
   Options:
     Inputs:
@@ -118,8 +136,11 @@ def printHelp() {
       --manifest_path: <str> path to the manifest file
 
       (irods required)
-      --irods_manifest : an tsv containing information of irods data to fetch
+      --irods_manifest : a tsv containing information of irods data to fetch
       
+      (fastq entry point required)
+      --fastq_manifest: <str> path to the manifest file
+
       (if s3)
       --s3_uuid : <str> A s3_uuid must be provided if --upload_to_s3 is required
       --upload_to_s3 : <bool> sets if needs to upload output data to an s3 bucket
@@ -138,12 +159,16 @@ def printHelp() {
       --panels_settings : <path>, path to panel_settings.csv
       --containers_dir : <path>, path to a dir where the containers are located
 
+
     Additional options:
       --help (Prints this help message. Default: false)
     
     Profiles:
-      sanger_lsf : run the pipeline on farm5 lsf (recommended)
-      sanger_default : run the pipeline on farm5 local settings (only for development)
+      standard (default): run locally using singularity
+      run_locally : run locally using what is available on the system environment (no containers)
+      sanger_local : run the pipeline on Sanger HPC
+      sanger_lsf : run the pipeline by submiting tasks as individual jobs to lsf queue on Sanger HPC
+      sanger_tower : run the pipeline under nextflow tower
    """.stripIndent()
 }
 
@@ -155,6 +180,8 @@ workflow {
       printHelp()
       exit 0
   }
+
+  // validate parameters
   validate_general_params()
 
   // -- MAIN-EXECUTION ------------------------------------------------------
@@ -163,7 +190,7 @@ workflow {
   reference_ch = ref_and_annt_ch[0] // tuple(reference_file, panel_name, snp_list)
   annotations_ch = ref_and_annt_ch[1] // tuple(panel_name, design_file)
 
-  // Files required for GRC creation
+  // files required for GRC creation
   Channel.fromPath(params.grc_settings_file_path, checkIfExists: true)
   chrom_key_file = Channel.fromPath(params.chrom_key_file_path, checkIfExists: true)
   codon_key_file = Channel.fromPath(params.codon_key_file_path, checkIfExists: true)
@@ -196,13 +223,25 @@ workflow {
     file_id_to_sample_id_ch = SANGER_IRODS_TO_READS.out.file_id_to_sample_id_ch
   }
 
+  if (params.execution_mode == "fastq") {
+    fastq_parameter_check() 
+    // parse manifest
+    manifest = Channel.fromPath(params.fastq_manifest, checkIfExists: true)
+    FASTQ_ENTRY_POINT(manifest, reference_ch)
+    // setup channels for downstream processing
+    fastq_files_ch = FASTQ_ENTRY_POINT.out.fastq_files_ch // tuple (file_id, fastq_ch, path/to/reference/genome) 
+    file_id_reference_files_ch = FASTQ_ENTRY_POINT.out.file_id_reference_files_ch// tuple (file_id, panel_name, path/to/reference/genome, snp_list)
+    file_id_to_sample_id_ch = FASTQ_ENTRY_POINT.out.file_id_to_sample_id_ch// tuple (file_id, sample_id)  
+  }
+
   // Reads to variants
-  READS_TO_VARIANTS(fastq_files_ch, file_id_reference_files_ch, annotations_ch, file_id_to_sample_id_ch)
+  READS_TO_VARIANTS(fastq_files_ch, file_id_reference_files_ch, annotations_ch,
+                    file_id_to_sample_id_ch)
   lanelet_manifest_file = READS_TO_VARIANTS.out.lanelet_manifest
 
   // Variants to GRCs
-  VARIANTS_TO_GRCS(manifest, lanelet_manifest_file, chrom_key_file, kelch_reference_file, codon_key_file, drl_information_file)
-
+  VARIANTS_TO_GRCS(manifest, lanelet_manifest_file, chrom_key_file, kelch_reference_file,
+                  codon_key_file, drl_information_file)
 }
 
 
@@ -254,7 +293,7 @@ def validate_general_params(){
   */
 
   def error = 0
-  def valid_execution_modes = ["in-country", "irods"]
+  def valid_execution_modes = ["in-country", "irods", "fastq"]
 
   // check if execution mode is valid
   if (!valid_execution_modes.contains(params.execution_mode)){
@@ -286,8 +325,8 @@ def validate_general_params(){
     log.warn("[DEBUG] no_coi was set to ${params.DEBUG_no_coi}")
   }
   // -------------------------------------------
-  
-  // check if output dir exists, if not create the default
+
+  // check if output dir exists, if not create the default path
   if (params.results_dir){
     results_path = file(params.results_dir)
     if (!results_path.exists()){
@@ -295,8 +334,19 @@ def validate_general_params(){
       results_path.mkdir()
     }
   }
-  
-  // if S3 is requested, check if all s3 required parameters were provided
+
+  if ((params.DEBUG_no_coi == false) && (params.mccoil_repopath != "/app/THEREALMcCOIL/")){
+    mccoil_path = file(params.mccoil_repopath)
+    if (mccoil_path.exists() == false){
+      log.error("""
+      The mccoil_repopath provided (${mccoil_path}) does not exists.
+      This can happen if you do not use the containers provided or setup an invalid custom path.
+      Please provide a valid custom installation path of the McCOIL library.
+      """)
+      error+=1
+    }
+  }
+  // if S3 is requested, check if all S3 required parameters were provided
 
   // check S3 output bucket
   if (params.upload_to_s3){

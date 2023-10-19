@@ -1,9 +1,11 @@
+// Copyright (C) 2023 Genome Surveillance Unit/Genome Research Ltd.
+
 params.bamadapterclip_verbose = 1
 params.bamadapterclip_level = 0
 
 process clip_adapters {
     /*
-    * Removes identified adapters from bam
+    Removes identified adapters from bam
     */
 
     input:

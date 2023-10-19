@@ -1,3 +1,5 @@
+// Copyright (C) 2023 Genome Surveillance Unit/Genome Research Ltd.
+
 process bwa_alignment_and_post_processing {
     /*
     * Map reads to reference
@@ -23,7 +25,7 @@ process bwa_alignment_and_post_processing {
             samtools sort -n - | \
             samtools fixmate - - | \
             samtools sort -o ${bam_file}.sorted.bam 
-        
+
         samtools index ${bam_file}.sorted.bam
 
         mv ${bam_file}.sorted.bam ${bam_file}

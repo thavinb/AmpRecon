@@ -1,4 +1,6 @@
 #!/usr/bin/env nextflow
+// Copyright (C) 2023 Genome Surveillance Unit/Genome Research Ltd.
+
 
 /*
     | VARIANTS_TO_GRCS |-----------------------------------------
@@ -8,7 +10,7 @@
     VCFs are used to determine several key metrics, from which 
     metadata enriched GRCs and barcodes files are assembled. Several
     files are needed for these processes: 
-    [1] Chrom key file that the specifies amplicon regions, their genomic 
+    [1] Chrom key file that specifies amplicon regions, their genomic 
     coordinates and reference alleles is for genotype file creation. 
     [2] Codon key file for describing the genetic code by linking 
     codons with associated amino acid.
@@ -20,7 +22,7 @@
     for key drug resistance loci.
     
     A GRC settings file must also be supplied to the pipeline. This 
-    file details many important values for GRC creation. These include
+    file details different key settings for GRC creation. These include
     minimum coverage values for Kelch13 mutation calling and species
     calling, Kelch13 regions, Plasmepsin loci genotypes and variants, 
     and amino acid calling / haplotype calling double heterozygous case
@@ -38,8 +40,7 @@
     2 GRC files, which then have metadata from the manifest added 
     to them.
 
-    2 resulting GRC files and a barcodes file that have had 
-    metadata added to them are output.
+    One GRC files and a barcodes file are the outputs.
     ------------------------------------------------------------------
 */
 
@@ -47,15 +48,15 @@
 nextflow.enable.dsl = 2
 
 // import modules
-include { assemble_genotype_file } from '../grc_tools/genotype_file_creation/assemble_genotype_file.nf'
-include { grc_kelch13_mutation_caller } from '../grc_tools/kelch13/grc_kelch13_mutation_caller.nf'
-include { grc_plasmepsin_cnv_caller } from '../grc_tools/plasmepsin/grc_plasmepsin_cnv_caller.nf'
-include { grc_speciate } from '../grc_tools/speciation/grc_speciate.nf'
-include { grc_barcoding } from '../grc_tools/barcode/grc_barcoding.nf'
-include { grc_estimate_coi } from '../grc_tools/COI/grc_estimate_coi.nf'
-include { grc_amino_acid_caller } from '../grc_tools/amino_acid_calling/grc_amino_acid_caller.nf'
-include { grc_assemble } from '../grc_tools/assemble_grc1/grc_assemble.nf'
-include { add_metadata_and_format } from '../grc_tools/metadata/add_metadata_and_format.nf'
+include { assemble_genotype_file } from '../modules/grc_assemble_genotype_file.nf'
+include { grc_kelch13_mutation_caller } from '../modules/grc_kelch13_mutation_caller.nf'
+include { grc_plasmepsin_cnv_caller } from '../modules/grc_plasmepsin_cnv_caller.nf'
+include { grc_speciate } from '../modules/grc_speciate.nf'
+include { grc_barcoding } from '../modules/grc_barcoding.nf'
+include { grc_estimate_coi } from '../modules/grc_estimate_coi.nf'
+include { grc_amino_acid_caller } from '../modules/grc_amino_acid_caller.nf'
+include { grc_assemble } from '../modules/grc_assemble.nf'
+include { grc_add_metadata } from '../modules/grc_add_metadata.nf'
 include { upload_pipeline_output_to_s3 } from '../modules/upload_pipeline_output_to_s3.nf'
 
 workflow VARIANTS_TO_GRCS {
@@ -102,43 +103,38 @@ workflow VARIANTS_TO_GRCS {
         if (params.DEBUG_no_coi == true){
             coi_grc_ch = Channel.empty()
         }
-        // Assemble drug resistance haplotypes and GRC2
+        // Assemble drug resistance haplotypes and amino acid calls
         grc_amino_acid_caller(genotype_files_ch, drl_information_file, codon_key_file)
 
-        // Assemble GRC1
+        // Assemble genetic report card file
         grc_speciate.out
             .concat(kelch_grc_ch)
             .concat(plasmepsin_grc_ch)
             .concat(grc_barcoding.out.barcoding_file)
             .concat(coi_grc_ch)
             .concat(grc_amino_acid_caller.out.drl_haplotypes)
+            .concat(grc_amino_acid_caller.out.grc2)
+            .concat(grc_barcoding.out.barcoding_split_out_file)
             .collect()
-            .set{grc1_components}
-        grc_assemble(grc1_components)
+            .set{grc_components}
+        grc_assemble(grc_components)
 
-        // Format and add metadata to GRCs and barcodes files
-        add_metadata_and_format(manifest_file, grc_assemble.out, grc_amino_acid_caller.out.grc2, grc_barcoding.out.barcoding_split_out_file)
+        // Add metadata from manifest to GRC file
+        grc_add_metadata(manifest_file, grc_assemble.out)
 
-        // Those output channels were added to be used by nf-test 
-        grc1_no_metadata = grc_assemble.out 
-        grc1_with_metadata = add_metadata_and_format.out.grc1
-        grc2_with_metadata = add_metadata_and_format.out.grc2
-        barcodes = add_metadata_and_format.out.barcodes
+        // Workflow output channel
+        grc = grc_add_metadata.out
     
-        // upload final GRCs, final Barcodes file and Genotype file to S3 bucket
+        // upload final GRC and Genotype file to S3 bucket
         if (params.upload_to_s3){
-            grc1_with_metadata
-                .concat(grc2_with_metadata)
-                .concat(barcodes)
+            grc
                 .concat(genotype_files_ch)
                 .set{output_to_s3}
-            upload_pipeline_output_to_s3(output_to_s3, "grcs_barcodes")
+            upload_pipeline_output_to_s3(output_to_s3, "grc")
         }
 
     emit:
-        grc1_with_metadata
-        grc2_with_metadata
-        barcodes
+        grc
 }
 
 workflow {

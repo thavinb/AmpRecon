@@ -1,3 +1,5 @@
+# Copyright (C) 2023 Genome Surveillance Unit/Genome Research Ltd.
+
 Bootstrap: docker
 From:ubuntu:23.04
 
@@ -14,7 +16,7 @@ git clone https://github.com/AMarinhoSN/THEREALMcCOIL.git
 cd THEREALMcCOIL/
 
 # install library here
-Rscript -e 'install.packages("optparse", repos="https://cran.us.r-project.org")' #'install.packages("here", repos="http://cran.us.r-project.org")'
+Rscript -e 'install.packages("optparse", repos="https://cran.us.r-project.org")'
 Rscript -e 'install.packages("here", repos="http://cran.us.r-project.org")'
 Rscript -e 'install.packages("this.path",repos = "https://cran.us.r-project.org")'
 

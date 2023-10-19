@@ -1,4 +1,5 @@
 #!/usr/bin/env nextflow
+// Copyright (C) 2023 Genome Surveillance Unit/Genome Research Ltd.
 
 /*
     | READS_TO_VARIANTS |---------------------------------------------
@@ -33,8 +34,7 @@ include { GENOTYPING_BCFTOOLS } from './genotyping_bcftools.nf'
 include { write_vcfs_manifest } from '../modules/write_vcfs_manifest.nf'
 include { bam_merge_and_index } from '../modules/bam_merge_and_index.nf'
 /*
-Here all workflows which are used regardless of the entry point (iRODS or inCountry)
-are setup
+This workflow takes fastq files and outputs vcfs
 */
 
 workflow READS_TO_VARIANTS {
@@ -56,11 +56,11 @@ workflow READS_TO_VARIANTS {
 
         // Merge sample ids with duplicated lanelets
         ALIGNMENT.out // tuple (file_id, bam_file, bai_file))
-            .join( file_id_to_sample_id_ch ) // tuple (file_id, bam_file, bai_file, sample_id)
-            .join ( file_id_reference_files_ch ) // tuple (file_id, bam_file, bai_file, sample_id, panel_name, reference_fasta_file, snp_list)
-            .map { it -> tuple("${it[3]}_${it[4]}", it[1]) } // tuple("{sample_id}_{panel_name}", bam_file)
-            .groupTuple()
-            .set { bam_merge_ch } // tuple("sample_id_panel_name", [bam_file_1, bam_file_N]) N number of multiples 
+            | join( file_id_to_sample_id_ch ) // tuple (file_id, bam_file, bai_file, sample_id)
+            | join ( file_id_reference_files_ch ) // tuple (file_id, bam_file, bai_file, sample_id, panel_name, reference_fasta_file, snp_list)
+            | map { it -> tuple("${it[3]}_${it[4]}", it[1]) } // tuple("{sample_id}_{panel_name}", bam_file)
+            | groupTuple()
+            | set { bam_merge_ch } // tuple("sample_id_panel_name", [bam_file_1, bam_file_N]) N number of multiples 
 
         bam_merge_and_index( bam_merge_ch )
 
@@ -68,26 +68,32 @@ workflow READS_TO_VARIANTS {
         // Here we set the sample_tag ("{sample_id}_{panel_name}") as the key for the channels (instead of the file_id)
         // Which means all lanelets for a single sample were merged into a single entity and should be treated as such 
         // for downstream processes.
-        file_id_reference_files_ch.join( file_id_to_sample_id_ch )  // tuple (file_id, panel_name, reference_fasta_file, snp_list, sample_id)
-            .map { it -> tuple("${it[4]}_${it[1]}", it[0], it[1], it[2], it[3], it[4] ) } 
-            .set { sample_key_ref_ch } // tuple ("{sample_id}_{panel_name}", file_id, panel_name, reference_fasta_file, snp_list, sample_id)
+        file_id_reference_files_ch
+            | join( file_id_to_sample_id_ch )  // tuple (file_id, panel_name, reference_fasta_file, snp_list, sample_id)
+            | map { it -> tuple("${it[4]}_${it[1]}", it[0], it[1], it[2], it[3], it[4] ) } 
+            | set { sample_key_ref_ch } // tuple ("{sample_id}_{panel_name}", file_id, panel_name, reference_fasta_file, snp_list, sample_id)
 
         // Genotyping
-        sample_key_ref_ch.map{it -> tuple(it[0],it[1], it[3], it[4])}.set{genotyping_ref_ch} // tuple (sample_tag, fasta_file, snp_list, sample_key)
+        sample_key_ref_ch
+            | map{it -> tuple(it[0],it[1], it[3], it[4])}
+            | set{genotyping_ref_ch} // tuple (sample_tag, fasta_file, snp_list, sample_key)
+
         GENOTYPING_BCFTOOLS(
             bam_merge_and_index.out,
             genotyping_ref_ch
         )
+
         GENOTYPING_BCFTOOLS.out.set{vcf_files_ch}
 
         // Create channel of 2 lists: IDs and VCFs
         vcf_files_ch // tuple (sample_tag, vcf_path, vcf_index_path)
-            .map{it -> tuple(it[0], it[1])}
-            .join(file_id_to_sample_id_ch) // tuple (sample_tag, vcf_path, sample_id)
-            .multiMap { it ->
+            | map{it -> tuple(it[0], it[1])} // tuple (sample_tag, vcf_path)
+            | join(file_id_to_sample_id_ch) // tuple (sample_tag, vcf_path, sample_id)
+            | multiMap { it ->
                 id_list: it[2]
                 vcf_list: it[1]
-            }.set{lanelet_ch}
+            }
+            | set{lanelet_ch}
         
         // Write manifest of VCF files per sample IDs
         write_vcfs_manifest(lanelet_ch.id_list.collect(), lanelet_ch.vcf_list.collect())

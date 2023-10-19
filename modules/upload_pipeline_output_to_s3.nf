@@ -1,6 +1,8 @@
+// Copyright (C) 2023 Genome Surveillance Unit/Genome Research Ltd.
+
 process upload_pipeline_output_to_s3 {
-    /**
-    * Uploads given files to an S3 bucket.
+    /*
+    Uploads given files to an S3 bucket.
     */
     input:
         path(files)

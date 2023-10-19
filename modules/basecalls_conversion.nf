@@ -1,9 +1,11 @@
+// Copyright (C) 2023 Genome Surveillance Unit/Genome Research Ltd.
+
 params.bambi_threads = 8
 params.bambi_compression_level = 9
 
 process basecalls_conversion {
     /*
-    * Converts Illumina BCL sequencing run data into a BAM file.
+    Converts Illumina BCL sequencing run data into a BAM file.
     */
 
     input:
