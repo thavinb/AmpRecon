@@ -71,7 +71,7 @@ class QC:
         self._pool = ThreadPool(processes=5)
         self._out_handle = None
         self._output_hdr = (
-            "Rpt,Ref_region,Region,Total_reads,Total_region_reads,Region_reads,Perc of total reads," # Ref_region used to be Region and current Region used to be amplicon_name
+            "Rpt,Region,Amplicon_name,Total_reads,Total_region_reads,Region_reads,Perc of total reads,"
             "Perc of mapped to region reads,,Total_region_reads MQ>={qual},Region_reads MQ>={qual},"
             "Region_reads 1 MQ>={qual},Region_reads 2 MQ>={qual},Perc Region_reads 1 MQ>={qual},"
             "Perc of mapped to region reads MQ>={qual},,Region_fragments represented MQ>={default_qual},"
