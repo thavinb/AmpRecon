@@ -11,6 +11,7 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 - **[Change]**: Updated README.
+- **[Change]**: Read counts column names revert back to original naming and empty columns removed.
 - **[Removed]**: Removal of post processing read counts step.
 - **[Improvement]**: Checked validity of a custom path provided via `mccoil_repopath`.
 
