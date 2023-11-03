@@ -24,7 +24,6 @@ AmpRecon is a bioinformatics pipeline that aligns short-read sequencing data to 
         &rarr; [Read Counts per Panel](#read-counts-per-panel)  
         &rarr; [Genetic Report Card](#genetic-report-card)  
 10. [GRC Creation](#grc-creation)  
-11. [Testing](#testing)  <mark>TODO: this goes away in the final release (hence #11 twice)</mark>
 11. [Full List of Options](#full-list-of-options)  
 12. [Authors and Acknowledgements](#authors-and-acknowledgements)
 13. [Appendix](#appendix)  
@@ -416,41 +415,13 @@ The primary informative output of AmpRecon is the Genetic Report Card. The varia
 
 First, the variants are organised into genotypes on a per-locus basis, and `genotype_file.tsv` is produced. Then, mutations and copy-number variations respectively are called at the clinically significant Kelch13 and Plasmepsin loci. Next, a barcode is generated for each sample. This barcode consists of nucleotide calls at loci of interest, concatenated as one string. Each of the 101 loci recorded in this barcode is biallelic, and the allele that is observed in a given sample is reported - an "X" represents "no data", i.e. the genotype was missing, and an "N" represents a heterozygous genotype call, i.e. both alleles were found.  
 
-Once barcodes for each sample have been assembled, the GRC creation process moves to species-detection. At this stage, the pipeline assigns each sample a species tag, currently either "Pf" for _P. falciparum_ or "Pv" for _P. vivax_. When working with _Plasmodium_ samples, this stage of analysis is able to identify species co-infections on a per-sample basis.    
+Once barcodes for each sample have been assembled, the GRC creation process moves to species-detection. At this stage, the pipeline assigns each sample a species tag, currently either "Pf" for _P. falciparum_ or "Pv" for _P. vivax_. When working with _Plasmodium_ samples, this stage of analysis is able to identify species co-infections on a per-sample basis.   
 
 The final processing stage computes the complexity of infection for each sample, which is reported as the estimated number of unique parasite genotypes found in the sample. Information on clinically significant loci, the sample barcode, the species detection results, and the complexity of infection are all reported in the `<run_id>_GRC.txt`.
 
 [**(&uarr;)**](#contents)  
 
 ---
-
-# Testing  
-<mark>TODO:<mark> to be removed in pre-release branch
-
-The unit tests for the workflow are implemented using [NF-test](https://code.askimed.com/nf-test/). If not available already on the CLI:  
-
-### Install NF-test
-
-1. Download NF-test:
-
-```{bash}
-wget -qO- https://code.askimed.com/install/nf-test | bash
-```
-
-2. Create an alias for the file you just downloaded, be sure you can execute the file.
-
-```{bash}
-alias nf-test="/path/to/my/nf-test"
-```
-
-### Run tests
-
-On the repository directory, run:
-
-```{bash}
-nf-test test tests/workflows/sanger_irods_to_reads.nf.test --profile sanger_default
-nf-test test tests/workflows/miseq_to_reads.nf.test --profile sanger_default
-```
 
 # Full List of Options  
 
