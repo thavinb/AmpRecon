@@ -14,7 +14,6 @@ All notable changes to this project will be documented in this file.
 - **[Removed]**: Removal of post processing read counts step.
 - **[Improvement]**: Checked validity of a custom path provided via `mccoil_repopath`.
 
-
 ## [1.1.1] - 2023-10-02
 
 ### Added
@@ -37,6 +36,7 @@ All notable changes to this project will be documented in this file.
 - **[Bug]**: upload data to s3 function is fixed
 - **[Bug]**: Column names for Pf were hard-coded into metadata addition script, this blocked the usage of the pipeline with Pv.
   - **Fix**: Column ordering was abstracted to GRC settings file and metadata addition script was modified to include config file and read ordering from there.
+- **[Bug]**: The unit test for the reads_to_variants workflow is fixed.
 
 ### Removed
 - **[Change]**: Removed s3 input processes.

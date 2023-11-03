@@ -71,10 +71,10 @@ class QC:
         self._pool = ThreadPool(processes=5)
         self._out_handle = None
         self._output_hdr = (
-            "Rpt,Ref_region,Region,Total_reads,Total_region_reads,Region_reads,Perc of total reads," # Ref_region used to be Region and current Region used to be amplicon_name
-            "Perc of mapped to region reads,,Total_region_reads MQ>={qual},Region_reads MQ>={qual},"
+            "Rpt,Region,Amplicon_name,Total_reads,Total_region_reads,Region_reads,Perc of total reads,"
+            "Perc of mapped to region reads,Total_region_reads MQ>={qual},Region_reads MQ>={qual},"
             "Region_reads 1 MQ>={qual},Region_reads 2 MQ>={qual},Perc Region_reads 1 MQ>={qual},"
-            "Perc of mapped to region reads MQ>={qual},,Region_fragments represented MQ>={default_qual},"
+            "Perc of mapped to region reads MQ>={qual},Region_fragments represented MQ>={default_qual},"
             "Region_fragments both MQ>={qual},Perc of total fragments,Perc of mapped to region fragments\n".format(
                 qual=mapq, default_qual=self.DEFAULT_QUALITY_THRESHOLD
             )
@@ -333,41 +333,24 @@ class QC:
                     ",".join(
                         str(field)
                         for field in [
-                            rpt,
-                            r,
-                            amplicon_name,
-                            numa,
-                            total0,
-                            int(count[r].zero),
-                            "0"
-                            if numa < 1
-                            else "{:.2f}".format((count[r].zero / numa) * 100),
-                            "0"
-                            if total0 < 1
-                            else "{:.2f}".format((count[r].zero / total0) * 100),
-                            "",
-                            total10,
-                            int(count[r].ten),
-                            int(count[r].ten_f),
-                            int(count[r].ten_r),
-                            "0"
-                            if count[r].ten < 1
-                            else "{:.2f}".format((count[r].ten_f / count[r].ten) * 100),
-                            "0"
-                            if total10 < 1
-                            else "{:.2f}".format((count[r].ten / total10) * 100),
-                            "",
-                            int(count[r].ten_frag) if count[r].ten_frag else "0",
-                            int(count[r].ten_fragboth)
-                            if count[r].ten_fragboth
-                            else "0",
-                            "{:.2f}".format(
-                                (count[r].ten_fragboth / ((numa / 2) + 0.00000001))
-                                * 100
-                            ),
-                            "{:.2f}".format((count[r].ten_fragboth / frc) * 100)
-                            if frc > 0
-                            else "0",
+                            rpt, #Rpt
+                            r, #Region
+                            amplicon_name, #Amplicon_name 
+                            numa, #Total_reads
+                            total0, #Total_region_reads
+                            int(count[r].zero), #Region_reads
+                            "0" if numa < 1 else "{:.2f}".format((count[r].zero / numa) * 100), #Perc of total reads
+                            "0" if total0 < 1 else "{:.2f}".format((count[r].zero / total0) * 100), #Perc of mapped to region reads
+                            total10, #Total_region_reads MQ>=10
+                            int(count[r].ten), #Region_reads MQ>=10
+                            int(count[r].ten_f), #Region_reads 1 MQ>=10
+                            int(count[r].ten_r), #Region_reads 2 MQ>=10
+                            "0" if count[r].ten < 1 else "{:.2f}".format((count[r].ten_f / count[r].ten) * 100), #Perc Region_reads 1 MQ>=10
+                            "0" if total10 < 1 else "{:.2f}".format((count[r].ten / total10) * 100), #Perc of mapped to region reads MQ>=10
+                            int(count[r].ten_frag) if count[r].ten_frag else "0", #Region_fragments represented MQ>=10
+                            int(count[r].ten_fragboth) if count[r].ten_fragboth else "0", #Region_fragments both MQ>=10
+                            "{:.2f}".format((count[r].ten_fragboth / ((numa / 2) + 0.00000001)) * 100), #Perc of total fragments,
+                            "{:.2f}".format((count[r].ten_fragboth / frc) * 100) if frc > 0 else "0", #Perc of mapped to region fragments
                         ]
                     )
                     + "\n"
@@ -377,32 +360,24 @@ class QC:
                 ",".join(
                     str(field)
                     for field in [
-                        rpt,
-                        self._UNMAP_OR_UNUSED_KEY,
-                        self._UNMAP_OR_UNUSED_KEY,
-                        numa,
-                        total0,
-                        int(count[self._UNMAP_OR_UNUSED_KEY].zero),
-                        "0"
-                        if numa < 1
-                        else "{:.2f}".format(
-                            (count[self._UNMAP_OR_UNUSED_KEY].zero / numa) * 100
-                        ),
-                        "",
-                        "",
-                        total10,
-                        int(count[self._UNMAP_OR_UNUSED_KEY].ten),
-                        "",
-                        "",
-                        "",
-                        "",
-                        "",
-                        "",
-                        "",
-                        "{:.2f}".format(
-                            (((numa / 2) - frc) / ((numa / 2) + 0.00000001)) * 100
-                        ),
-                        "",
+                        rpt,#Rpt
+                        self._UNMAP_OR_UNUSED_KEY,#Region
+                        self._UNMAP_OR_UNUSED_KEY,#Amplicon_name
+                        numa,#Total_reads
+                        total0,#Total_region_reads
+                        int(count[self._UNMAP_OR_UNUSED_KEY].zero),#Region_reads
+                        "0" if numa < 1 else "{:.2f}".format((count[self._UNMAP_OR_UNUSED_KEY].zero / numa) * 100),#Perc of total reads
+                        "",#Perc of mapped to region reads
+                        total10,#Total_region_reads MQ>=10
+                        int(count[self._UNMAP_OR_UNUSED_KEY].ten),#Region_reads MQ>=10
+                        "",#Region_reads 1 MQ>=10
+                        "",#Region_reads 2 MQ>=10
+                        "",#Perc Region_reads 1 MQ>=10
+                        "",#Perc of mapped to region reads MQ>=10
+                        "",#Region_fragments represented MQ>=10
+                        "",#Region_fragments both MQ>=10
+                        "{:.2f}".format((((numa / 2) - frc) / ((numa / 2) + 0.00000001)) * 100),#Perc of total fragments
+                        "",#Perc of mapped to region fragments
                     ]
                 )
                 + "\n"
