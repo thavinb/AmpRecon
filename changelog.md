@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.2.2] - 2023-11-03
+
+### Changed
+- **[Change]**: Read counts column names revert back to original naming and empty columns removed.
+
 ## [1.2.1] - 2023-10-19
 
 ### Added
