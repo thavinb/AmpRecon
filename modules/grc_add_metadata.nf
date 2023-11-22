@@ -1,6 +1,6 @@
 // Copyright (C) 2023 Genome Surveillance Unit/Genome Research Ltd.
 
-params.grc_name = params.run_id + "_GRC.txt"
+params.grc_name = params.batch_id + "_GRC.txt"
 
 process grc_add_metadata {
     publishDir "${params.results_dir}/grc/", overwrite: true, mode: "copy"
