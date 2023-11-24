@@ -63,7 +63,7 @@ def validatePanelSettings(row){
     // check if dictionary file for reference genome exists
     reference_dictionary_file = file(replaceFileExtension("${reference_file}", "dict"))
     if (!reference_dictionary_file.exists()){
-        log.error("${reference_dictionary} provided for ${row.panel_name} does not exist.")
+        log.error("${reference_dictionary_file} provided for ${row.panel_name} does not exist.")
         errors += 1
     }
 
