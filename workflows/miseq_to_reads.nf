@@ -48,7 +48,7 @@ workflow MISEQ_TO_READS {
     validate_manifest(manifest_file, panel_names_list)
 
     // convert basecalls
-    basecalls_conversion(params.run_id, params.bcl_dir, params.ena_study_name)
+    basecalls_conversion(params.batch_id, params.bcl_dir, params.ena_study_name)
 
     // Create tag list file
     create_taglist_file(params.ena_study_name, manifest_file)
@@ -147,8 +147,8 @@ def miseq_to_reads_parameter_check(){
 
     def error = 0
 
-    if (params.run_id == null){
-      log.error("A run_id parameter must be provided for execution mode '${params.execution_mode}'.")
+    if (params.batch_id == null){
+      log.error("A batch_id parameter must be provided for execution mode '${params.execution_mode}'.")
       error += 1
     }
 
