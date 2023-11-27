@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## UNRELEASED
 
+### Changed
+- **[Change]**: `run_id` renamed to `batch_id`.
+
+
 ### Fixed
  - **[Bug]**: fixed invalid variable when missing `.dict` file for 
 
