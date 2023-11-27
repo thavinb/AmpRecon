@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## UNRELEASED
+
+### Fixed
+ - **[Bug]**: fixed invalid variable when missing `.dict` file for 
+
 ## [1.2.2] - 2023-11-03
 
 ### Changed
