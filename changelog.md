@@ -2,10 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
-## UNRELEASED
+## [1.3.0] - 2023-11-29
 
 ### Changed
-- **[Change]**: `run_id` renamed to `batch_id`.
+- **[Change]**: `run_id` renamed to `batch_id`. NOTE that old parameter 'run_id' will no longer work.
 
 
 ### Fixed
