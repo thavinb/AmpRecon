@@ -30,7 +30,7 @@ ANSI_RESET = "\033[0m"
 
 log.info """
         ===========================================
-         AMPRECON v1.2.2
+         AMPRECON 1.3.0
          Used parameters:
         -------------------------------------------
          --execution_mode     : ${params.execution_mode}
@@ -43,7 +43,7 @@ log.info """
          --kelch_reference_file_path: ${params.kelch_reference_file_path}
          --codon_key_file_path: ${params.codon_key_file_path}
          --drl_information_file_path: ${params.drl_information_file_path}
-         --run_id             : ${params.run_id}
+         --batch_id             : ${params.batch_id}
 
          (in-country)
          --bcl_dir            : ${params.bcl_dir}
@@ -86,7 +86,7 @@ def printHelp() {
   Usage:
     (irods)
     nextflow run /path/to/ampseq-pipeline/main.nf -profile sanger_lsf 
-      --execution_mode irods  --run_id 21045
+      --execution_mode irods  --batch_id 21045
       --irods_manifest ./input/irods_smallset.tsv
       --chrom_key_file_path chromKey.txt
       --grc_settings_file_path grc_settings.json
@@ -97,7 +97,7 @@ def printHelp() {
 
     (incountry)
     nextflow /path/to/ampseq-pipeline/main.nf -profile sanger_lsf
-      --execution_mode in-country --run_id 21045
+      --execution_mode in-country --batch_id 21045
       --bcl_dir /path/to/my_bcl_dir/ --ena_study_name test
       --manifest_path manifest.tsv
       --chrom_key_file_path chromKey.txt
@@ -109,7 +109,7 @@ def printHelp() {
 
     (fastq_entry_point)
     nextflow /path/to/ampseq-pipeline/main.nf -profile sanger_lsf
-      --execution_mode fastq --run_id 21045
+      --execution_mode fastq --batch_id 21045
       --fastq_manifest ./input/fastq_smallset.tsv
       --chrom_key_file_path chromKey.txt
       --grc_settings_file_path grc_settings.json
@@ -130,7 +130,9 @@ def printHelp() {
       --execution_mode : sets the entry point for the pipeline ("irods" or "in-country")
       
       (incountry required)
-      --run_id : id to be used for the batch of data to be processed
+      --batch_id : id to be used for the batch of data to be processed. 
+                   This ID is only used to prefix output files and readgroup names in cram files.
+                   It can be a run ID or any other identifier that makes sense for your data.
       --bcl_dir: path to a miseq directory
       --ena_study_name : <str>
       --manifest_path: <str> path to the manifest file
@@ -147,7 +149,9 @@ def printHelp() {
       --s3_bucket_output : <str> s3 bucket name to upload data to
 
       (grc_creation)
-      --run_id : id to be used as a prefix for the output GRC files
+      --batch_id : id to be used as a prefix for the output GRC files.
+                   This ID is only used to prefix output files and readgroup names in cram files.
+                   It can be a run ID or any other identifier that makes sense for your data.
       --grc_settings_file_path: <str> path to the GRC settings file.
       --chrom_key_file_path: <str> path to the chrom key file
       --kelch_reference_file_path: <str> path to the kelch13 reference sequence file
@@ -218,7 +222,7 @@ workflow {
     manifest = Channel.fromPath(params.irods_manifest, checkIfExists: true)
     SANGER_IRODS_TO_READS(manifest, reference_ch)
     // setup channels for downstream processing
-    fastq_files_ch = SANGER_IRODS_TO_READS.out.fastq_ch // tuple (file_id, bam_file, run_id)
+    fastq_files_ch = SANGER_IRODS_TO_READS.out.fastq_ch // tuple (file_id, bam_file, batch_id)
     file_id_reference_files_ch = SANGER_IRODS_TO_READS.out.file_id_reference_files_ch
     file_id_to_sample_id_ch = SANGER_IRODS_TO_READS.out.file_id_to_sample_id_ch
   }

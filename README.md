@@ -50,7 +50,7 @@ You can run the pipeline from **FASTQ** input as follows:
 ```
 nextflow /path/to/repository/main.nf -profile standard \
         --execution_mode fastq \
-        --run_id 12345 \
+        --batch_id 12345 \
         --fastq_manifest /path/to/fastq_manifest.tsv
         --containers_dir /path/to/containers_dir/
         -c /path/to/species/config 
@@ -60,7 +60,7 @@ Alternatively, lauch the pipeline run with input from **iRODS**:
 ```
 nextflow /path/to/repository/main.nf -profile standard \
         --execution_mode irods \
-        --run_id 12345 \
+        --batch_id 12345 \
         --irods_manifest /path/to/irods_manifest.tsv
         --containers_dir /path/to/containers_dir/
         -c /path/to/species/config
@@ -70,7 +70,7 @@ You can also run the pipeline from **BCL** input as follows:
 ```
 nextflow /path/to/repository/main.nf -profile standard \
         --execution_mode in-country \
-        --run_id 12345 \
+        --batch_id 12345 \
         --bcl_dir /path/to/my_bcl_dir/ \
         --manifest_path path/to/in_country_manifest.tsv \
         --containers_dir /path/to/containers_dir/
@@ -170,7 +170,7 @@ By default, Nextflow looks for configuration files in various location. We provi
 ### Essential Parameters  
 
 - `--execution_mode` : Sets the entry point for the pipeline. This can be "fastq" (the expected input type in fastq files), "irods" (the expected input type is CRAM files), or "in-country" (the expected input type is BCL files).  
-- `--run_id` : Identifier to be used for the batch of data to be processed. `run_id` is used as a prefix for the output GRC file.  
+- `--batch_id` : Identifier to be used for the batch of data to be processed. `batch_id` is used as a prefix for the output files and as a prefix for readgroup names in CRAM files. 
 - `--species_config`/`-c` : stages the relevant reference amplicon panels and references to analyse data from specific species. Configuration files for _P. falciparum_ and _P. vivax_ are provided in the repository in `path/to/repository/conf`  
 
 > **NB**: Using the `-c` flag is the easiest way to point to specific reference files and using this flag makes it unnecessary to specify the certain parameters at the command-line ([see below](#species-configuration-file)).
@@ -383,7 +383,7 @@ The pipeline also outputs a Read Count per panel file, containing information on
 
 At the end of each run, AmpRecon produces a genetic report card (GRC). This is the essential summary of the run results, and contains details about variants of interest. A full explanation of the loci covered in the GRC is available [here](https://www.malariagen.net/sites/default/files/GRC_UserGuide_10JAN19.pdf).  
 
-The `<run_id>_GRC.txt` contains the following headers:  
+The `<batch_id>_GRC.txt` contains the following headers:  
 
 - `ID` : Sample ID.  
 
@@ -417,7 +417,7 @@ First, the variants are organised into genotypes on a per-locus basis, and `geno
 
 Once barcodes for each sample have been assembled, the GRC creation process moves to species-detection. At this stage, the pipeline assigns each sample a species tag, currently either "Pf" for _P. falciparum_ or "Pv" for _P. vivax_. When working with _Plasmodium_ samples, this stage of analysis is able to identify species co-infections on a per-sample basis.   
 
-The final processing stage computes the complexity of infection for each sample, which is reported as the estimated number of unique parasite genotypes found in the sample. Information on clinically significant loci, the sample barcode, the species detection results, and the complexity of infection are all reported in the `<run_id>_GRC.txt`.
+The final processing stage computes the complexity of infection for each sample, which is reported as the estimated number of unique parasite genotypes found in the sample. Information on clinically significant loci, the sample barcode, the species detection results, and the complexity of infection are all reported in the `<batch_id>_GRC.txt`.
 
 [**(&uarr;)**](#contents)  
 
@@ -427,7 +427,7 @@ The final processing stage computes the complexity of infection for each sample,
 
 ## Pipeline  
 
-- `--run_id` (str) : Run/batch identifier, used to label output files  
+- `--batch_id` (str) : Run/batch identifier, used to label output files and read groups in CRAM files. It can be any ID and has no impact on the pipeline beyond read group and file names. 
 
 - `--execution_mode` (str) [Valid: "irods" or "in-country"]: Mode of execution  
 
