@@ -3,7 +3,6 @@
 params.bgzip = 'bgzip'
 params.tabix = 'tabix'
 params.mpileup_min_bq = 20
-params.mpileup_min_bp = 13
 params.mpileup_max_depth = 50000
 
 process bcftools_mpileup {
@@ -27,7 +26,6 @@ process bcftools_mpileup {
         """
     bcftools mpileup \
     --min-BQ ${mpileup_min_bq} \
-    --min-BP ${mpileup_min_bp} \
     --annotate FORMAT/AD,FORMAT/DP \
     --max-depth ${mpileup_max_depth} \
     --targets-file "${reference_annotation_vcf}" \
