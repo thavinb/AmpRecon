@@ -2,6 +2,9 @@
 
 params.bgzip = 'bgzip'
 params.tabix = 'tabix'
+params.mpileup_min_bq = 20
+params.mpileup_min_bp = 13
+params.mpileup_max_depth = 50000
 
 process bcftools_mpileup {
     /*
@@ -17,12 +20,16 @@ process bcftools_mpileup {
     script:
         base_name = input_bam.baseName
         output_bcf="${base_name}.bcf"
+        mpileup_min_bq = params.mpileup_min_bq
+        mpileup_min_bp = params.mpileup_min_bp
+        mpileup_max_depth = params.mpileup_max_depth
 
         """
     bcftools mpileup \
-    --min-BQ 20 \
+    --min-BQ ${mpileup_min_bq} \
+    --min-BP ${mpileup_min_bp} \
     --annotate FORMAT/AD,FORMAT/DP \
-    --max-depth 50000 \
+    --max-depth ${mpileup_max_depth} \
     --targets-file "${reference_annotation_vcf}" \
     --fasta-ref "${reference_file}" \
     --output-type u \
@@ -109,4 +116,3 @@ process bcftools_filter {
         rm "${intermediate_vcf}"
         """
 }
-
