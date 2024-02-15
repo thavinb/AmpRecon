@@ -4,6 +4,9 @@ All notable changes to this project will be documented in this file.
 
 ## UNRELEASED
 
+### Added
+- **[Feature]**: parameterisation of samtools mpileup min-BQ and max-depth
+
 ### Changed
 - **[Change]**: `run_id` renamed to `batch_id`.
 
