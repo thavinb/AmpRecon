@@ -20,7 +20,6 @@ process bcftools_mpileup {
         base_name = input_bam.baseName
         output_bcf="${base_name}.bcf"
         mpileup_min_bq = params.mpileup_min_bq
-        mpileup_min_bp = params.mpileup_min_bp
         mpileup_max_depth = params.mpileup_max_depth
 
         """
