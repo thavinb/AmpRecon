@@ -7,8 +7,10 @@ All notable changes to this project will be documented in this file.
 ### Added
 - **[Feature]**: parameterisation of samtools mpileup min-BQ and max-depth
 
+## [1.3.0] - 2023-11-29
+
 ### Changed
-- **[Change]**: `run_id` renamed to `batch_id`.
+- **[Change]**: `run_id` renamed to `batch_id`. NOTE that old parameter 'run_id' will no longer work.
 
 
 ### Fixed
@@ -71,6 +73,10 @@ All notable changes to this project will be documented in this file.
 
 - **[Bug]** post processing of read couts files breaks when using test run ids standarad naming (`{run_id}_T`).
   - **Fix**: The `post_proc_read_counts.py` now removes any `_T` before recovering the lanelets.
+
+- **[Bug]**  The barcodes process was outputing sample information in a FIFO (first-in, first-out) order. 
+    
+    - **Fix**: `grc_barcoding.py` was modified to sort the barcode data-structure alphanumerically prior to writing out to the output barcodes.txt file.
 
 ## [1.0.0] - 2023-06-15
 
