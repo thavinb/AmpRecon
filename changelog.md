@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## UNRELEASED
+## [1.4.0] - 2024-02-15
 
 ### Added
 - **[Feature]**: parameterisation of samtools mpileup min-BQ and max-depth
