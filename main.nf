@@ -30,7 +30,7 @@ ANSI_RESET = "\033[0m"
 
 log.info """
         ===========================================
-         AMPRECON dev
+         AMPRECON 1.3.0
          Used parameters:
         -------------------------------------------
          --execution_mode     : ${params.execution_mode}
