@@ -18,7 +18,7 @@ if execution_mode=='irods':
     name_path_column = "irods_path"
 elif execution_mode=='fastq':
     REQUIRED_HEADERS = ["sample_id", "primer_panel","fastq_path"]
-    REQUIRED_FORMAT = tuple(['.fastq','fq'])
+    REQUIRED_FORMAT = tuple(['.fastq','.fq', '.fastq.gz', '.fq.gz'])
     name_path_column = "fastq_path"
 
 
