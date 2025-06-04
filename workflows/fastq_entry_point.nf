@@ -86,7 +86,7 @@ def fastq_parameter_check(){
             error += 1
         }
         else {
-            validate_fastq_mnf(params.fastq_manifest, params.panels_settings)
+            validate_fastq_mnf(fastq_manifest, params.panels_settings)
         }
     }
 
