@@ -4,6 +4,9 @@ Bootstrap: docker
 From: python:3.8-buster 
 
 %post
+    # The repo for buster release is already archived
+    sed -i 's|http://deb.debian.org/debian|https://archive.debian.org/debian|g' /etc/apt/sources.list
+
     # Install required packages
     apt update -qq -y
     apt upgrade -y
