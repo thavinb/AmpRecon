@@ -44,20 +44,16 @@
     ------------------------------------------------------------------
 */
 
-// enable dsl2
-nextflow.enable.dsl = 2
-
 // import modules
-include { assemble_genotype_file } from '../modules/grc_assemble_genotype_file.nf'
-include { grc_kelch13_mutation_caller } from '../modules/grc_kelch13_mutation_caller.nf'
-include { grc_plasmepsin_cnv_caller } from '../modules/grc_plasmepsin_cnv_caller.nf'
-include { grc_speciate } from '../modules/grc_speciate.nf'
-include { grc_barcoding } from '../modules/grc_barcoding.nf'
-include { grc_estimate_coi } from '../modules/grc_estimate_coi.nf'
-include { grc_amino_acid_caller } from '../modules/grc_amino_acid_caller.nf'
-include { grc_assemble } from '../modules/grc_assemble.nf'
-include { grc_add_metadata } from '../modules/grc_add_metadata.nf'
-include { upload_pipeline_output_to_s3 } from '../modules/upload_pipeline_output_to_s3.nf'
+include { assemble_genotype_file       } from '../../modules/grc_assemble_genotype_file.nf'
+include { grc_kelch13_mutation_caller  } from '../../modules/grc_kelch13_mutation_caller.nf'
+include { grc_plasmepsin_cnv_caller    } from '../../modules/grc_plasmepsin_cnv_caller.nf'
+include { grc_speciate                 } from '../../modules/grc_speciate.nf'
+include { grc_barcoding                } from '../../modules/grc_barcoding.nf'
+include { grc_estimate_coi             } from '../../modules/grc_estimate_coi.nf'
+include { grc_amino_acid_caller        } from '../../modules/grc_amino_acid_caller.nf'
+include { grc_assemble 			       } from '../../modules/grc_assemble.nf'
+include { grc_add_metadata             } from '../../modules/grc_add_metadata.nf'
 
 workflow VARIANTS_TO_GRCS {
     take:
@@ -126,12 +122,12 @@ workflow VARIANTS_TO_GRCS {
         grc = grc_add_metadata.out
     
         // upload final GRC and Genotype file to S3 bucket
-        if (params.upload_to_s3){
-            grc
-                .concat(genotype_files_ch)
-                .set{output_to_s3}
-            upload_pipeline_output_to_s3(output_to_s3, "grc")
-        }
+        /* if (params.upload_to_s3){ */
+        /*     grc */
+        /*         .concat(genotype_files_ch) */
+        /*         .set{output_to_s3} */
+        /*     upload_pipeline_output_to_s3(output_to_s3, "grc") */
+        /* } */
 
     emit:
         grc

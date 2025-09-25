@@ -4,9 +4,8 @@
 // enable dsl2
 nextflow.enable.dsl = 2
 
-include { files_and_panels_to_csv } from '../modules/read_counts_per_region.nf'
-include { read_count_per_region } from '../modules/read_counts_per_region.nf'
-include { upload_pipeline_output_to_s3 } from '../modules/upload_pipeline_output_to_s3.nf'
+include { files_and_panels_to_csv } from '../modules/read_counts_per_region/main'
+include { read_count_per_region } from '../modules/read_counts_per_region.nf/main'
 
 workflow READ_COUNTS {
   take:
@@ -29,11 +28,6 @@ workflow READ_COUNTS {
       annotations_ch,
     )
 
-    // upload read counts to S3 bucket
-    if (params.upload_to_s3){
-      read_count_per_region.out.set{output_to_s3}
-      upload_pipeline_output_to_s3(output_to_s3, "read_counts")
-    }
 }
 
 workflow {
