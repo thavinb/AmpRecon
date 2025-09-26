@@ -1,7 +1,6 @@
 # Ignore nextflow generated files
 *.nextflow*
 *MANIFEST*
-*index*
 *LOCK*
 *.log
 *.sif

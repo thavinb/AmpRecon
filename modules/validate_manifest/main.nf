@@ -3,6 +3,9 @@
 process VALIDATE_MANIFEST {
 
     tag "${manifest.getBaseName()}"
+    container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
+        'https://depot.galaxyproject.org/singularity/pandas:2.2.1' : 
+        'biocontainers/pandas:2.2.1' }"
 
     input:
         path(manifest)

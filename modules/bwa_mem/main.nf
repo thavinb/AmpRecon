@@ -5,6 +5,9 @@ process BWA_MEM {
     * Map reads to reference
     */
     tag "${meta.uuid}"
+    container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
+        'https://depot.galaxyproject.org/singularity/bwa:0.7.17--ha92aebf_3' : 
+        'biocontainers/bwa:0.7.17--ha92aebf_3' }"
 
     input:
         tuple val(meta), path(reads)
