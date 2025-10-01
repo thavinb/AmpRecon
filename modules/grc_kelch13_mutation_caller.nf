@@ -13,6 +13,7 @@ process grc_kelch13_mutation_caller {
     Writes these kelch13 mutation calls to a single output tab-separated file.
     */
 
+    label "py_pandas"
     label "grc_tools"
     input:
         path(genotype_file)

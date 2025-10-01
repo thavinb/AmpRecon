@@ -3,6 +3,7 @@
 params.coi_output_filename = "coi.tsv"
 
 process grc_estimate_coi {
+    label "py_pandas"
     label "coi"
     input:
         path(barcodes_grc)

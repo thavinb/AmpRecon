@@ -14,6 +14,7 @@ process assemble_genotype_file {
     alleles with low coverage.
     */
 
+    label "pyvcf"
     label "grc_tools"
 
     input:

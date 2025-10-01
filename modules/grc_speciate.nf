@@ -3,6 +3,7 @@
 params.speciation_output_filename = "speciation_output.tsv"
 
 process grc_speciate {
+    label "py_pandas"
     label "grc_tools"
 
     input:

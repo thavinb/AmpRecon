@@ -1,0 +1,24 @@
+LINENO                  Line Number of Executing Expression
+OS.type                 Detect the Operating System Type
+basename2               Manipulate File Paths
+check.path              Check 'this.path()' is Functioning Correctly
+ext                     File Extensions
+here                    Construct Path to File, Starting With Script's
+                        Directory
+make_fix_funs           Constructs Path Functions Similar to
+                        'this.path()'
+path.join               Construct Path to File
+path.split              Split File Path Into Individual Components
+relpath                 Make a Path Relative to Another
+set.gui.path            Declare GUI's Active Document
+set.jupyter.path        Declare Executing 'Jupyter' Notebook's Filename
+set.sys.path            Implement 'this.path()' For Arbitrary
+                        'source()'-Like Functions
+shFILE                  Get 'FILE' Provided to R by a Shell
+site.file               Files Related to Initialization of the R
+                        Session
+this.path               Determine Script's Filename
+this.path-package       Get Script's Path
+try.this.path           Attempt to Determine Script's Filename
+with_script_path        Functions That Enhance the Use of Other
+                        Packages

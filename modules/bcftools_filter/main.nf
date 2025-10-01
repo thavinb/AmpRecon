@@ -5,8 +5,11 @@ process BCFTOOLS_FILTER {
     /*
     SNPs in the input BCF file are filtered and output as an uncompressed VCF file
     */
+
     tag "${meta.uuid}"
+    label "bcftools"
     label "process_low"
+
     container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
         'https://depot.galaxyproject.org/singularity/bcftools:1.8--0' : 
         'biocontainers/bcftools:1.8--0' }"
@@ -16,7 +19,7 @@ process BCFTOOLS_FILTER {
 
     output:
         tuple val(meta), path("*.vcf.gz"), path("*.tbi"), emit: vcf
-        path "versions.yml"                         , emit: versions
+        path "versions.yml"                             , emit: versions
 
     script:
         def prefix = "${meta.uuid}"

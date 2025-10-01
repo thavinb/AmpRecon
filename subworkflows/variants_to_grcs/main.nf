@@ -50,10 +50,12 @@ include { grc_kelch13_mutation_caller  } from '../../modules/grc_kelch13_mutatio
 include { grc_plasmepsin_cnv_caller    } from '../../modules/grc_plasmepsin_cnv_caller.nf'
 include { grc_speciate                 } from '../../modules/grc_speciate.nf'
 include { grc_barcoding                } from '../../modules/grc_barcoding.nf'
-include { grc_estimate_coi             } from '../../modules/grc_estimate_coi.nf'
+include { GRC_MCCOIL_INPUT             } from '../../modules/grc_mccoil/main.nf'
+include { GRC_RUN_MCCOIL               } from '../../modules/grc_mccoil/main.nf'
+include { GRC_PARSE_MCCOIL             } from '../../modules/grc_mccoil/main.nf'
 include { grc_amino_acid_caller        } from '../../modules/grc_amino_acid_caller.nf'
 include { grc_assemble 			       } from '../../modules/grc_assemble.nf'
-include { grc_add_metadata             } from '../../modules/grc_add_metadata.nf'
+include { GRC_ADD_METADATA             } from '../../modules/grc_add_metadata.nf'
 
 workflow VARIANTS_TO_GRCS {
     take:
@@ -92,8 +94,14 @@ workflow VARIANTS_TO_GRCS {
         grc_speciate(genotype_files_ch, grc_barcoding.out.barcoding_file)
         if (params.DEBUG_no_coi == false){
             // Complexity of infection estimation
-            grc_estimate_coi(grc_barcoding.out.barcoding_file)
-            coi_grc_ch = grc_estimate_coi.out
+            /* grc_estimate_coi(grc_barcoding.out.barcoding_file) */
+            //TODO 
+            rlibs_path = Channel.fromPath("/home/thavinb/AmpRecon/assets/R_libs")
+            GRC_MCCOIL_INPUT(grc_barcoding.out.barcoding_file)
+            GRC_RUN_MCCOIL(GRC_MCCOIL_INPUT.out.het, rlibs_path)
+            GRC_PARSE_MCCOIL(GRC_RUN_MCCOIL.out.coi)
+            /* coi_grc_ch = grc_estimate_coi.out */
+            coi_grc_ch = GRC_PARSE_MCCOIL.out.coi
         }
 
         if (params.DEBUG_no_coi == true){
@@ -116,10 +124,10 @@ workflow VARIANTS_TO_GRCS {
         grc_assemble(grc_components)
 
         // Add metadata from manifest to GRC file
-        grc_add_metadata(manifest_file, grc_assemble.out)
+        GRC_ADD_METADATA(manifest_file, grc_assemble.out)
 
         // Workflow output channel
-        grc = grc_add_metadata.out
+        grc = GRC_ADD_METADATA.out
     
         // upload final GRC and Genotype file to S3 bucket
         /* if (params.upload_to_s3){ */

@@ -7,10 +7,8 @@ process BCFTOOLS_CALL {
     */
 
     tag "${meta.uuid}"
+    label "bcftools"
     label "process_low"
-    container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
-        'https://depot.galaxyproject.org/singularity/bcftools:1.8--0' : 
-        'biocontainers/bcftools:1.8--0' }"
 
     input:
         tuple val(meta), path(input_bcf)

@@ -4,6 +4,7 @@ params.barcode_output_name = "barcode.intermediate.tsv"
 params.barcode_intermediate_splitout_name = "barcoding_output.split_out.intermediate.tsv"
 
 process grc_barcoding {
+    label "py_pandas"
     label "grc_tools"
     input:
         path(genotype_file)

@@ -4,6 +4,7 @@ params.drl_haplotypes_output_filename = "drl_haplotype_calls.tsv"
 params.grc2_intermediate_name = "GRC2.intermediate.tsv"
 
 process grc_amino_acid_caller {
+    label "py_pandas"
     label "grc_tools"
     input:
         path(genotype_file)

@@ -5,9 +5,7 @@ process SAMTOOLS_SORT_INDEX {
     * Sort and Index SAM file
     */
     tag "${meta.uuid}"
-    container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
-        'https://depot.galaxyproject.org/singularity/samtools:1.6--h5fe306e_13' : 
-        'biocontainers/samtools:1.6--h5fe306e_13' }"
+    label 'samtools'
 
     input:
         tuple val(meta), path(sam)

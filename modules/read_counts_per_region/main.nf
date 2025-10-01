@@ -1,6 +1,7 @@
 // Copyright (C) 2023 Genome Surveillance Unit/Genome Research Ltd.
 
 process read_count_per_region {
+    label 'py_pandas'
     stageInMode 'copy'
     publishDir "${params.results_dir}/read_counts/", overwrite: true, mode: "copy"
 

@@ -10,6 +10,7 @@ process grc_plasmepsin_cnv_caller {
     number variation calls to a single output tab-separated file.
     */
 
+    label "py_pandas"
     label "grc_tools"
 
     input:

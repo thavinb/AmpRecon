@@ -5,10 +5,8 @@ process SCRAMBLE_CRAM_TO_BAM {
     Converts a cram to bam.
     */
     tag "${meta.uuid}"
+    label 'staden_io'
     label 'process_low'
-    container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
-        'https://depot.galaxyproject.org/singularity/staden_io_lib:1.15.1--hfc9290b_0' : 
-        'biocontainers/staden_io_lib:1.15.1--hfc9290b_0' }"
 
     input:
         tuple val(meta), path(cram)

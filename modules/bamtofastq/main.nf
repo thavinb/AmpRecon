@@ -4,11 +4,10 @@ process BAMTOFASTQ {
     /*
     Converts BAM files to FASTQ.
     */
+
     tag "${meta.uuid}"
+    label 'biobambam'
     label 'process_low'
-    container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
-        'https://depot.galaxyproject.org/singularity/biobambam:2.0.79--0' : 
-        'biocontainers/biobambam:2.0.79--0' }"
 
     input:
         tuple val(meta), path(bam)
