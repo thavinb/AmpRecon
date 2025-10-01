@@ -10,6 +10,7 @@ include { FASTQC              } from './modules/fastqc/main'
 include { ALIGNMENT           } from './subworkflows/alignment'
 include { GENOTYPING          } from './subworkflows/genotyping'
 include { VARIANTS_TO_GRCS    } from './subworkflows/variants_to_grcs'
+include { MULTIQC             } from './modules/multiqc/main'
 include { PIPELINE_COMPLETION } from './subworkflows/utils'
 include { write_vcfs_manifest } from './modules/write_vcfs_manifest.nf'
 
@@ -31,11 +32,9 @@ workflow  {
         CRAM_TO_READS(
             PIPELINE_INIT.out.input_ch
         )
-        manifest = Channel.fromPath("${params.manifest}")
         fastq_ch = CRAM_TO_READS.out.fastq
         ch_versions = ch_versions.mix(CRAM_TO_READS.out.versions)
     } else {
-        manifest = Channel.fromPath("${params.manifest}")
         fastq_ch = PIPELINE_INIT.out.input_ch
     }
     
@@ -44,6 +43,7 @@ workflow  {
     //
     FASTQC(fastq_ch) 
     ch_versions = ch_versions.mix(FASTQC.out.versions.first())
+	ch_multiqc_files = ch_multiqc_files.mix(FASTQC.out.zip.collect{it[1]})
 
     //
     // ALIGNMENT
@@ -52,6 +52,7 @@ workflow  {
         fastq_ch
     )
     ch_versions = ch_versions.mix(ALIGNMENT.out.versions.first())
+	ch_multiqc_files = ch_multiqc_files.mix(ALIGNMENT.out.mqc)
 
     //
     // GENOTYPING
@@ -60,11 +61,11 @@ workflow  {
         ALIGNMENT.out.bam
     )
     ch_versions = ch_versions.mix(GENOTYPING.out.versions.first())
+	ch_multiqc_files = ch_multiqc_files.mix(GENOTYPING.out.mqc)
 
     //
     // GRC CREATION
     //
-    
     GENOTYPING.out.vcf
         | map { it -> 
             def (meta, vcf, tbi) = it[0..2]
@@ -79,7 +80,7 @@ workflow  {
     lanelet_manifest_file = write_vcfs_manifest.out
 
     VARIANTS_TO_GRCS(
-        manifest,
+        params.manifest,
         lanelet_manifest_file,
         params.chrom_key_file_path,
         params.kelch_reference_file_path,
@@ -87,6 +88,14 @@ workflow  {
         params.drl_information_file_path
     )
 
+	MULTIQC(
+		ch_multiqc_files.collect(),
+		[],
+		[],
+		[],
+		[],
+		[]
+	)	
     PIPELINE_COMPLETION()
 
     emit: 

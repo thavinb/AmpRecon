@@ -30,6 +30,8 @@ nextflow.enable.dsl = 2
 // import subworkflows
 include { BWA_MEM             } from '../../modules/bwa_mem/main'
 include { SAMTOOLS_SORT_INDEX } from '../../modules/samtools_sort_index/main'
+include { SAMTOOLS_FLAGSTATS  } from '../../modules/samtools_flagstats/main'
+include { SAMTOOLS_COVERAGE   } from '../../modules/samtools_coverage/main'
 
 /* include { READ_COUNTS } from './read_counts.nf' */
 /* include { bam_merge_and_index } from '../modules/bam_merge_and_index.nf' */
@@ -45,21 +47,39 @@ workflow ALIGNMENT {
     main:
 
         ch_versions = Channel.empty()
+		ch_multiqc_files = Channel.empty()
 
         //
         // MODULE: BWA
+		// alignment
         //
         BWA_MEM(fastq_ch)  
         ch_versions = ch_versions.mix(BWA_MEM.out.versions.first())
 
         //
         // MODULE: SAMTOOLS
+		// sort and index
         //
         SAMTOOLS_SORT_INDEX(
             BWA_MEM.out.sam
-        )
+        ) 
         ch_versions = ch_versions.mix(SAMTOOLS_SORT_INDEX.out.versions.first())
+		
  
+		// 
+		// Get mapping statistic 
+		SAMTOOLS_FLAGSTATS(
+			SAMTOOLS_SORT_INDEX.out.bam
+		)
+        ch_versions = ch_versions.mix(SAMTOOLS_FLAGSTATS.out.versions.first())
+		ch_multiqc_files = ch_multiqc_files.mix(SAMTOOLS_FLAGSTATS.out.flagstats.collect{it[1]})
+
+		SAMTOOLS_COVERAGE(
+			SAMTOOLS_SORT_INDEX.out.bam
+		)
+        ch_versions = ch_versions.mix(SAMTOOLS_COVERAGE.out.versions.first())
+		ch_multiqc_files = ch_multiqc_files.mix(SAMTOOLS_COVERAGE.out.coverage.collect{it[1]})
+			
         // read counts
         // TODO: try exclude annotation_ch 
         /* READ_COUNTS(ALIGNMENT.out, alignment_ref_ch, annotations_ch) */
@@ -71,6 +91,7 @@ workflow ALIGNMENT {
 
     emit:
         bam      = SAMTOOLS_SORT_INDEX.out.bam
+		mqc		 = ch_multiqc_files
         versions = ch_versions
 }
 
