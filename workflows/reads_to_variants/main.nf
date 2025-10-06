@@ -27,7 +27,7 @@
 // enable dsl2
 nextflow.enable.dsl = 2
 
-// import subworkflows
+// import workflows
 include { BWA_MEM             as ALIGNMENT      } from '../../bwa'
 include { SAMTOOLS_SORT_INDEX as BAM_SORT_INDEX } from '../../bwa'
 

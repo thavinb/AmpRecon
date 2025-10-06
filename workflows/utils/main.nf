@@ -52,7 +52,8 @@ workflow PIPELINE_INIT {
                                 id: row.sample_id,
                                 panel: row.primer_panel
                             ]
-                            tuple( row.primer_panel, meta, row.cram_path ) }
+                            def cram = resolvePath(row.cram_path)
+                            tuple( row.primer_panel, meta, cram) }
                         | combine( reference_ch, by:0 )
                         | map { it ->  groupPanelReference(it) }
                         | set { input_ch }
@@ -77,7 +78,9 @@ workflow PIPELINE_INIT {
                                 id: row.sample_id,
                                 panel: row.primer_panel
                             ]
-                            tuple( row.primer_panel, meta, [row.fastq1_path, row.fastq2_path] ) }
+                            def fq1 = resolvePath(row.fastq1_path)
+                            def fq2 = resolvePath(row.fastq2_path)
+                            tuple( row.primer_panel, meta, [fq1, fq2] ) }
                         | combine( reference_ch, by:0 )
                         | map { it ->  groupPanelReference(it) }
                         | set { input_ch }
@@ -461,3 +464,14 @@ def groupPanelReference(input) {
     return [ meta + [ reference:genome, snps:snps ], input_files ]
 
 }
+
+def resolvePath(String path) {
+    def f = file(path)
+    if (f.isAbsolute()) {
+        return f
+    } else {
+        return file("${workflow.launchDir}/${path}")
+    }
+}
+
+

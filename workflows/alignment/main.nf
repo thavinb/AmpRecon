@@ -27,7 +27,7 @@
 // enable dsl2
 nextflow.enable.dsl = 2
 
-// import subworkflows
+// import workflows
 include { BWA_MEM             } from '../../modules/bwa_mem/main'
 include { SAMTOOLS_SORT_INDEX } from '../../modules/samtools_sort_index/main'
 include { SAMTOOLS_FLAGSTATS  } from '../../modules/samtools_flagstats/main'
