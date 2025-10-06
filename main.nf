@@ -4,18 +4,18 @@
 
 // --- import modules ---------------------------------------------------------
 
-include { PIPELINE_INIT       } from './subworkflows/utils'
-include { CRAM_TO_READS       } from './subworkflows/cram_to_reads'
+include { PIPELINE_INIT       } from './workflows/utils'
+include { CRAM_TO_READS       } from './workflows/cram_to_reads'
 include { FASTQC              } from './modules/fastqc/main'
-include { ALIGNMENT           } from './subworkflows/alignment'
-include { GENOTYPING          } from './subworkflows/genotyping'
-include { VARIANTS_TO_GRCS    } from './subworkflows/variants_to_grcs'
+include { ALIGNMENT           } from './workflows/alignment'
+include { GENOTYPING          } from './workflows/genotyping'
+include { VARIANTS_TO_GRCS    } from './workflows/variants_to_grcs'
 include { MULTIQC             } from './modules/multiqc/main'
-include { PIPELINE_COMPLETION } from './subworkflows/utils'
+include { PIPELINE_COMPLETION } from './workflows/utils'
 include { write_vcfs_manifest } from './modules/write_vcfs_manifest.nf'
 
 // Main entry-point workflow
-workflow  {
+workflow AMPRECON {
 
 // -- MAIN-EXECUTION ------------------------------------------------------
     ch_versions = Channel.empty()
@@ -96,6 +96,7 @@ workflow  {
 		[],
 		[]
 	)	
+    // TODO:
     PIPELINE_COMPLETION()
 
     emit: 
@@ -103,6 +104,14 @@ workflow  {
 
 }
 
+
+// --- Execute Main Workflow -------------------------------------------------
+workflow {
+    AMPRECON()
+}
+
+// --- On Completion ---------------------------------------------------------
+// TODO: fix completion message.
 workflow.onComplete {
 	if (workflow.exitStatus == 0) {
 		log.info """

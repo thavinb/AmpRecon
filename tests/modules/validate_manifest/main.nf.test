@@ -1,0 +1,127 @@
+nextflow_process {
+
+    name "Test manifest validation script"
+    script "modules/validate_manifest/main.nf"
+    process "VALIDATE_MANIFEST"
+
+    test(
+        """
+        Test: Test CRAM mode, with valid format. Should run without failures.
+        Manifest:
+            | sample_id | primer_panel  |    cram_path      |
+            |-----------|---------------|-------------------|
+            | RCN0001   | PFA_GRC1      | RCN0001_GRC1.cram |
+            | RCN0001   | PFA_GRC2      | RCN0001_GRC2.cram |
+            | RCN0001   | PFA_Spec      | RCN0001_Spec.cram |
+        Result:
+        """ 
+    ) {
+        when {
+			params {
+				manifest = WorkflowUtils.makeManifest( "${workDir}/valid_cram_mnf.tsv",
+					["sample_id", "primer_panel", "cram_path"],
+					[
+						[sample_id: "RCN0001", primer_panel: "PFA_GRC1", cram_path:"RCN0001_GRC1.cram"],
+						[sample_id: "RCN0001", primer_panel: "PFA_GRC2", cram_path:"RCN0001_GRC2.cram"],
+						[sample_id: "RCN0001", primer_panel: "PFA_Spec", cram_path:"RCN0001_Spec.cram"]
+					])
+			}
+            process {
+
+                """
+                // define inputs of the process here. Example:
+				input[0] = file("${params.manifest}")
+                input[1] = file("${baseDir}/tests/data/panel_settings_pseudoreference.csv")
+                input[2] = "cram"
+                """
+            }
+        }
+
+        then {
+            assert process.success
+        }
+
+    }
+
+    test(
+        """
+        Test: Test FastQ mode, with valid format. Should run without failures.
+        Input:
+            | sample_id | primer_panel  |    fastq1_path          |    fastq2_path          |
+            |-----------|---------------|-------------------------|-------------------------|
+            | RCN0001   | PFA_GRC1      | RCN0001_GRC1_1.fastq    | RCN0001_GRC1_2.fastq    |
+            | RCN0001   | PFA_GRC2      | RCN0001_GRC2_1.fq       | RCN0001_GRC2_2.fq       |
+            | RCN0001   | PFA_Spec      | RCN0001_Spec_1.fastq.gz | RCN0001_Spec_2.fastq.gz |
+        Result:
+        """
+    ) {
+        when {
+			params {
+				manifest = WorkflowUtils.makeManifest( "${workDir}/valid_fq_mnf.tsv",
+					["sample_id", "primer_panel", "fastq1_path", "fastq2_path"],
+					[
+						[sample_id: "RCN0001", primer_panel: "PFA_GRC1", fastq1_path:"RCN0001_GRC1_1.fastq"   , fastq2_path: "RCN0001_GRC1_2.fastq"],
+						[sample_id: "RCN0001", primer_panel: "PFA_GRC2", fastq1_path:"RCN0001_GRC2_1.fq"      , fastq2_path: "RCN0001_GRC2_2.fq"],
+						[sample_id: "RCN0001", primer_panel: "PFA_Spec", fastq1_path:"RCN0001_Spec_1.fastq.gz", fastq2_path: "RCN0001_SPEC_2.fastq.gz"]
+					])
+			}
+            process {
+
+                """
+                // define inputs of the process here. Example:
+                input[0] = file("${params.manifest}")
+                input[1] = file("${baseDir}/tests/data/panel_settings_pseudoreference.csv")
+                input[2] = "fastq"
+                """
+            }
+        }
+
+        then {
+            assert process.success
+        }
+
+    }
+
+    test(
+        """
+        Test: Test FastQ mode, with invalid header in manifest. Should failed with an appropiate error.
+        Input:
+            | sample_id | primer_panel  |    fastq1_path          |    wrong_header         |
+            |-----------|---------------|-------------------------|-------------------------|
+            | RCN0001   | PFA_GRC1      | RCN0001_GRC1_1.fastq    | RCN0001_GRC1_2.fastq    |
+            | RCN0001   | PFA_GRC2      | RCN0001_GRC2_1.fq       | RCN0001_GRC2_2.fq       |
+            | RCN0001   | PFA_Spec      | RCN0001_Spec_1.fastq.gz | RCN0001_Spec_2.fastq.gz |
+        Result:
+        """
+    ) {
+        when {
+			params {
+				manifest = WorkflowUtils.makeManifest( "${workDir}/valid_fq_mnf.tsv",
+					["sample_id", "primer_panel", "fastq1_path", "fastq2"],
+					[
+						[sample_id: "RCN0001", primer_panel: "PFA_GRC1", fastq1_path:"RCN0001_GRC1_1.fastq"   , fastq2_path: "RCN0001_GRC1_2.fastq"],
+						[sample_id: "RCN0001", primer_panel: "PFA_GRC2", fastq1_path:"RCN0001_GRC2_1.fq"      , fastq2_path: "RCN0001_GRC2_2.fq"],
+						[sample_id: "RCN0001", primer_panel: "PFA_Spec", fastq1_path:"RCN0001_Spec_1.fastq.gz", fastq2_path: "RCN0001_SPEC_2.fastq.gz"]
+					])
+			}
+            process {
+
+                """
+                // define inputs of the process here. Example:
+                input[0] = file("${params.manifest}")
+                input[1] = file("${baseDir}/tests/data/panel_settings_pseudoreference.csv")
+                input[2] = "fastq"
+                """
+            }
+        }
+
+        then {
+            assert process.failed
+            assert process.exitStatus == 1
+            assert process.errorReport.contains("The following expected headers were not found: ['fastq2_path']")
+        }
+
+    }
+
+
+}

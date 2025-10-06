@@ -1,0 +1,98 @@
+nextflow_workflow {
+
+    name "Test Main Workflow with Mode Setting"
+    script "main.nf"
+    workflow "AMPRECON"
+
+    def makeManifest = { String name, List<String> header, List<Map> rows ->
+        def f = new File(name)
+        f.parentFile?.mkdirs()             
+        def headerLine = header.join("\t")
+        def lines = rows.collect { row -> 
+            header.collect { h -> row.get(h, "") }.join("\t")
+        }
+        f.text = ([headerLine] + lines).join("\n")
+        return f.absolutePath             
+    }
+
+    test("Test Fastq Mode, should produce same result with no error") {
+
+        when {
+            params {
+                def fastq_path = "${baseDir}/tests/data/fastq"
+                def mnf_path   = "${workDir}/fq_mnf.tsv"
+
+                manifest = WorkflowUtils.makeManifest("${mnf_path}",
+                    ["sample_id", "primer_panel", "fastq1_path", "fastq2_path"],
+                    (1..5).collectMany { i ->
+                        ["GRC1", "GRC2", "Spec"].collect { panel ->
+                            [
+                                sample_id: "sample0${i}",
+                                primer_panel: "PFA_${panel}",
+                                fastq1_path: "${fastq_path}/sample0${i}.${panel.toLowerCase()}_1.fastq",
+                                fastq2_path: "${fastq_path}/sample0${i}.${panel.toLowerCase()}_2.fastq"
+                            ]
+                        }
+                    }
+                )
+                
+                panels_settings = "${baseDir}/tests/data/panel_settings_pseudoreference.csv"
+                execution_mode  = "fastq"
+                batch_id        = "1000"
+                results_dir     = "${moduleTestDir}/fastq_mode/output"
+                DEBUG_no_coi    = true
+            }
+        }
+
+        then {
+            assert workflow.success
+            assert workflow.out.grc
+            assert workflow.out.grc.size() == 1
+
+            /* def grc = workflow.out.grc.get(0) */
+            /* assert path(grc).md5 == "e61424059831c0e6196a9bd674e4af42" */
+        }
+
+    }
+
+    test("Test CRAM Mode, should produce same result with no error") {
+
+        when {
+            params {
+                def cram_path = "${baseDir}/tests/data/cram"
+                def mnf_path  = "${workDir}/cram_mnf.tsv"
+
+                // Generate manifest as string path
+                manifest = WorkflowUtils.makeManifest("${mnf_path}",
+                    ["sample_id", "primer_panel", "cram_path"],
+                    (1..5).collectMany { i ->
+                        ["GRC1", "GRC2", "Spec"].collect { panel ->
+                            [
+                                sample_id: "sample0${i}",
+                                primer_panel: "PFA_${panel}",
+                                cram_path: "${cram_path}/sample0${i}.${panel.toLowerCase()}.cram"
+                            ]
+                        }
+                    }
+                )
+
+                panels_settings = "${baseDir}/tests/data/panel_settings_pseudoreference.csv"
+                execution_mode  = "cram"
+                batch_id        = "1000"
+                results_dir     = "${moduleTestDir}/cram_mode/output"
+                DEBUG_no_coi    = true
+            }
+        }
+
+        then {
+            assert workflow.success
+            assert workflow.out.grc
+            assert workflow.out.grc.size() == 1
+
+            /* def grc = workflow.out.grc.get(0) */
+            /* assert path(grc).md5 == "5cdea445798e284b6a39180fc2d93301" */
+        }
+
+    }
+}
+
