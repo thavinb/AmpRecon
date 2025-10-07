@@ -37,14 +37,14 @@ workflow PIPELINE_INIT {
 
             // validate sample sheet 
             VALIDATE_MANIFEST(
-				params.manifest,
+				input,
 				params.panels_settings,
 				params.execution_mode
 			)
 
             // create irods channel 
             // tuple ( [uuid, id, panel, genome, snps], cram_path )
-            irods_ch = Channel.fromPath("${params.manifest}")
+            irods_ch = Channel.fromPath(input)
                         | splitCsv(header: true, sep: '\t')
                         | map { row -> 
                             def meta = [
@@ -62,15 +62,16 @@ workflow PIPELINE_INIT {
         if (params.execution_mode == "fastq") {
 
             // validate sample sheet
+
             VALIDATE_MANIFEST(
-				params.manifest,
+				input,
 				params.panels_settings,
 				params.execution_mode
 			)
 
             // create fastq channel
             // tuple ( [uuid, id, panel, genome, snps], [fastq1_path, fastq2_path] )
-            fastq_ch = Channel.fromPath("${params.manifest}")
+            fastq_ch = Channel.fromPath(input)
                         | splitCsv(header: true, sep: '\t')
                         | map { row -> 
                             def meta = [

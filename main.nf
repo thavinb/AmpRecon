@@ -12,6 +12,7 @@ include { GENOTYPING          } from './workflows/genotyping'
 include { VARIANTS_TO_GRCS    } from './workflows/variants_to_grcs'
 include { MULTIQC             } from './modules/multiqc/main'
 include { PIPELINE_COMPLETION } from './workflows/utils'
+include { resolvePath         } from './workflows/utils'
 include { write_vcfs_manifest } from './modules/write_vcfs_manifest.nf'
 
 // Main entry-point workflow
@@ -20,12 +21,13 @@ workflow AMPRECON {
 // -- MAIN-EXECUTION ------------------------------------------------------
     ch_versions = Channel.empty()
     ch_multiqc_files = Channel.empty()
+    def manifest = resolvePath(params.manifest)
 
     PIPELINE_INIT (
         params.help, 
         params.monochrome_logs, 
         params.results_dir, 
-        params.manifest
+        manifest
     ) 
 
     if (params.execution_mode == "cram") {
@@ -80,7 +82,7 @@ workflow AMPRECON {
     lanelet_manifest_file = write_vcfs_manifest.out
 
     VARIANTS_TO_GRCS(
-        params.manifest,
+        manifest,
         lanelet_manifest_file,
         params.chrom_key_file_path,
         params.kelch_reference_file_path,

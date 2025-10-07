@@ -185,12 +185,13 @@ def validate_primer_panels(
     Returns:
         True if all panel names are valid, False otherwise.
     """
-    logging.info("Validate manifest's primer panel name against the panel setting file")
+    logging.info(f"Validate manifest's primer panel name against the panel setting file: {required_panels}")
 
     invalid_ppnls = df[~df["primer_panel"].isin(required_panels)]
 
     if not invalid_ppnls.empty:
-        logging.error(f"{len(invalid_ppnls)} lines in the manifest have primer panel names that are not in the provided panel settings file: {invalid_ppnls.index} ")
+        logging.error(f"{len(invalid_ppnls)} lines in the manifest have primer panel names that are not in the provided panel settings file: {invalid_ppnls.index.to_list()}, ")
+        logging.error(f"Invalid provided primer_panel: {invalid_ppnls.primer_panel.unique()}")
         return False
 
     return True
