@@ -28,6 +28,20 @@ jobs:
           curl -fsSL https://code.askimed.com/install/nf-test | bash
           sudo mv nf-test /usr/local/bin/
 
+      - name: Install Apptainer
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y apptainer
+
+      - name: Check Apptainer version
+        run: apptainer --version
+
+      - name: Symlink singularity
+        run: sudo ln -s /usr/bin/apptainer /usr/local/bin/singularity
+
+      - name: Check symlink
+        run: singularity --version
+
       - name: Run nf-test
-        run: nf-test test --ci
+        run: nf-test test --ci --debug
 
