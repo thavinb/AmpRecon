@@ -96,7 +96,7 @@ workflow VARIANTS_TO_GRCS {
             // Complexity of infection estimation
             /* grc_estimate_coi(grc_barcoding.out.barcoding_file) */
             //TODO 
-            rlibs_path = Channel.fromPath("/home/thavinb/AmpRecon/assets/R_libs")
+            rlibs_path = Channel.fromPath("${projectDir}/assets/R_libs")
             GRC_MCCOIL_INPUT(grc_barcoding.out.barcoding_file)
             GRC_RUN_MCCOIL(GRC_MCCOIL_INPUT.out.het, rlibs_path)
             GRC_PARSE_MCCOIL(GRC_RUN_MCCOIL.out.coi)
