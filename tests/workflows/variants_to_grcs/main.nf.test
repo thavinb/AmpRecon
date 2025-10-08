@@ -63,7 +63,9 @@ nextflow_workflow {
             assert workflow.out.grc.size() == 1
 			// md5 of current worflow
             def grc = workflow.out.grc.get(0)
-            assert path(grc).md5 == "3b93063657e8d0a04a4f789eeb2469f5"
+
+            // grc result contain abs path that vary on test env
+            // assert path(grc).md5 == "3b93063657e8d0a04a4f789eeb2469f5"
 
             // md5 of 148 essential columns from original pipeline
 			def subset_grc = WorkflowUtils.subsetColumns(grc, "${workDir}/subset_grc.tsv")            
