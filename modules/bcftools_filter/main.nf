@@ -32,7 +32,7 @@ process BCFTOOLS_FILTER {
         bcftools filter \
         --mode + \
         --soft-filter LowDepth \
-        --exclude FORMAT/DP\\<8 \
+        --exclude FMT/DP\\<8 \
         --output-type v \
         < ${input_bcf} \
         > "${intermediate_vcf}"
@@ -41,7 +41,7 @@ process BCFTOOLS_FILTER {
         bcftools filter \
         --mode + \
         --soft-filter LowQual \
-        --exclude '%QUAL<15 || MQ<20' \
+        --exclude 'QUAL<15 || MQ<20' \
         --output-type z \
         < "${intermediate_vcf}" \
         > "${prefix}.vcf.gz"

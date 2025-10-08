@@ -6,12 +6,12 @@ From: ubuntu:18.04
 %labels
 Maintainer Thomas Maddison
 Build 1.0
-Samtools 1.8
-BCFTools 1.8
+Samtools 1.22
+BCFTools 1.22
 BWA 0.7.17
 Python 3.6.5
 Biobambam2 2.0.79
-Bambi 0.11.1
+# Bambi 0.11.1
 Staden 1.14.9
 
 # set up environment
@@ -40,7 +40,7 @@ Staden 1.14.9
     DEBIAN_FRONTEND=noninteractive
     # Software version variables
     BIOBAMBAM2_VERSION=2.0.79-0
-    HTSLIB_VERSION=1.8 # also for samtools and bcftools
+    HTSLIB_VERSION=1.22 # also for samtools and bcftools
     BAMBI_VERSION=0.11.1
     BWA_VERSION=0.7.17
     STADEN_VERSION=1.14.9
@@ -81,7 +81,7 @@ Staden 1.14.9
     pip install s3cmd==${S3CMD_VERSION}
 
     # Setup HTSLib
-    wget -O "htslib.tar.gz" https://github.com/samtools/htslib/archive/${HTSLIB_VERSION}.tar.gz
+    wget -O "htslib.tar.gz" https://github.com/samtools/htslib/releases/download/${HTSLIB_VERSION}/htslib-${HTSLIB_VERSION}.tar.bz2
     tar -xf htslib.tar.gz
     cd htslib-${HTSLIB_VERSION}
     autoheader
@@ -95,24 +95,24 @@ Staden 1.14.9
 
     # --- | BAMBI | ------------------------------------------------------------------------------|
     # Retrieve and compile Bambi
-    git clone https://github.com/wtsi-npg/bambi.git
-    cd bambi/
-    git checkout ${BAMBI_VERSION}
-    autoreconf -i
-    ./configure
-    #fix Makefile.am
-    # 1) add a new CPP flag is add to set where htslib should be found (-I/usr/local/include/htslib/)
-    sed -i 's|AM_CPPFLAGS =.*|AM_CPPFLAGS = -I$(top_srcdir)/src $(HTSLIB_CPPFLAGS) -I/usr/local/include/htslib/ -std=gnu99 -Werror|g' Makefile.am
-    # 2) set library inks for libgd zlib and lhts 
-    sed -i 's|AM_LDFLAGS =.*|AM_LDFLAGS = -rdynamic $(HTSLIB_LDFLAGS) -lgd -lz -lhts|g' Makefile.am
+    #git clone https://github.com/wtsi-npg/bambi.git
+    #cd bambi/
+    #git checkout ${BAMBI_VERSION}
+    #autoreconf -i
+    #./configure
+    ##fix Makefile.am
+    ## 1) add a new CPP flag is add to set where htslib should be found (-I/usr/local/include/htslib/)
+    #sed -i 's|AM_CPPFLAGS =.*|AM_CPPFLAGS = -I$(top_srcdir)/src $(HTSLIB_CPPFLAGS) -I/usr/local/include/htslib/ -std=gnu99 -Werror|g' Makefile.am
+    ## 2) set library inks for libgd zlib and lhts 
+    #sed -i 's|AM_LDFLAGS =.*|AM_LDFLAGS = -rdynamic $(HTSLIB_LDFLAGS) -lgd -lz -lhts|g' Makefile.am
 
-    make
-    make install
+    #make
+    #make install
     
-    # --- | BCFTOOLS | ---------------------------------------------------------------------------|
+    --- | BCFTOOLS | ---------------------------------------------------------------------------|
     # Retrieve and compile BCFTools
     cd /app/
-    wget -O "bcftools.tar.gz" https://github.com/samtools/bcftools/archive/${HTSLIB_VERSION}.tar.gz
+    wget -O "bcftools.tar.gz" https://github.com/samtools/bcftools/releases/download/${HTSLIB_VERSION}/bcftools-${HTSLIB_VERSION}.tar.bz2
     tar xf bcftools.tar.gz
     cd bcftools-${HTSLIB_VERSION}
     autoheader
@@ -124,7 +124,7 @@ Staden 1.14.9
 
     # --- | SAMTOOLS | ---------------------------------------------------------------------------|
     # Retrieve and compile Samtools
-    wget -O "samtools.tar.gz" https://github.com/samtools/samtools/archive/${HTSLIB_VERSION}.tar.gz
+    wget -O "samtools.tar.gz" https://github.com/samtools/samtools/releases/download/${HTSLIB_VERSION}/samtools-${HTSLIB_VERSION}.tar.bz2
     tar xf samtools.tar.gz
     cd samtools-${HTSLIB_VERSION}
     autoheader
@@ -153,7 +153,16 @@ Staden 1.14.9
     make && make install
     cd /app/
 
+    # --- | FastQC | -----------------------------------------------------------------------------|
+    # Retrieve and compile Staden
 
+    # --- | MultiQC | -----------------------------------------------------------------------------|
+    # Retrieve and compile Staden
+    
+    
+    
+    
+    
     # Cleanup
     conda clean -y --all
     rm -fr htslib* samtools* bcf* bwa* *.tar.gz /opt/miniconda.sh /tmp/io_lib-${STADEN_VERSION}
