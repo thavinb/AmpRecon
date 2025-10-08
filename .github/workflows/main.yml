@@ -2,8 +2,6 @@ name: NF-Test CI
 
 on:
   push:
-    branches:
-      - GenRe.1
   pull_request:
 
 jobs:
@@ -14,21 +12,11 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up Java (required by Nextflow)
+      - name: Set up Java (Nextflow requirement)
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: 17
-
-      - name: Cache Nextflow and nf-test binaries
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.nextflow
-            ~/.nf-test
-          key: ${{ runner.os }}-nextflow-nftest-${{ hashFiles('**/*.config') }}
-          restore-keys: |
-            ${{ runner.os }}-nextflow-nftest-
 
       - name: Install Nextflow
         run: |
@@ -42,11 +30,3 @@ jobs:
 
       - name: Run nf-test
         run: nf-test test --ci
-
-      # optional: upload report artifact
-      - name: Upload nf-test report
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: nf-test-report
-          path: .nf-test/test-results/
