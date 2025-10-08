@@ -1,0 +1,52 @@
+name: NF-Test CI
+
+on:
+  push:
+    branches:
+      - GenRe.1
+  pull_request:
+
+jobs:
+  nf-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Java (required by Nextflow)
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Cache Nextflow and nf-test binaries
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.nextflow
+            ~/.nf-test
+          key: ${{ runner.os }}-nextflow-nftest-${{ hashFiles('**/*.config') }}
+          restore-keys: |
+            ${{ runner.os }}-nextflow-nftest-
+
+      - name: Install Nextflow
+        run: |
+          curl -s https://get.nextflow.io | bash
+          sudo mv nextflow /usr/local/bin/
+
+      - name: Install nf-test
+        run: |
+          curl -fsSL https://code.askimed.com/install/nf-test | bash
+          sudo mv nf-test /usr/local/bin/
+
+      - name: Run nf-test
+        run: nf-test test --ci
+
+      # optional: upload report artifact
+      - name: Upload nf-test report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: nf-test-report
+          path: .nf-test/test-results/
