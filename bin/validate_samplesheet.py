@@ -48,10 +48,8 @@ def load_dataframes(
         return df, pnl_df
     except FileNotFoundError as e:
         logging.error(f"A required file was not found - {e.filename}")
-        exit(1)
     except pd.errors.ParserError as e:
         logging.error(f"Failed to parse a file - {e}")
-        exit(1)
 
 def get_config(execution_mode: str) -> Tuple[List[str], Tuple, List[str]]:
     """
@@ -75,7 +73,6 @@ def get_config(execution_mode: str) -> Tuple[List[str], Tuple, List[str]]:
         return ["sample_id", "primer_panel", "fastq1_path", "fastq2_path"], ('.fastq', '.fq', '.fastq.gz', '.fq.gz'), ["fastq1_path", "fastq2_path"]
     else:
         logging.error(f"Unsupported execution mode '{execution_mode}'. Choose 'cram' or 'fastq'.")
-        exit(1)
 
 def validate_headers(
     df: pd.DataFrame,
@@ -127,7 +124,7 @@ def validate_file_formats(
             invalid_ext_list = invalid_ext_list.union(set(invalid_idx))
 
     if invalid_ext_list:
-        logging.error(f"{len(invalid_ext_list)} lines were found with invalid extentions in the manifest (i.e., {required_format}): {invalid_ext_list}")
+        logging.error(f"{len(invalid_ext_list)} line(s) were found with invalid extentions in the manifest (i.e., {required_format}): {invalid_ext_list}")
         return False
 
     return True
@@ -166,7 +163,7 @@ def validate_uniqueness(
     duplicated_pipe_ids = df[duplicated_bool]
 
     if not duplicated_pipe_ids.empty:
-        logging.error(f"{len(duplicated_pipe_ids)} lines in the manifest were found duplicated: {duplicated_pipe_ids.index}")
+        logging.error(f"{len(duplicated_pipe_ids)} lines in the manifest were found duplicated with: {duplicated_pipe_ids['internal_pipeline_id'].unique()}")
         return False
 
     return True
@@ -210,21 +207,22 @@ def main():
     required_panels = pnl_df["panel_name"].to_list()
 
     # Run all validation checks
-    if not validate_headers(df.copy(), required_headers):
+    if not validate_headers(df, required_headers):
+        # Stop process if wrong header
+        errors_found += 1
+        exit(1)
+    if not validate_file_formats(df, name_path_columns, required_format):
         errors_found += 1
 
-    if not validate_file_formats(df.copy(), name_path_columns, required_format):
+    if not validate_uniqueness(df, execution_mode):
         errors_found += 1
 
-    if not validate_uniqueness(df.copy(), execution_mode):
-        errors_found += 1
-
-    if not validate_primer_panels(df.copy(), required_panels):
+    if not validate_primer_panels(df, required_panels):
         errors_found += 1
 
     if errors_found > 0:
-        logging.error(f"{errors_found} errors found, please check the manifest and/or panel setting files")
-        exit(1)
+            logging.error(f"{errors_found} errors found, please check the manifest and/or panel setting files")
+            exit(1)
     logging.info(":: DONE ::")
 
 if __name__ == "__main__":
