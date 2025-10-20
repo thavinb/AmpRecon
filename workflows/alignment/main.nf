@@ -33,7 +33,7 @@ include { SAMTOOLS_SORT_INDEX } from '../../modules/samtools_sort_index/main'
 include { SAMTOOLS_FLAGSTATS  } from '../../modules/samtools_flagstats/main'
 include { SAMTOOLS_COVERAGE   } from '../../modules/samtools_coverage/main'
 
-/* include { READ_COUNTS } from './read_counts.nf' */
+include { READ_COUNTS } from '../reads_counts/main'
 /* include { bam_merge_and_index } from '../modules/bam_merge_and_index.nf' */
 /*
 This workflow takes fastq files and outputs vcfs
@@ -82,6 +82,7 @@ workflow ALIGNMENT {
 			
         // read counts
         // TODO: try exclude annotation_ch 
+        READ_COUNTS(SAMTOOLS_SORT_INDEX.out.bam)
         /* READ_COUNTS(ALIGNMENT.out, alignment_ref_ch, annotations_ch) */
 
         // -- | SET SAMPLE_TAG as channels keys | --
