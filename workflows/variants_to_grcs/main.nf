@@ -92,21 +92,19 @@ workflow VARIANTS_TO_GRCS {
 
         // Determine species
         grc_speciate(genotype_files_ch, grc_barcoding.out.barcoding_file)
-        if (params.DEBUG_no_coi == false){
-            // Complexity of infection estimation
-            /* grc_estimate_coi(grc_barcoding.out.barcoding_file) */
-            //TODO 
+
+        // Complexity of infection estimation
+        if (params.no_coi == false) {
+            // Load LibPaths 
             rlibs_path = Channel.fromPath("${projectDir}/assets/R_libs")
             GRC_MCCOIL_INPUT(grc_barcoding.out.barcoding_file)
             GRC_RUN_MCCOIL(GRC_MCCOIL_INPUT.out.het, rlibs_path)
             GRC_PARSE_MCCOIL(GRC_RUN_MCCOIL.out.coi)
-            /* coi_grc_ch = grc_estimate_coi.out */
             coi_grc_ch = GRC_PARSE_MCCOIL.out.coi
-        }
-
-        if (params.DEBUG_no_coi == true){
+        } else {
             coi_grc_ch = Channel.empty()
         }
+
         // Assemble drug resistance haplotypes and amino acid calls
         grc_amino_acid_caller(genotype_files_ch, drl_information_file, codon_key_file)
 
@@ -129,28 +127,6 @@ workflow VARIANTS_TO_GRCS {
         // Workflow output channel
         grc = GRC_ADD_METADATA.out
     
-        // upload final GRC and Genotype file to S3 bucket
-        /* if (params.upload_to_s3){ */
-        /*     grc */
-        /*         .concat(genotype_files_ch) */
-        /*         .set{output_to_s3} */
-        /*     upload_pipeline_output_to_s3(output_to_s3, "grc") */
-        /* } */
-
     emit:
         grc
-}
-
-workflow {
-    // Files required for GRC creation
-    Channel.fromPath(params.grc_settings_file_path, checkIfExists: true)
-    manifest_file = Channel.fromPath(params.manifest_path, checkIfExists: true)
-    lanelet_manifest_file = Channel.fromPath(params.lanelet_manifest_path, checkIfExists: true)
-    chrom_key_file = Channel.fromPath(params.chrom_key_file_path, checkIfExists: true)
-    kelch_reference_file = Channel.fromPath(params.kelch_reference_file_path, checkIfExists: true)
-    codon_key_file = Channel.fromPath(params.codon_key_file_path, checkIfExists: true)
-    drl_information_file = Channel.fromPath(params.drl_information_file_path, checkIfExists: true)
-
-    // Run GRC creation workflow
-    VARIANTS_TO_GRCS(manifest_file, lanelet_manifest_file, chrom_key_file, kelch_reference_file, codon_key_file, drl_information_file)
 }

@@ -119,7 +119,7 @@ workflow.onComplete {
 		log.info """
 			===========================================
 			Finished in ${workflow.duration}
-			See the report here ==> ${workflow.launchDir}/report.html
+			Results directory ==> ${params.results_dir}
 			"""
 			.stripIndent()
 	} else {

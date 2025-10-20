@@ -40,7 +40,7 @@ nextflow_workflow {
                 execution_mode  = "fastq"
                 batch_id        = "1000"
                 results_dir     = "${moduleTestDir}/fastq_mode/output"
-                DEBUG_no_coi    = true
+                no_coi          = true
             }
         }
 
@@ -80,7 +80,7 @@ nextflow_workflow {
                 execution_mode  = "cram"
                 batch_id        = "1000"
                 results_dir     = "${moduleTestDir}/cram_mode/output"
-                DEBUG_no_coi    = true
+                no_coi    = true
             }
         }
 

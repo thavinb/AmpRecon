@@ -30,7 +30,7 @@ workflow PIPELINE_INIT {
         validateInputParams()
 
         // Validate and create referecne channel
-        // tuple ( ref.fasta, snp )
+        // tuple ( panel_name, fasta, snps, dsgn_file )
         reference_ch = validateReferencePanels(params.panels_settings)
 
         if (params.execution_mode == "cram") {
@@ -54,7 +54,7 @@ workflow PIPELINE_INIT {
                             ]
                             def cram = resolvePath(row.cram_path)
                             tuple( row.primer_panel, meta, cram) }
-                        | combine( reference_ch, by:0 )
+                        | combine( reference_ch, by:0 ) // combine with ref by panel name
                         | map { it ->  groupPanelReference(it) }
                         | set { input_ch }
         }
@@ -62,7 +62,6 @@ workflow PIPELINE_INIT {
         if (params.execution_mode == "fastq") {
 
             // validate sample sheet
-
             VALIDATE_MANIFEST(
 				input,
 				params.panels_settings,
@@ -82,7 +81,7 @@ workflow PIPELINE_INIT {
                             def fq1 = resolvePath(row.fastq1_path)
                             def fq2 = resolvePath(row.fastq2_path)
                             tuple( row.primer_panel, meta, [fq1, fq2] ) }
-                        | combine( reference_ch, by:0 )
+                        | combine( reference_ch, by:0 ) // combine with ref by panel name
                         | map { it ->  groupPanelReference(it) }
                         | set { input_ch }
         }
@@ -146,12 +145,12 @@ def loggingInit(monochrome_logs) {
              --drl_information_file_path: ${params.drl_information_file_path}
              --no_plasmepsin            : ${params.no_plasmepsin}
              --no_kelch                 : ${params.no_kelch}
+             --no_coi                   : ${params.no_coi}
 
              (DEBUG):
              --DEBUG_tile_limit         : ${params.DEBUG_tile_limit}
              --DEBUG_takes_n_bams       : ${params.DEBUG_takes_n_bams}
-             --DEBUG_no_coi             : ${params.DEBUG_no_coi}
-            ------------------------------------------
+            -------------------------------------------
              Runtime data:
             -------------------------------------------
              Running with profile       : ${ANSI_GREEN}${workflow.profile}${ANSI_RESET}
@@ -261,7 +260,7 @@ def validateInputParams() {
     log.warn("[DEBUG] tile_limit was set to ${params.DEBUG_tile_limit}")
   }
 
-  if (params.DEBUG_no_coi == true){
+  if (params.no_coi){
     log.warn("[DEBUG] no_coi was set to ${params.DEBUG_no_coi}")
   }
   // -------------------------------------------
@@ -275,17 +274,17 @@ def validateInputParams() {
     }
   }
 
-  if ((params.DEBUG_no_coi == false) && (params.mccoil_repopath != "/app/THEREALMcCOIL/")){
-    mccoil_path = file(params.mccoil_repopath)
-    if (mccoil_path.exists() == false){
-      log.error("""
-      The mccoil_repopath provided (${mccoil_path}) does not exists.
-      This can happen if you do not use the containers provided or setup an invalid custom path.
-      Please provide a valid custom installation path of the McCOIL library.
-      """)
-      error+=1
-    }
-  }
+//   if ((params.no_coi == false) && (params.mccoil_repopath != "/app/THEREALMcCOIL/")){
+//     mccoil_path = file(params.mccoil_repopath)
+//     if (mccoil_path.exists() == false){
+//       log.error("""
+//       The mccoil_repopath provided (${mccoil_path}) does not exists.
+//       This can happen if you do not use the containers provided or setup an invalid custom path.
+//       Please provide a valid custom installation path of the McCOIL library.
+//       """)
+//       error+=1
+//     }
+//   }
 
   if (error > 0) {
     log.error("Parameter errors were found, the pipeline will not run")
@@ -425,8 +424,13 @@ def validateReferencePanels(panels_settings) {
                             } else {
                                 snp_path = row.snp_list
                             }
+                            if (row.design_file.startsWith("<ProjectDir>")){
+                                dsgn_path = addProjectDirAbsPathTo(row.design_file)
+                            } else {
+                                dsgn_path = row.design_file
+                            }
 
-                            tuple(row.panel_name, ref_path, snp_path)
+                            tuple(row.panel_name, ref_path, snp_path, dsgn_path)
                         }
     // gen annotations channel
     def annotations_ch = Channel.fromPath(panels_settings, checkIfExists: true)
@@ -448,8 +452,8 @@ def validateReferencePanels(panels_settings) {
 //
 
 def groupPanelReference(input) {
-	// Expect input of [primer_id, meta, input,fasta, snps]
-    def (meta, input_files, fasta, snps) = input[1..4]
+	// Expect input of [primer_id, meta, input, fasta, snps, dsgn]
+    def (meta, input_files, fasta, snps, dsgn) = input[1..5]
     reference_index_file_list = [".fai", ".amb", ".ann", ".bwt", ".pac", ".sa"]
     genome = [
         fasta: fasta,
@@ -462,7 +466,7 @@ def groupPanelReference(input) {
         dict: "${fasta}" + ".dict",
     ]
 
-    return [ meta + [ reference:genome, snps:snps ], input_files ]
+    return [ meta + [ reference:genome, snps:snps, dsgn:dsgn ], input_files ]
 
 }
 
