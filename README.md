@@ -86,7 +86,7 @@ Before you begin, ensure you have the following installed on a Linux-based opera
 - A container engine — either [Docker](https://docs.docker.com/engine/install/ubuntu/#installation-methods) or [Singularity](https://docs.sylabs.io/guides/3.5/user-guide/quick_start.html#quick-installation-steps) is highly recommended, as it simplifies management of software dependencies.
 
 > [!NOTE]
-> This versions aim to improves **portability and reproducibility** by relying on publicly available images from the [BioContainers](https://biocontainers.pro/) repository. The pipeline now also supports both **Docker** and **Singularity (Apptainer)** profiles for flexible execution in local and HPC environments.
+> This versions aim to improves **portability** by relying on publicly available images from the [BioContainers](https://biocontainers.pro/) repository. The pipeline now also supports both **Docker** and **Singularity (Apptainer)** profiles for flexible execution in local and HPC environments.
 
 1. Install [Nextflow](https://www.nextflow.io/docs/latest/install.html#self-install):
 
@@ -120,7 +120,7 @@ Before you begin, ensure you have the following installed on a Linux-based opera
    ```
 
    >[!NOTE]
-   If no container engine is available (or deliberately not to use any), every programs of an appropiate version needed to be callable on your local computer using the same command in what define containers (e.g. `python` as `python` not `python3`, `samtools coverage`). The versions tested for compatibility are listed below.
+   >If no container engine is available (or deliberately not to use any), every programs of an appropiate version needed to be callable on your local computer using the same command in what define in containers (e.g. `python` as `python` not `python3`, `samtools coverage`). The versions tested for compatibility are listed below.
 
 3. Download the Pipeline:
 
@@ -267,7 +267,7 @@ bmrc {
 }
 ```
 
-After adding the profile you can run using your custome profile name through `-profile`:
+After adding the profile you can run using your custom profile name through `-profile`:
 
 ```bash
 nextflow run main.nf \
