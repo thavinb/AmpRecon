@@ -25,6 +25,7 @@ nextflow_process {
 						[sample_id: "RCN0001", primer_panel: "PFA_GRC2", cram_path:"RCN0001_GRC2.cram"],
 						[sample_id: "RCN0001", primer_panel: "PFA_Spec", cram_path:"RCN0001_Spec.cram"]
 					])
+                batch_id = "test"
 			}
             process {
 
@@ -64,6 +65,7 @@ nextflow_process {
 						[sample_id: "RCN0001", primer_panel: "PFA_GRC2", fastq1_path:"RCN0001_GRC2_1.fq"      , fastq2_path: "RCN0001_GRC2_2.fq"],
 						[sample_id: "RCN0001", primer_panel: "PFA_Spec", fastq1_path:"RCN0001_Spec_1.fastq.gz", fastq2_path: "RCN0001_SPEC_2.fastq.gz"]
 					])
+                batch_id = "test"
 			}
             process {
 
@@ -103,6 +105,7 @@ nextflow_process {
 						[sample_id: "RCN0001", primer_panel: "PFA_GRC2", fastq1_path:"RCN0001_GRC2_1.fq"      , fastq2_path: "RCN0001_GRC2_2.fq"],
 						[sample_id: "RCN0001", primer_panel: "PFA_Spec", fastq1_path:"RCN0001_Spec_1.fastq.gz", fastq2_path: "RCN0001_SPEC_2.fastq.gz"]
 					])
+                batch_id = "test"
 			}
             process {
 
