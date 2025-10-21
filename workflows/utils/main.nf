@@ -261,7 +261,7 @@ def validateInputParams() {
   }
 
   if (params.no_coi){
-    log.warn("[DEBUG] no_coi was set to ${params.DEBUG_no_coi}")
+    log.warn("no_coi is enable. This will skip COI step...")
   }
   // -------------------------------------------
 
