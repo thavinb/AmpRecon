@@ -13,6 +13,7 @@ By default, AmpRecon is configured to process data from _P. falciparum_. However
 
 - [AmpRecon - GenRe.1](#amprecon---genre1)
   - [Quick-Start Guide](#quick-start-guide)
+    - [TLDR](#tldr)
   - [Installation](#installation)
     - [Prerequisites](#prerequisites)
     - [Software Dependencies](#software-dependencies)
@@ -76,6 +77,15 @@ AmpRecon - GenRe.1 is built and tested with Nextflow [version 22.04](https://git
     --manifest samplesheet.tsv 
    ```
 
+### TLDR
+
+   ```bash
+   nextflow run thavinb/AmpRecon \
+    --batch_id RUN00001          \ # define by user
+    --manifest samplesheet.tsv 
+   ```
+
+
 ## Installation
 
 ### Prerequisites
@@ -119,8 +129,8 @@ Before you begin, ensure you have the following installed on a Linux-based opera
      --manifest samplesheet.tsv
    ```
 
-   >[!NOTE]
-   >If no container engine is available (or deliberately not to use any), every programs of an appropiate version needed to be callable on your local computer using the same command in what define in containers (e.g. `python` as `python` not `python3`, `samtools coverage`). The versions tested for compatibility are listed below.
+   >[!IMPORTANT]
+   >If no container engine is available (or deliberately not to use any), you can run the pipeline using `-profile run_locally`. Please note that every programs of an appropiate version needed to be callable on your local computer using the same command in what define in containers (e.g. `python` as `python` not `python3`, `samtools coverage`). The versions tested for compatibility are listed below.
 
 3. Download the Pipeline:
 
@@ -146,6 +156,7 @@ If running locally, ensure the following tools and versions are available in you
 | Samtools          | 1.22    |
 | BCFtools          | 1.22    |
 | PyVCF             | 0.6.8   |
+| PySam             | 0.23.3  |
 | R Base            | 4.3.1   |
 
 ## Usage
