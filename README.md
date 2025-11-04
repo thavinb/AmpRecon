@@ -4,7 +4,7 @@ AmpRecon - GenRe.1 is a forked of the [genomic-surveillance/AmpRecon](https://gi
 
 AmpRecon is a bioinformatics analysis pipeline for analyzing amplicon sequencing data from the malaria parasite _Plasmodium falciparum_. The pipeline currently supports amplicon from three panels including GRC1, GRC2, and Spec. It takes paired-end short-reads `fastq` from each panel as input, align them to their respective reference panels, and performs varints calling to identify genetic variations.
 
-The primary output is a [Genetic Report Card (GRC)](https://www.malariagen.net/sites/default/files/GRC_UserGuide_10JAN19.pdf) in CSV format, which summarizes key genetic information for each sample. This including the detection of drug resistance genes (i.e. kelch and plasmepsin), nucleotide and amino acid barcode, and an estimation of complexity of infection (COI).
+The primary output is a [Genetic Report Card (GRC)](https://www.malariagen.net/wp-content/uploads/2023/10/GRC_UserGuide_July2023.pdf) in CSV format, which summarizes key genetic information for each sample. This including the detection of drug resistance genes (i.e. kelch and plasmepsin), nucleotide and amino acid barcode, and an estimation of complexity of infection (COI).
 
 By default, AmpRecon is configured to process data from _P. falciparum_. However, it can also be used to analyze _Plasmodium vivax_ data by using the provided [configuration file](#p-vivax-configuration-file).
 
@@ -22,6 +22,7 @@ By default, AmpRecon is configured to process data from _P. falciparum_. However
     - [Input Manifest](#input-manifest)
       - [FastQ Manifest](#fastq-manifest)
       - [CRAM Manifest](#cram-manifest)
+      - [Metadata](#metadata)
   - [Running on Computing Cluster](#running-on-computing-cluster)
     - [Containers Caching](#containers-caching)
     - [Specific Cluster Configuration](#specific-cluster-configuration)
@@ -66,14 +67,14 @@ AmpRecon - GenRe.1 is built and tested with Nextflow [version 22.04](https://git
    ```bash
    # If using docker
    nextflow run main.nf \
-    -profile docker \
+    -profile docker     \
     --batch_id RUN00001 \ # define by user
     --manifest samplesheet.tsv 
 
    # If using singularity
-   nextflow run main.nf \
+   nextflow run main.nf  \
     -profile singularity \
-    --batch_id RUN00001 \ # define by user
+    --batch_id RUN00001  \ # define by user
     --manifest samplesheet.tsv 
    ```
 
@@ -81,6 +82,7 @@ AmpRecon - GenRe.1 is built and tested with Nextflow [version 22.04](https://git
 
    ```bash
    nextflow run thavinb/AmpRecon \
+   # -profile docker             \ # If using docker
     --batch_id RUN00001          \ # define by user
     --manifest samplesheet.tsv 
    ```
@@ -129,9 +131,6 @@ Before you begin, ensure you have the following installed on a Linux-based opera
      --manifest samplesheet.tsv
    ```
 
-   >[!IMPORTANT]
-   >If no container engine is available (or deliberately not to use any), you can run the pipeline using `-profile run_locally`. Please note that every programs of an appropiate version needed to be callable on your local computer using the same command in what define in containers (e.g. `python` as `python` not `python3`, `samtools coverage`). The versions tested for compatibility are listed below.
-
 3. Download the Pipeline:
 
    Clone the repository to get the pipeline code on local system:
@@ -139,6 +138,9 @@ Before you begin, ensure you have the following installed on a Linux-based opera
    ```bash
    git clone https://github.com/thavinb/AmpRecon.git -b GenRe.1
    ```
+
+>[!IMPORTANT]
+>If no container engine is available (or deliberately not to use any), you can run the pipeline using `-profile run_locally`. Please note that every programs of an appropiate version needed to be callable on your local computer using the same command in what define in containers (e.g. `python` as `python` not `python3`, `samtools coverage`). The versions tested for compatibility are listed below.
 
 ### Software Dependencies
 
@@ -229,6 +231,21 @@ nextflow run main.nf \
   --batch_id RUN00001 \
   --manifest /path/to/samplesheet.tsv 
 ```  
+
+>[!NOTE]
+>**_Relative paths_** (i.e., `path/to/file.fastq`) are interpreted from the directory where you execute the pipeline. To ensure the pipeline can always find your files, regardless of where you run it from, please use the **_absolute path_** (i.e., `/home/user/path/to/file.fastq`).
+
+#### Metadata
+
+To include additional metadata in the pipeline results (e.g., Collection Site, Collection Date, etc.), you can add extra column(s) to the input manifest with headers of your choice. Ensure that the custom headers do not conflict with the required headers or [reserved result headers](https://www.malariagen.net/wp-content/uploads/2023/10/GRC_UserGuide_July2023.pdf).
+
+**Note:** In the current version, the pipeline only reads metadata from the last row it finds in the manifest for any given sample. While you technically only need to fill the last row, it is often simpler and safer to fill in the metadata for all rows for that sample.
+
+| sample_id | primer_panel | fastq1_path | fastq2_path | collection_site | collection_date |
+|-----------|--------------|-------------|-------------|-----------------|-----------------|
+|sample01   |PFA_GRC1_v1.0 |/path/to/sample01_grc1_R1.fastq.gz| /path/to/sample01_grc1_R2.fastq.gz | Site_A | 2025-01-15 |
+|sample01   |PFA_GRC2_v1.0 |/path/to/sample01_grc2_R1.fastq.gz| /path/to/sample01_grc2_R2.fastq.gz | Site_A | 2025-01-15 |
+|sample01   |PFA_Spec      |/path/to/sample01_spec_R1.fastq.gz| /path/to/sample01_spec_R2.fastq.gz | Site_A | 2025-01-15 |
 
 [**(&uarr;)**](#amprecon---genre1)
 
