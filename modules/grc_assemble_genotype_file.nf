@@ -22,7 +22,8 @@ process assemble_genotype_file {
         val(chrom_key_file)
 
     output:
-        path("${output_file_name}")
+        path("${output_file_name}"), emit: mnf
+        path("versions.yml"),        emit: versions
 
     script:
         output_file_name = "genotype_file.tsv"
@@ -42,5 +43,11 @@ process assemble_genotype_file {
             --min_total_depth "${min_depth}" \
             --het_min_allele_depth "${min_allele_depth}" \
             --het_min_allele_proportion "${min_allele_proportion}"
+
+        cat <<-END_VERSIONS > versions.yml
+        "${task.process}":
+            python: \$( python --version 2>&1 | cut -f2 -d ' ' )
+            pyvcf: \$( pip show PyVCF | grep Version| cut -f2 -d ' ')
+        END_VERSIONS
         """
 }

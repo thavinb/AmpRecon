@@ -67,9 +67,13 @@ workflow VARIANTS_TO_GRCS {
         drl_information_file
 
     main:
+
+        ch_versions = Channel.empty()
+
         // Write genotype file
         assemble_genotype_file(lanelet_manifest_file, chrom_key_file)
-        genotype_files_ch = assemble_genotype_file.out
+        ch_versions = ch_versions.mix(assemble_genotype_file.out.versions.first())
+        genotype_files_ch = assemble_genotype_file.out.mnf
         
         // Call mutations at Kelch13 loci
         if (params.no_kelch == false){
@@ -101,6 +105,7 @@ workflow VARIANTS_TO_GRCS {
             GRC_RUN_MCCOIL(GRC_MCCOIL_INPUT.out.het, rlibs_path)
             GRC_PARSE_MCCOIL(GRC_RUN_MCCOIL.out.coi)
             coi_grc_ch = GRC_PARSE_MCCOIL.out.coi
+            ch_versions = ch_versions.mix(GRC_RUN_MCCOIL.out.versions.first())
         } else {
             coi_grc_ch = Channel.empty()
         }
@@ -129,4 +134,5 @@ workflow VARIANTS_TO_GRCS {
     
     emit:
         grc
+        versions = ch_versions
 }

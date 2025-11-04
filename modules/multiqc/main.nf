@@ -9,6 +9,7 @@ process MULTIQC {
     path(multiqc_logo)
     path(replace_names)
     path(sample_names)
+    path versions, stageAs: "?/*"
 
     output:
     path "*multiqc_report.html", emit: report
@@ -28,6 +29,7 @@ process MULTIQC {
     def replace = replace_names ? "--replace-names ${replace_names}" : ''
     def samples = sample_names ? "--sample-names ${sample_names}" : ''
     """
+    cat */versions.yml > file_mqc_versions.yml
     multiqc \\
         --force \\
         $args \\

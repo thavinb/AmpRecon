@@ -54,7 +54,8 @@ process BCFTOOLS_FILTER {
 
         cat <<-EOF > versions.yml
         "${task.process}": 
-            bcftools: \$( bcftools --version | grep -E "^bcftools|^Using htslib" | tr '\\n' '\\t' | sed 's/bcftools //g'  )
+            bcftools: "\$( bcftools --version | grep -E '^bcftools' | cut -f2 -d ' ')"
+            htslib: "\$( bcftools --version | grep -E '^Using htslib' | cut -f 3 -d ' ')"
         EOF
         """
 }

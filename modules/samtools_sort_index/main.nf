@@ -32,7 +32,8 @@ process SAMTOOLS_SORT_INDEX {
 
         cat <<-EOF > versions.yml
         "${task.process}":
-            samtools: \$( samtools --version | grep -E "^samtools|^Using htslib" | tr '\\n' '\\t' | sed 's/samtools //g'  )
+            samtools: "\$( samtools --version | grep -E "^samtools" | cut -f2 -d ' '  )"
+            htslib: "\$( samtools --version | grep -E '^Using htslib' | cut -f 3 -d ' ')"
         EOF
         """
 }

@@ -53,7 +53,7 @@ workflow AMPRECON {
     ALIGNMENT(
         fastq_ch
     )
-    ch_versions = ch_versions.mix(ALIGNMENT.out.versions.first())
+    ch_versions = ch_versions.mix(ALIGNMENT.out.versions)
 	ch_multiqc_files = ch_multiqc_files.mix(ALIGNMENT.out.mqc)
 
     //
@@ -62,7 +62,7 @@ workflow AMPRECON {
     GENOTYPING(
         ALIGNMENT.out.bam
     )
-    ch_versions = ch_versions.mix(GENOTYPING.out.versions.first())
+    ch_versions = ch_versions.mix(GENOTYPING.out.versions)
 	ch_multiqc_files = ch_multiqc_files.mix(GENOTYPING.out.mqc)
 
     //
@@ -89,14 +89,16 @@ workflow AMPRECON {
         params.codon_key_file_path,
         params.drl_information_file_path
     )
+    ch_versions = ch_versions.mix(VARIANTS_TO_GRCS.out.versions)
 
 	MULTIQC(
 		ch_multiqc_files.collect(),
+		params.multiqc_config,
+		[],
+	    params.multiqc_logo,	
 		[],
 		[],
-		[],
-		[],
-		[]
+        ch_versions.collect()
 	)	
     // TODO:
     PIPELINE_COMPLETION()

@@ -36,23 +36,30 @@ process GRC_RUN_MCCOIL {
 
     output:
         path("*_summary.txt"), emit: coi
+        path("versions.yml") , emit: versions
 
     script:
         def input_suffix = "myRun" // this could be the run id (or any sequence batch identifier)
-    """
-    export R_LIBS="${R_libs}"
-    runMcCOIL.R \
-        -i ${het_data} \
-        --outPrefix ${input_suffix} \
-        --totalRun ${params.mccoil_ntotal} \
-        --totalBurnIn ${params.mccoil_nburnin} \
-        --seed ${params.mccoil_seed} \
-        --maxCOI ${params.mccoil_maxCOI} \
-        --M0 ${params.mccoil_m0} \
-        --maxMissTol ${params.mccoil_maxMissTol} \
-        --e1 ${params.mccoil_e1} \
-        --e2 ${params.mccoil_e2}
-    """
+        """
+        export R_LIBS="${R_libs}"
+        runMcCOIL.R \
+            -i ${het_data} \
+            --outPrefix ${input_suffix} \
+            --totalRun ${params.mccoil_ntotal} \
+            --totalBurnIn ${params.mccoil_nburnin} \
+            --seed ${params.mccoil_seed} \
+            --maxCOI ${params.mccoil_maxCOI} \
+            --M0 ${params.mccoil_m0} \
+            --maxMissTol ${params.mccoil_maxMissTol} \
+            --e1 ${params.mccoil_e1} \
+            --e2 ${params.mccoil_e2}
+
+        cat <<-EOF > versions.yml
+        "${task.process}":
+             rbase: \$( R --version | head -n1 | sed 's/R version //g' | cut -f1,2 -d ' ')
+             THEREALMcCOIL: "AMarinhoSN/THEREALMcCOIL (@3b41fb2)"
+        EOF
+        """
 }
 
 process GRC_PARSE_MCCOIL {
