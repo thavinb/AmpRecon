@@ -1,0 +1,299 @@
+this.path News
+
+CHANGES IN this.path 2.7.0 (2025-04-10):
+
+SIGNIFICANT USER-VISIBLE CHANGES:
+
+    * Previously defunct functions set.sys.path.jupyter() and
+      fileArgs() were removed entirely.
+
+    * path.join() now respects the declared encodings of its arguments
+      and appropriately marks the encodings of its output, similar to
+      paste().
+
+    * path.split() and path.unsplit() now respect the declared
+      encodings of their arguments and appropriately mark the encodings
+      of their outputs.
+
+NEW FEATURES:
+
+    * set.sys.path() now accepts argument 'delayed' indicating whether
+      the normalizing of the path should be delayed.
+
+    * make_fix_funs() now accepts argument 'delayed' indicating whether
+      the normalizing of 'file' should be delayed.
+
+CHANGES IN this.path 2.6.0 (2024-12-18):
+
+SIGNIFICANT USER-VISIBLE CHANGES:
+
+    * Previously defunct functions reset.this.proj(),
+      set.this.path.jupyter(), inside.source(), set.this.path(), and
+      unset.this.path() were removed entirely.
+
+NEW FEATURES:
+
+    * this.path() is now compatible with GUI 'Positron'.
+
+    * with_script_path() now accepts argument 'file' specifying the
+      pathname of the file.
+
+    * Added make_fix_funs(), an alias of path.functions().
+
+BUG FIXES:
+
+    * this.path(contents = TRUE) in 'Rgui' in which the source document
+      contains no text now returns character(0) instead of the
+      previously incorrect "".
+
+    * this.path() in 'RStudio' and 'VSCode' will now declare a "UTF-8"
+      file path encoding only on Windows.
+
+    * Improved detection of 'RStudio', no longer relying on environment
+      variable "RSTUDIO_SESSION_PID" which may be unset.
+
+CHANGES IN this.path 2.5.0 (2024-06-29):
+
+NEW FEATURES:
+
+    * progArgs() now accepts argument 'ifnotfound' specifying what to
+      do when no program arguments are found.
+
+BUG FIXES:
+
+    * this.path(original = TRUE) used inside a "gzfile", "bzfile",
+      "xzfile", or "fifo" connection will no longer return a "file://"
+      URL.
+
+    * this.path() once again works in 'Rgui' running in a Japanese or
+      Turkish locale.
+
+CHANGES IN this.path 2.4.0 (2024-02-16):
+
+SIGNIFICANT USER-VISIBLE CHANGES:
+
+    * with_init.file() now accepts a braced expression, the
+      sub-expressions of which are evaluated and auto-printed.
+
+NEW FEATURES:
+
+    * this.path() is now compatible with function utils::Sweave().
+
+    * this.path() is now compatible with background jobs in 'RStudio'.
+
+    * Added with_script_path() which sets the current script in
+      'package:box' to this.path(), then evaluates its argument, most
+      commonly a 'package:box' import statement.
+
+    * Added make_fix_file() which makes a function that constructs file
+      paths, starting with the project root of this.dir().
+
+DEPRECATED AND DEFUNCT:
+
+    * set.sys.path.jupyter() is defunct and should be replaced with
+      set.jupyter.path().
+
+    * fileArgs() is defunct and should be replaced with progArgs().
+
+BUG FIXES:
+
+    * this.path() now works correctly in the site-wide startup profile
+      file.
+
+    * this.path() now works correctly with source file aliases.
+
+    * Updated shFILE() to work better with older versions of R.
+
+    * Improved LINENO(), specifically sys.LINENO(), when comparing
+      paths to determine the appropriate source reference.
+
+    * this.proj() now throws an error that it does not work for URL
+      pathnames.
+
+    * Removed the restriction that reset.proj() could only be called
+      from a top level context.
+
+    * withArgs() will now be found anywhere on the stack as long as it
+      and the source()-like function are called in the same frame.
+
+      e.g. withArgs(try(source("./example.R")), 1, 2, 3) now works as
+      intended.
+
+    * Unified behaviour of is.main() across all GUIs.
+
+    * All promises are now braced, giving a more sensible call stack in
+      case of warnings / / errors.
+
+    * Namespaces loaded with requireNamespace() are now loaded quietly.
+
+CHANGES IN this.path 2.3.1 (2023-12-10):
+
+BUG FIXES:
+
+    * sys.srcref() now works when passed as a non-forced argument to a
+      function containing source references. By extension, this.path()
+      and LINENO() now work as well.
+
+CHANGES IN this.path 2.3.0 (2023-12-02):
+
+SIGNIFICANT USER-VISIBLE CHANGES:
+
+    * Previously defunct functions this.path2(), this.dir2(),
+      this.dir3(), and normalized.shFILE() were removed entirely.
+
+NEW FEATURES:
+
+    * this.path() is now compatible with GUI 'Emacs'.
+
+CHANGES IN this.path 2.2.0 (2023-10-29):
+
+SIGNIFICANT USER-VISIBLE CHANGES:
+
+    * Active bindings 'FILE' and 'LINE' have been converted to regular
+      bindings 'FILE()' and 'LINE()' after the unfortunate realization
+      that active binding functions are always evaluated in the global
+      environment.
+
+NEW FEATURES:
+
+    * this.path() works significantly better with source references.
+
+    * this.path() is now compatible with 'package:targets'.
+
+    * Added with_site.file() and with_init.file() that allow
+      this.path() to be used within the site-wide startup profile file
+      or a user profile.
+
+    * this.path(contents = TRUE) in 'Rgui' will now return the contents
+      of an unsaved document, or return the unsaved changes of a saved
+      document.
+
+    * Added set.gui.path() for implementing sys.path() for arbitrary
+      GUIs.
+
+CHANGES IN this.path 2.1.0 (2023-09-12):
+
+NEW FEATURES:
+
+    * this.path() is now compatible with function shiny::runApp().
+
+    * this.path() is now compatible with function plumber::plumb().
+
+    * Added tryCatch3() which accepts condition expressions instead of
+      condition handlers. Added active binding 'last.condition' which
+      will be the last thrown-and-caught condition in tryCatch3().
+
+    * When tryCatch2() and tryCatch3() catch a condition but the
+      respective handler / / expression is missing, the next
+      non-missing handler / / expression is used instead.
+
+BUG FIXES:
+
+    * set.env.path() and set.src.path() now return their input instead
+      of returning NULL.
+
+    * set.src.path() now accepts an expression vector containing a
+      source file.
+
+CHANGES IN this.path 2.0.0 (2023-08-08):
+
+SIGNIFICANT USER-VISIBLE CHANGES:
+
+    * this.path() was misleading users into believing it returns the
+      path of the script in which it is written. In actuality, it
+      returns the path of the executing script. As such, it was renamed
+      to sys.path() in accordance with the other call stack inspection
+      functions sys.call(), sys.frame(), sys.nframe(), and
+      sys.function(). Related functions that were renamed:
+
+              old                    new
+        [1,]  this.dir               sys.dir
+        [2,]  here                   sys.here
+        [3,]  this.proj              sys.proj
+        [4,]  rel2here               rel2sys.dir
+        [5,]  LINENO                 sys.LINENO
+        [6,]  try.this.path          try.sys.path
+        [7,]  set.this.path          set.sys.path
+        [8,]  unset.this.path        unset.sys.path
+        [9,]  set.this.path.jupyter  set.sys.path.jupyter
+
+      this.path() was replaced by a function that returns the path of
+      the script in which it is written. It does this by looking for a
+      source reference with an appropriate source file, or inspects the
+      environment in which it is called for an associated path, or
+      returns the path of the executing script, as before. Related
+      functions that were replaced:
+
+        [1]  this.dir   here        ici            this.proj
+        [5]  rel2here   LINENO      try.this.path  check.path
+        [9]  check.dir  check.proj
+
+NEW FEATURES:
+
+    * Added env.path() for determining the path associated with the top
+      level environment. Also added env.dir(), env.here(), env.proj(),
+      rel2env.dir(), env.LINENO(), and try.env.path().
+
+    * Added src.path() for determining the path associated with its
+      source reference. Also added src.dir(), src.here(), src.proj(),
+      rel2src.dir(), src.LINENO(), and try.src.path().
+
+    * Added set.env.path() and set.src.path() to work along side
+      set.sys.path().
+
+    * this.path() now accepts arguments 'n', 'envir', 'matchThisEnv',
+      and 'srcfile' to finely control how the path will be retrieved.
+
+    * Added rel2proj() for turning absolute paths into relative paths
+      against the script's project root. Also added rel2sys.proj(),
+      rel2env.proj(), and rel2src.proj().
+
+    * set.sys.path() now accepts argument 'ofile' specifying the
+      original file argument. This overwrites the value returned by
+      sys.path(original = TRUE).
+
+    * Added active bindings 'FILE' and 'LINE' linking to
+      try.this.path() and LINENO() to be used in a similar manner to
+      the macros '__FILE__' and '__LINE__' in C.
+
+    * Added path.functions() which accepts a file path and constructs a
+      set of path-related functions, similar to this.path() and
+      associated.
+
+DEPRECATED AND DEFUNCT:
+
+    * inside.source() and set.this.path() are defunct and should be
+      replaced with set.sys.path().
+
+    * unset.this.path() is defunct and should be replaced with
+      unset.sys.path().
+
+    * set.this.path.jupyter() is defunct and should be replaced with
+      set.sys.path.jupyter().
+
+    * reset.this.proj() is defunct and should be replaced with
+      reset.proj().
+
+BUG FIXES:
+
+    * Fixed display issues in LaTeX and plain text documentation.
+
+    * reset.proj() now has environment
+      <environment: namespace:this.path> as do all other exported
+      functions.
+
+    * Fixed sys.path(contents = TRUE) in 'RStudio' and 'VSCode' having
+      a trailing blank string.
+
+    * Fixed sys.path(contents = TRUE) in 'Jupyter' if the executing
+      script had yet to be determined.
+
+    * Fixed sys.path(original = NA) in 'RStudio', 'VSCode', and
+      'Jupyter' saying 'missing value where TRUE/FALSE needed'.
+
+    * Fixed relpath() on Windows when comparing paths with network
+      shares.
+
+    * Fixed 'package:this.path' used in the site-wide startup profile
+      file, a user profile, or the function .First() on Windows in
+      'RStudio'.

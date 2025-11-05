@@ -1,0 +1,153 @@
+##------------------------------
+## Boiler Plate
+##------------------------------
+
+subtitle: "AmpRecon Statistics Report"
+intro_text: ""
+report_comment: "For the analysis results, please see a Genetic Report Card (GRC) under the grc folder in the output directory"
+
+# show_analysis_paths: False
+show_analysis_time: True
+
+custom_logo_url: "https://genremekong.org/"
+custom_logo_title: "GenRe-Mekong"
+
+report_header_info:
+  - Pipeline: "AmpRecon"
+  - version:  "1.40 - GenRe.1"
+
+##------------------------------
+## Unit
+##------------------------------
+
+read_count_multiplier: 0.001
+read_count_prefix: "K"
+read_count_desc: "thousands"
+
+##------------------------------
+## Samples Config
+##------------------------------
+
+# multiqc_config.yaml
+
+# Turn on regex matching
+highlight_patterns:
+  - "PFA_GRC1_v1.0"
+  - "PFA_GRC2_v1.0"
+  - "PFA_Spec"
+highlight_colors:
+  - "#0d1b2a"
+  - "#2a6f97"
+  - "#87986a"
+highlight_regex: false
+
+
+# Merge Sameples
+table_sample_merge:
+  "R1": _1
+  "R2": _2
+  "cov": .coverage
+
+# Group samples button by panels
+show_hide_buttons:
+  - GRC1
+  - GRC2
+  - SPEC
+show_hide_mode:
+  - show
+  - show
+  - show
+show_hide_patterns:
+  - _PFA_GRC1_v1.0
+  - _PFA_GRC2_v1.0
+  - _PFA_Spec
+
+
+##------------------------------
+## Section Config
+##------------------------------
+
+# section_comments:
+#   fastqc: ""
+#   samtools: ""
+#   bcftools: ""
+
+remove_sections:
+  - fastqc_per_base_sequence_content
+  - fastqc_per_sequence_gc_content
+  - fastqc_per_base_n_content
+  - fastqc_sequence_length_distribution
+  - fastqc_sequence_duplication_levels
+  - fastqc_overrepresented_sequences
+  - fastqc_top_overrepresented_sequences
+  - fastqc_status_checks
+  - fastqc_adapter_content
+  - samtools-flagstat-pct
+  - bcftools-stats_variant_quality_plot
+  - bcftools-stats_indel_plot
+
+# Section order
+report_section_order:
+  fastqc:
+    order: 1000 
+  samtools:
+    order: 900
+  bcftools:
+    order: 800
+
+##------------------------------
+## General Stats Config
+##------------------------------
+    
+# Select and rename header
+custom_table_header_config:
+  general_stats_table:
+    total_sequences:
+      title: "Total Reads"
+      description: "Number of reads count in FastQ"
+      hidden: false
+    percent_gc:
+      title: "%GC"
+      description: "Percent of GC content"
+      hidden: false
+    percent_duplicates:
+      hidden: true
+    mapped_passed:
+      title: "Reads mapped"
+      description: "Reads mapped from samtools flagstat"
+      hidden: false
+    mapped_passed_pct:
+      title: "%Mapped"
+      description: "Percent Reads mapped from samtools flagstat"
+      hidden: false
+    meandepth:
+      title: "Mean depth"
+      description: "Mean depth of coverage"
+      hidden: false
+    number_of_SNPs:
+      title: "Total SNPs"
+      description: "Number of SNPs counts"
+      hidden: false
+    number_of_multiallelic_SNP_sites:
+      title: "Total mSNPs"
+      description: "Number of multiallelic SNPs count"
+      hidden: false
+    number_of_indels:
+      hidden: true
+    number_of_records:
+      hidden: true
+    tstv:
+      hidden: true
+
+# column order
+table_columns_placement:
+  general_stats_table:
+    total_sequences: 100
+    percent_gc: 110
+    mapped_passed: 200
+    mapped_passed_pct: 210
+    meandepth: 220
+    number_of_SNPs: 300
+    number_of_multiallelic_SNP_sites: 310
+
+disable_version_detection: true

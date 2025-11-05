@@ -1,0 +1,220 @@
+useDynLib(this.path, .registration = TRUE, .fixes = ".C_")
+
+
+## backports.R     ----
+
+
+if (getRversion() < "3.0.0") {
+    export(.mapply)
+    export(list.files)
+    export(parse)
+}
+
+
+if (getRversion() < "3.1.0") {
+    export(anyNA)
+    export(anyNA.data.frame)
+    export(anyNA.numeric_version)
+    export(anyNA.POSIXlt)
+    S3method(anyNA, data.frame)
+    S3method(anyNA, numeric_version)
+    S3method(anyNA, POSIXlt)
+    S3method(anyNA, default, .anyNA.default)
+}
+
+
+if (getRversion() < "3.2.0") {
+    export(isNamespaceLoaded)
+    export(dir.exists)
+    export(file.copy)
+    export(lengths)
+    S3method(lengths, default, .lengths.default)
+    export(file.info)
+    export(file.mtime)
+    export(file.size)
+}
+
+
+if (getRversion() < "3.3.0") {
+    export(strrep)
+    export(startsWith)
+    export(endsWith)
+}
+
+
+if (getRversion() < "3.4.0") {
+    export(print.connection)
+    S3method(print, connection)
+    export(withAutoprint)
+}
+
+
+if (getRversion() < "3.5.0") {
+    export(...length)
+    export(isTRUE)
+    export(isFALSE)
+}
+
+
+if (getRversion() < "3.6.0") {
+    export(errorCondition)
+    export(str2expression)
+    export(str2lang)
+    export(Sys.setFileTime)
+}
+
+
+if (getRversion() < "4.0.0") {
+    export(deparse1)
+    export(unlink)
+}
+
+
+if (getRversion() < "4.1.0") {
+    export(...elt)
+    export(bquote)
+}
+
+
+if (getRversion() < "4.2.0") {
+    export(gettext)
+    export(gettextf)
+}
+
+
+## checkpath.R     ----
+
+
+export(check.path, check.dir , check.proj)
+
+
+## defunct.R       ----
+
+
+## enhances.R      ----
+
+
+export(with_script_path, make_fix_file   )
+
+
+## error.R         ----
+
+
+export(thisPathNotExistsError, thisPathNotFoundError , tryCatch2             ,
+       last.condition        , tryCatch3             )
+
+
+## files.R         ----
+
+
+export(basename2   , dirname2    , splitext    , removeext   ,
+       ext         , "ext<-"     , path.join   , path.split  ,
+       path.split.1, path.unsplit)
+
+
+## ismain.R        ----
+
+
+export(is.main   , from.shell)
+
+
+## lineno.R        ----
+
+
+export(sys.LINENO, env.LINENO, src.LINENO, LINENO    , LINE      )
+
+
+## make_fix_funs.R ----
+
+
+export(path.functions, make_fix_funs)
+
+
+## ns-hooks.R      ----
+
+
+export(OS.type)
+
+
+## print.R         ----
+
+
+S3method(print       , ThisPathDocumentContext)
+S3method(format      , ThisPathDocumentContext)
+S3method(as.character, ThisPathDocumentContext)
+
+
+## progargs.R      ----
+
+
+export(asArgs  , progArgs, withArgs)
+
+
+## promises.R      ----
+
+
+export(initwd   , getinitwd)
+
+
+## relpath.R       ----
+
+
+export(relpath     , rel2sys.dir , rel2sys.proj, rel2env.dir ,
+       rel2env.proj, rel2src.dir , rel2src.proj, rel2here    ,
+       rel2proj    )
+
+
+## rprojroot.R     ----
+
+
+export(sys.proj  , env.proj  , src.proj  , this.proj , reset.proj)
+
+
+## setsyspath.R    ----
+
+
+export(wrap.source          , set.sys.path         , unset.sys.path       ,
+       set.env.path         , set.src.path         , set.sys.path.function,
+       with_sys.path        )
+
+
+## shfile.R        ----
+
+
+export(shFILE    , try.shFILE)
+
+
+## startup.R       ----
+
+
+export(site.file     , init.file     , with_site.file, with_init.file)
+
+
+## sys.R           ----
+
+
+export(sys.srcref , sys.whiches)
+
+
+## sysputenv.R     ----
+
+
+export(Sys.putenv)
+
+
+## thispath.R      ----
+
+
+export(set.jupyter.path, set.gui.path    , sys.path        ,
+       sys.dir         , env.path        , env.dir         ,
+       src.path        , src.dir         , this.path       ,
+       this.dir        , sys.here        , env.here        ,
+       src.here        , here            , ici             ,
+       try.sys.path    , try.env.path    , try.src.path    ,
+       try.this.path   , FILE            )
+
+
+## utils.R         ----
+
+
+export(source.exprs)

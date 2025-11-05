@@ -2,9 +2,9 @@
 
 params.grc_name = params.batch_id + "_GRC.txt"
 
-process grc_add_metadata {
-    publishDir "${params.results_dir}/grc/", overwrite: true, mode: "copy"
+process GRC_ADD_METADATA {
 
+    label "py_pandas"
     label "grc_tools"
     input:
         path(manifest_file)

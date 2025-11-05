@@ -1,9 +1,6 @@
 # Ignore nextflow generated files
-ampseq-NF-pipeline/.nextflow*
-ampseq-NF-pipeline/work
 *.nextflow*
 *MANIFEST*
-*index*
 *LOCK*
 *.log
 *.sif
@@ -12,8 +9,12 @@ __init*
 .DS_Store
 .idea*
 sandbox/*
-ampseq-NF-pipeline/*
 work/*
 output/*
 *.img
 *.pyc
+.nf-test/*
+trace-*
+archives/*
+tests/test_data/*
+tests/*_result*/*

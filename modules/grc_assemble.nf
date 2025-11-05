@@ -3,6 +3,7 @@
 params.grc_intermediate_name = "GRC.intermediate.tsv"
 
 process grc_assemble {
+    label "py_pandas"
     label "grc_tools"
     input:
         path(grc_components_list)

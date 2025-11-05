@@ -1,0 +1,33 @@
+Package: this.path
+Version: 2.7.0
+Date: 2025-04-10
+License: MIT + file LICENSE
+Title: Get Executing Script's Path
+Description: Determine the path of the executing script. Compatible
+        with several popular GUIs: 'Rgui', 'RStudio', 'Positron',
+        'VSCode', 'Jupyter', 'Emacs', and 'Rscript' (shell). Compatible
+        with several functions and packages: 'source()',
+        'sys.source()', 'debugSource()' in 'RStudio',
+        'compiler::loadcmp()', 'utils::Sweave()', 'box::use()',
+        'knitr::knit()', 'plumber::plumb()', 'shiny::runApp()',
+        'package:targets', and 'testthat::source_file()'.
+Authors@R: person(given = "Iris",
+                  family = "Simmons",
+                  role = c("aut", "cre"),
+                  email = "ikwsimmo@gmail.com")
+Author: Iris Simmons [aut, cre]
+Maintainer: Iris Simmons <ikwsimmo@gmail.com>
+Depends: R (>= 2.15)
+Suggests: utils, jsonlite, microbenchmark, rprojroot
+Enhances: compiler, box, knitr, plumber, shiny, targets, testthat
+URL: https://github.com/ArcadeAntics/this.path
+BugReports: https://github.com/ArcadeAntics/this.path/issues
+ByteCompile: TRUE
+Biarch: TRUE
+BuildManual: TRUE
+Type: Package
+NeedsCompilation: yes
+Packaged: 2025-04-10 04:12:43 UTC; iris
+Repository: CRAN
+Date/Publication: 2025-04-10 08:50:02 UTC
+Built: R 4.3.1; x86_64-conda-linux-gnu; 2025-09-30 06:17:11 UTC; unix
