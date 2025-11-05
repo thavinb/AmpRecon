@@ -43,7 +43,7 @@ AmpRecon - GenRe.1 is built and tested with Nextflow [version 22.04](https://git
 1. Clone the repository:
 
    ```bash
-   git clone https://github.com/thavinb/AmpRecon.git -b GenRe.1
+   git clone https://github.com/thavinb/AmpRecon.git
    cd AmpRecon
    ```
 
@@ -136,7 +136,7 @@ Before you begin, ensure you have the following installed on a Linux-based opera
    Clone the repository to get the pipeline code on local system:
 
    ```bash
-   git clone https://github.com/thavinb/AmpRecon.git -b GenRe.1
+   git clone https://github.com/thavinb/AmpRecon.git
    ```
 
 >[!IMPORTANT]
@@ -268,7 +268,7 @@ cd containers
 
 ### Specific Cluster Configuration
 
-Nextflow must be explicitly told which executor to use for submitting tasks (e.g., `slurm`). This can be achieved by setting an executor in the profiles configuration. It is recommend to add an additional `profile` in `conf/profiles.config` to avoid altering any standard profile behavior. For more available options on executer and process, see the [Nextflow documentation](https://www.nextflow.io/docs/latest/config.html#config-profiles).
+To run of computing cluster, `Nextflow` must be explicitly told which executor to use for submitting tasks (e.g., `slurm`, `sge`). Otherwise, all the jobs will be run locally where the pipeline is executed. This can be achieved by setting an executor in the profiles configuration. It is recommend to add an additional `profile` in `conf/profiles.config` to avoid altering any standard profile behavior. For more available options on executer and process, see the [Nextflow documentation](https://www.nextflow.io/docs/latest/config.html#config-profiles).
 
 The following is an example profile for running on the BMRC Cluster:
 
