@@ -6,6 +6,7 @@ process SAMTOOLS_FLAGSTATS {
     */
     tag "${meta.uuid}"
     label 'samtools'
+    errorStrategy 'ignore'
 
     input:
         tuple val(meta), path(bam), path(bai)
@@ -17,7 +18,11 @@ process SAMTOOLS_FLAGSTATS {
     script:
         def prefix   = "${meta.uuid}"
         """
-        samtools flagstats ${bam} > ${prefix}.flagstats
+        if samtools flagstats  > /dev/null 2>&1; then
+            samtools flagstats ${bam} > ${prefix}.flagstats
+        else
+            samtools flagstat ${bam} > ${prefix}.flagstats
+        fi
 
         cat <<-EOF > versions.yml
         "${task.process}":
