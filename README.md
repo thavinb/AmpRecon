@@ -144,8 +144,9 @@ Before you begin, ensure you have the following installed on a Linux-based opera
 
 ### Software Dependencies
 
-When using Docker or Singularity, all dependencies are automatically managed.
-If running locally, ensure the following tools and versions are available in your environment:
+AmpRecon pipeline has been extensively tested and is designed to run within a containerized environment (e.g., `Docker` or `Singularity`). The container environment provides the portability of the exact same software environment, regardless of the underlying hardware it runs on, which, in turn, should ensures the reproducibility of the pipeline.
+
+The following table lists the key software versions included in the tested container image:
 
 | Software          | Version |
 | ----------------- | ------- |
@@ -155,11 +156,13 @@ If running locally, ensure the following tools and versions are available in you
 | FastQC            | 0.12.1  |
 | MultiQC           | 1.27    |
 | BWA               | 0.7.17  |
-| Samtools          | 1.22    |
-| BCFtools          | 1.22    |
+| Samtools          | 1.8     |
+| BCFtools          | 1.8     |
 | PyVCF             | 0.6.8   |
 | PySam             | 0.23.3  |
 | R Base            | 4.3.1   |
+
+⚠️If you must run the pipeline using **locally installed softwares** instead of the container, please ensure that your local versions exactly match those listed in the table above.
 
 ## Usage
 
